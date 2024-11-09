@@ -1,41 +1,219 @@
-# :package_description
+# Color Palette Extractor - PHP
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![Tests](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions/workflows/run-tests.yml)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
----
-This package can be used as to scaffold a framework agnostic package. Follow these steps to get started:
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/farzai/color-palette.svg?style=flat-square)](https://packagist.org/packages/farzai/color-palette)
+[![Tests](https://img.shields.io/github/actions/workflow/status/parsilver/color-palette-php/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/parsilver/color-palette-php/actions/workflows/run-tests.yml)
+[![Total Downloads](https://img.shields.io/packagist/dt/farzai/color-palette.svg?style=flat-square)](https://packagist.org/packages/farzai/color-palette)
 
-1. Press the "Use template" button at the top of this repo to create a new repo with the contents of this skeleton
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files
-3. Have fun creating your package.
-4. If you need help creating a package, consider picking up our <a href="https://laravelpackage.training">Laravel Package Training</a> video course.
----
-<!--/delete-->
-This is where your description should go. Try and limit it to a paragraph or two. Consider adding a small example.
+A powerful PHP library for extracting and generating color palettes from images, with support for theme generation and color manipulation. Perfect for creating cohesive color schemes for websites and applications.
 
-## Support us
+![Screenshot](./example/output.png)
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/:package_name.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/:package_name)
+## Features
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
+- Extract dominant colors from images (JPEG, PNG, GIF, WebP)
+- Generate harmonious color palettes
+- Support for both GD and Imagick image processing
+- Load images from URLs or local files
+- Create responsive color themes for web applications
+- Calculate color contrast and accessibility metrics
+- Suggest text colors for optimal readability
+- Generate surface colors for UI components
 
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+## Requirements
+
+- PHP 8.1 or higher
+- GD extension or ImageMagick extension
+- JSON extension
 
 ## Installation
 
 You can install the package via composer:
 
 ```bash
-composer require :vendor_slug/:package_slug
+composer require farzai/color-palette
 ```
 
-## Usage
+## Basic Usage
+
+### 1. Extract Colors from Image
 
 ```php
-$skeleton = new VendorName\Skeleton();
-echo $skeleton->echoPhrase('Hello, VendorName!');
+use Farzai\ColorPalette\ImageLoaderFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
+
+// Create image loader
+$loader = ImageLoaderFactory::create();
+
+// Load image
+$image = $loader->load('path/to/image.jpg');
+
+// Extract colors
+$extractor = ColorExtractorFactory::createForImage($image);
+$palette = $extractor->extract($image, 5); // Extract 5 dominant colors
+
+// Get colors
+$colors = $palette->getColors();
+foreach ($colors as $color) {
+    echo $color->toHex() . "\n";
+}
+```
+
+### 2. Generate Theme
+
+```php
+use Farzai\ColorPalette\ThemeGenerator;
+
+$generator = new ThemeGenerator();
+$theme = $generator->generate($palette);
+
+// Get theme colors
+$themeColors = $theme->toArray();
+
+```
+
+### 3. HTML/CSS Implementation Example
+
+```php
+use Farzai\ColorPalette\Theme;
+use Farzai\ColorPalette\Color;
+
+// Create a theme from predefined colors
+$theme = Theme::fromHexColors([
+    'primary' => '#2196f3',
+    'secondary' => '#64b5f6',
+    'accent' => '#2979ff',
+    'background' => '#ffffff',
+    'surface' => '#f5f5f5'
+]);
+
+$colors = $theme->toArray();
+```
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root {
+            --primary: <?php echo $colors['primary']; ?>;
+            --secondary: <?php echo $colors['secondary']; ?>;
+            --accent: <?php echo $colors['accent']; ?>;
+            --background: <?php echo $colors['background']; ?>;
+            --surface: <?php echo $colors['surface']; ?>;
+            --on-primary: <?php echo $colors['on_primary']; ?>;
+            --on-secondary: <?php echo $colors['on_secondary']; ?>;
+            --on-background: <?php echo $colors['on_background']; ?>;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--on-background);
+        }
+
+        .button-primary {
+            background-color: var(--primary);
+            color: var(--on-primary);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .card {
+            background-color: var(--surface);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .accent-text {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Color Palette Demo</h1>
+        <p class="accent-text">This is an accent colored text</p>
+        <button class="button-primary">Primary Button</button>
+    </div>
+</body>
+</html>
+```
+
+
+## Advanced Usage
+
+### 1. Working with Color Lists
+
+```php
+use Farzai\ColorPalette\ColorPalette;
+
+// Create a palette from hex colors
+$palette = ColorPalette::fromHexColors([
+    '#2196f3',
+    '#64b5f6',
+    '#2979ff',
+    '#ffffff',
+    '#f5f5f5'
+]);
+
+// Get suggested text colors
+$backgroundColor = $palette->getColors()[0];
+$textColor = $palette->getSuggestedTextColor($backgroundColor);
+```
+
+### 2. Loading images from URL
+
+```php
+$loader = ImageLoaderFactory::create();
+$image = $loader->load('https://example.com/image.jpg');
+```
+
+
+### 3. Creating Monochromatic Theme
+
+```php
+use Farzai\ColorPalette\Theme;
+use Farzai\ColorPalette\Color;
+
+// Create a theme from a single color
+$baseColor = Color::fromHex('#2196f3');
+$theme = Theme::createMonochromatic($baseColor);
+```
+
+### 4. Custom Image Processing
+
+```php
+use Farzai\ColorPalette\Images\GdImage;
+use Farzai\ColorPalette\Images\ImagickImage;
+
+// Using GD
+$gdImage = GdImage::createFromPath('path/to/image.jpg');
+
+// Using Imagick
+$imagickImage = ImagickImage::createFromPath('path/to/image.jpg');
+```
+
+
+## Error Handling
+
+We will throw specific exceptions that you should handle:
+
+```php
+use Farzai\ColorPalette\Exceptions\ImageLoadException;
+use Farzai\ColorPalette\Exceptions\ImageException;
+
+try {
+    $image = $loader->load('path/to/image.jpg');
+    $palette = $extractor->extract($image);
+} catch (ImageLoadException $e) {
+    // Handle image loading errors
+    error_log("Failed to load image: " . $e->getMessage());
+} catch (ImageException $e) {
+    // Handle general image processing errors
+    error_log("Image processing error: " . $e->getMessage());
+}
 ```
 
 ## Testing
@@ -50,7 +228,7 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Contributing
 
-Please see [CONTRIBUTING](https://github.com/spatie/.github/blob/main/CONTRIBUTING.md) for details.
+Please see [CONTRIBUTING](https://github.com/parsilver/.github/blob/main/CONTRIBUTING.md) for details.
 
 ## Security Vulnerabilities
 
@@ -58,7 +236,7 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [:author_name](https://github.com/:author_username)
+- [parsilver](https://github.com/parsilver)
 - [All Contributors](../../contributors)
 
 ## License
