@@ -9,6 +9,4 @@ use Exception;
 /**
  * Exception for image loading errors
  */
-class ImageLoadException extends Exception
-{
-}
+class ImageLoadException extends Exception {}

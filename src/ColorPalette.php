@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
-use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 use Farzai\ColorPalette\Contracts\ColorInterface;
+use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 
 class ColorPalette implements ColorPaletteInterface
 {
@@ -17,11 +17,11 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Create a new ColorPalette instance
      *
-     * @param array<int, ColorInterface> $colors
+     * @param  array<int, ColorInterface>  $colors
      */
     public function __construct(array $colors)
     {
-        $this->colors = array_values(array_filter($colors, fn($color) => $color instanceof ColorInterface));
+        $this->colors = array_values(array_filter($colors, fn ($color) => $color instanceof ColorInterface));
     }
 
     /**
@@ -41,7 +41,7 @@ class ColorPalette implements ColorPaletteInterface
         // For best readability, we'll aim for a contrast ratio of at least 4.5:1
         $lightColor = new Color(255, 255, 255); // White
         $darkColor = new Color(0, 0, 0);        // Black
-        
+
         $lightContrast = $backgroundColor->getContrastRatio($lightColor);
         $darkContrast = $backgroundColor->getContrastRatio($darkColor);
 
@@ -61,8 +61,7 @@ class ColorPalette implements ColorPaletteInterface
         $baseColors = $this->colors;
 
         // Sort colors by brightness for better surface color selection
-        usort($baseColors, fn(ColorInterface $a, ColorInterface $b) => 
-            $b->getBrightness() <=> $a->getBrightness()
+        usort($baseColors, fn (ColorInterface $a, ColorInterface $b) => $b->getBrightness() <=> $a->getBrightness()
         );
 
         // Primary surface color (usually the lightest color)
@@ -91,8 +90,7 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Find a suitable accent color from the palette
      *
-     * @param array<ColorInterface> $colors
-     * @return ColorInterface
+     * @param  array<ColorInterface>  $colors
      */
     private function findAccentColor(array $colors): ColorInterface
     {
@@ -100,7 +98,7 @@ class ColorPalette implements ColorPaletteInterface
         foreach ($colors as $color) {
             $lightContrast = $color->getContrastRatio(new Color(255, 255, 255));
             $darkContrast = $color->getContrastRatio(new Color(0, 0, 0));
-            
+
             // Look for colors that have decent contrast with both light and dark
             if ($lightContrast >= 3.0 && $darkContrast >= 3.0) {
                 return $color;
@@ -109,15 +107,14 @@ class ColorPalette implements ColorPaletteInterface
 
         // If no ideal accent color is found, use the middle color from the palette
         $middleIndex = (int) floor(count($colors) / 2);
+
         return $colors[$middleIndex];
     }
 
     /**
      * Create a variant of a color by adjusting its brightness
      *
-     * @param ColorInterface $color
-     * @param int $adjustment Percentage to adjust brightness (-100 to 100)
-     * @return ColorInterface
+     * @param  int  $adjustment  Percentage to adjust brightness (-100 to 100)
      */
     private function createVariant(ColorInterface $color, int $adjustment): ColorInterface
     {
@@ -134,14 +131,13 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Create a color palette from predefined color values
      *
-     * @param array<string> $hexColors Array of hex color codes
-     * @return self
+     * @param  array<string>  $hexColors  Array of hex color codes
      */
     public static function fromHexColors(array $hexColors): self
     {
         $colors = array_map(
-            fn(string $hex) => Color::fromHex($hex),
-            array_filter($hexColors, fn($hex) => is_string($hex))
+            fn (string $hex) => Color::fromHex($hex),
+            array_filter($hexColors, fn ($hex) => is_string($hex))
         );
 
         return new self($colors);
@@ -150,15 +146,13 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Create a color palette from RGB values
      *
-     * @param array<array{r: int, g: int, b: int}> $rgbColors Array of RGB color arrays
-     * @return self
+     * @param  array<array{r: int, g: int, b: int}>  $rgbColors  Array of RGB color arrays
      */
     public static function fromRgbColors(array $rgbColors): self
     {
         $colors = array_map(
-            fn(array $rgb) => Color::fromRgb($rgb),
-            array_filter($rgbColors, fn($rgb) => 
-                is_array($rgb) && 
+            fn (array $rgb) => Color::fromRgb($rgb),
+            array_filter($rgbColors, fn ($rgb) => is_array($rgb) &&
                 isset($rgb['r'], $rgb['g'], $rgb['b'])
             )
         );

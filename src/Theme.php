@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
-use Farzai\ColorPalette\Contracts\ThemeInterface;
 use Farzai\ColorPalette\Contracts\ColorInterface;
+use Farzai\ColorPalette\Contracts\ThemeInterface;
 
 class Theme implements ThemeInterface
 {
@@ -18,8 +18,7 @@ class Theme implements ThemeInterface
         private readonly ColorInterface $accentColor,
         private readonly ColorInterface $backgroundColor,
         private readonly ColorInterface $surfaceColor
-    ) {
-    }
+    ) {}
 
     /**
      * {@inheritdoc}
@@ -82,13 +81,10 @@ class Theme implements ThemeInterface
 
     /**
      * Get appropriate text color for a background color
-     *
-     * @param ColorInterface $backgroundColor
-     * @return ColorInterface
      */
     private function getTextColorFor(ColorInterface $backgroundColor): ColorInterface
     {
-        return $backgroundColor->isLight() 
+        return $backgroundColor->isLight()
             ? new Color(0, 0, 0)     // Black text for light backgrounds
             : new Color(255, 255, 255); // White text for dark backgrounds
     }
@@ -96,16 +92,16 @@ class Theme implements ThemeInterface
     /**
      * Create a theme from a color palette JSON file
      *
-     * @param string $jsonPath Path to the JSON color palette file
-     * @param string $baseColor Base color name from the palette (e.g., 'blue', 'red')
-     * @return self
+     * @param  string  $jsonPath  Path to the JSON color palette file
+     * @param  string  $baseColor  Base color name from the palette (e.g., 'blue', 'red')
+     *
      * @throws \InvalidArgumentException
      */
     public static function fromPalette(string $jsonPath, string $baseColor): self
     {
         $palette = json_decode(file_get_contents($jsonPath), true);
-        
-        if (!isset($palette[$baseColor])) {
+
+        if (! isset($palette[$baseColor])) {
             throw new \InvalidArgumentException("Color '{$baseColor}' not found in palette");
         }
 
@@ -123,16 +119,16 @@ class Theme implements ThemeInterface
     /**
      * Create a theme from hex color values
      *
-     * @param array<string, string> $colors Array of hex color values
-     * @return self
+     * @param  array<string, string>  $colors  Array of hex color values
+     *
      * @throws \InvalidArgumentException
      */
     public static function fromHexColors(array $colors): self
     {
         $requiredColors = ['primary', 'secondary', 'accent', 'background', 'surface'];
-        
+
         foreach ($requiredColors as $color) {
-            if (!isset($colors[$color])) {
+            if (! isset($colors[$color])) {
                 throw new \InvalidArgumentException("Required color '{$color}' not provided");
             }
         }
@@ -148,36 +144,33 @@ class Theme implements ThemeInterface
 
     /**
      * Create a monochromatic theme from a single color
-     *
-     * @param ColorInterface $baseColor
-     * @return self
      */
     public static function createMonochromatic(ColorInterface $baseColor): self
     {
         $rgb = $baseColor->toRgb();
-        
+
         // Create variations of the base color
         return new self(
             $baseColor, // Primary color (original)
             new Color(  // Secondary color (lighter)
-                min(255, (int)($rgb['r'] * 1.2)),
-                min(255, (int)($rgb['g'] * 1.2)),
-                min(255, (int)($rgb['b'] * 1.2))
+                min(255, (int) ($rgb['r'] * 1.2)),
+                min(255, (int) ($rgb['g'] * 1.2)),
+                min(255, (int) ($rgb['b'] * 1.2))
             ),
             new Color(  // Accent color (more saturated)
-                min(255, (int)($rgb['r'] * 1.4)),
-                min(255, (int)($rgb['g'] * 0.8)),
-                min(255, (int)($rgb['b'] * 0.8))
+                min(255, (int) ($rgb['r'] * 1.4)),
+                min(255, (int) ($rgb['g'] * 0.8)),
+                min(255, (int) ($rgb['b'] * 0.8))
             ),
             new Color(  // Background color (very light)
-                min(255, (int)($rgb['r'] * 0.95 + 242)),
-                min(255, (int)($rgb['g'] * 0.95 + 242)),
-                min(255, (int)($rgb['b'] * 0.95 + 242))
+                min(255, (int) ($rgb['r'] * 0.95 + 242)),
+                min(255, (int) ($rgb['g'] * 0.95 + 242)),
+                min(255, (int) ($rgb['b'] * 0.95 + 242))
             ),
             new Color(  // Surface color (light)
-                min(255, (int)($rgb['r'] * 0.9 + 230)),
-                min(255, (int)($rgb['g'] * 0.9 + 230)),
-                min(255, (int)($rgb['b'] * 0.9 + 230))
+                min(255, (int) ($rgb['r'] * 0.9 + 230)),
+                min(255, (int) ($rgb['g'] * 0.9 + 230)),
+                min(255, (int) ($rgb['b'] * 0.9 + 230))
             )
         );
     }

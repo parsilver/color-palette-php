@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Contracts\ColorExtractorInterface;
-use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
-use Farzai\ColorPalette\Contracts\ColorInterface;
-use Farzai\ColorPalette\Images\GdImage;
-use Farzai\ColorPalette\Images\ImagickImage;
+use Farzai\ColorPalette\Contracts\ImageInterface;
 
 /**
  * Abstract base class for color extractors
@@ -17,10 +14,11 @@ use Farzai\ColorPalette\Images\ImagickImage;
 abstract class AbstractColorExtractor implements ColorExtractorInterface
 {
     protected const SAMPLE_SIZE = 50; // Number of pixels to sample in each dimension
+
     protected const MIN_SATURATION = 0.15; // Minimum saturation for color consideration
+
     protected const MIN_BRIGHTNESS = 0.15; // Minimum brightness for color consideration
 
-    
     /**
      * {@inheritdoc}
      */
@@ -63,8 +61,8 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             ));
         } catch (\Throwable $e) {
             // Log the error (you should implement proper logging)
-            error_log("Error extracting colors: " . $e->getMessage());
-            
+            error_log('Error extracting colors: '.$e->getMessage());
+
             // Return a fallback palette
             return new ColorPalette([
                 new Color(255, 255, 255), // White
@@ -79,7 +77,6 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     /**
      * Extract raw colors from the image
      *
-     * @param ImageInterface $image
      * @return array<array{r: int, g: int, b: int, count: int}>
      */
     abstract protected function extractColors(ImageInterface $image): array;
@@ -87,7 +84,7 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     /**
      * Process and filter extracted colors
      *
-     * @param array<array{r: int, g: int, b: int, count: int}> $colors
+     * @param  array<array{r: int, g: int, b: int, count: int}>  $colors
      * @return array<array{r: int, g: int, b: int, count: int}>
      */
     protected function processColors(array $colors): array
@@ -100,8 +97,8 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
         // Filter colors
         $filteredColors = array_filter($colors, function ($color) {
             // Ensure RGB values are valid
-            if (!isset($color['r'], $color['g'], $color['b']) ||
-                !is_numeric($color['r']) || !is_numeric($color['g']) || !is_numeric($color['b'])) {
+            if (! isset($color['r'], $color['g'], $color['b']) ||
+                ! is_numeric($color['r']) || ! is_numeric($color['g']) || ! is_numeric($color['b'])) {
                 return false;
             }
 
@@ -129,8 +126,8 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     /**
      * Cluster similar colors using k-means algorithm
      *
-     * @param array<array{r: int, g: int, b: int, count: int}> $colors
-     * @param int $k Number of clusters
+     * @param  array<array{r: int, g: int, b: int, count: int}>  $colors
+     * @param  int  $k  Number of clusters
      * @return array<array{r: int, g: int, b: int}>
      */
     protected function clusterColors(array $colors, int $k): array
@@ -144,7 +141,7 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
         $maxIterations = 100;
         $converged = false;
 
-        while (!$converged && $maxIterations-- > 0) {
+        while (! $converged && $maxIterations-- > 0) {
             // Assign colors to clusters
             $clusters = array_fill(0, $k, []);
             foreach ($colors as $color) {
@@ -173,6 +170,7 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             for ($i = 0; $i < $k; $i++) {
                 if (empty($clusters[$i])) {
                     $newCentroids[$i] = $centroids[$i];
+
                     continue;
                 }
 
@@ -206,14 +204,13 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     /**
      * Initialize k-means centroids using k-means++ algorithm
      *
-     * @param array<array{r: int, g: int, b: int, count: int}> $colors
-     * @param int $k
+     * @param  array<array{r: int, g: int, b: int, count: int}>  $colors
      * @return array<array{r: int, g: int, b: int}>
      */
     protected function initializeCentroids(array $colors, int $k): array
     {
         $centroids = [];
-        
+
         // Choose first centroid randomly
         $firstIndex = array_rand($colors);
         $centroids[] = [
@@ -257,9 +254,8 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     /**
      * Calculate Euclidean distance between two colors in RGB space
      *
-     * @param array{r: int, g: int, b: int} $color1
-     * @param array{r: int, g: int, b: int} $color2
-     * @return float
+     * @param  array{r: int, g: int, b: int}  $color1
+     * @param  array{r: int, g: int, b: int}  $color2
      */
     protected function calculateColorDistance(array $color1, array $color2): float
     {
@@ -273,9 +269,6 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     /**
      * Convert RGB to HSB color space
      *
-     * @param int $r
-     * @param int $g
-     * @param int $b
      * @return array{h: float, s: float, b: float}
      */
     protected function rgbToHsb(int $r, int $g, int $b): array
@@ -314,5 +307,4 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             'b' => $v,
         ];
     }
-
 }

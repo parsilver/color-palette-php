@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
+use Farzai\ColorPalette\Contracts\ColorInterface;
+use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 use Farzai\ColorPalette\Contracts\ThemeGeneratorInterface;
 use Farzai\ColorPalette\Contracts\ThemeInterface;
-use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
-use Farzai\ColorPalette\Contracts\ColorInterface;
 
 /**
  * Default implementation of ThemeGeneratorInterface
@@ -25,7 +25,7 @@ class ThemeGenerator implements ThemeGeneratorInterface
     public function generate(ColorPaletteInterface $palette): ThemeInterface
     {
         $colors = $palette->getColors();
-        
+
         if (empty($colors)) {
             throw new \InvalidArgumentException('Color palette must contain at least one color');
         }
@@ -53,22 +53,22 @@ class ThemeGenerator implements ThemeGeneratorInterface
     /**
      * Sort colors by brightness
      *
-     * @param array<ColorInterface> $colors
+     * @param  array<ColorInterface>  $colors
      * @return array<ColorInterface>
      */
     private function sortColorsByBrightness(array $colors): array
     {
         $sorted = $colors;
-        usort($sorted, fn(ColorInterface $a, ColorInterface $b) =>
-            $b->getBrightness() <=> $a->getBrightness()
+        usort($sorted, fn (ColorInterface $a, ColorInterface $b) => $b->getBrightness() <=> $a->getBrightness()
         );
+
         return $sorted;
     }
 
     /**
      * Sort colors by their average contrast ratio with other colors
      *
-     * @param array<ColorInterface> $colors
+     * @param  array<ColorInterface>  $colors
      * @return array<ColorInterface>
      */
     private function sortColorsByContrastRatio(array $colors): array
@@ -77,17 +77,17 @@ class ThemeGenerator implements ThemeGeneratorInterface
         usort($sorted, function (ColorInterface $a, ColorInterface $b) use ($colors) {
             $avgContrastA = $this->calculateAverageContrast($a, $colors);
             $avgContrastB = $this->calculateAverageContrast($b, $colors);
+
             return $avgContrastB <=> $avgContrastA;
         });
+
         return $sorted;
     }
 
     /**
      * Calculate average contrast ratio between a color and a set of colors
      *
-     * @param ColorInterface $color
-     * @param array<ColorInterface> $colors
-     * @return float
+     * @param  array<ColorInterface>  $colors
      */
     private function calculateAverageContrast(ColorInterface $color, array $colors): float
     {
@@ -107,8 +107,7 @@ class ThemeGenerator implements ThemeGeneratorInterface
     /**
      * Select primary color from sorted colors
      *
-     * @param array<ColorInterface> $sortedColors
-     * @return ColorInterface
+     * @param  array<ColorInterface>  $sortedColors
      */
     private function selectPrimaryColor(array $sortedColors): ColorInterface
     {
@@ -116,7 +115,7 @@ class ThemeGenerator implements ThemeGeneratorInterface
         foreach ($sortedColors as $color) {
             $lightContrast = $color->getContrastRatio(new Color(255, 255, 255));
             $darkContrast = $color->getContrastRatio(new Color(0, 0, 0));
-            
+
             if ($lightContrast >= self::MIN_CONTRAST_RATIO && $darkContrast >= self::MIN_CONTRAST_RATIO) {
                 return $color;
             }
@@ -129,9 +128,7 @@ class ThemeGenerator implements ThemeGeneratorInterface
     /**
      * Select secondary color that complements the primary color
      *
-     * @param array<ColorInterface> $sortedColors
-     * @param ColorInterface $primaryColor
-     * @return ColorInterface
+     * @param  array<ColorInterface>  $sortedColors
      */
     private function selectSecondaryColor(array $sortedColors, ColorInterface $primaryColor): ColorInterface
     {
@@ -154,10 +151,7 @@ class ThemeGenerator implements ThemeGeneratorInterface
     /**
      * Select accent color that stands out from primary and secondary colors
      *
-     * @param array<ColorInterface> $colors
-     * @param ColorInterface $primaryColor
-     * @param ColorInterface $secondaryColor
-     * @return ColorInterface
+     * @param  array<ColorInterface>  $colors
      */
     private function selectAccentColor(
         array $colors,
@@ -184,8 +178,7 @@ class ThemeGenerator implements ThemeGeneratorInterface
     /**
      * Select background color (usually the lightest color)
      *
-     * @param array<ColorInterface> $sortedByBrightness
-     * @return ColorInterface
+     * @param  array<ColorInterface>  $sortedByBrightness
      */
     private function selectBackgroundColor(array $sortedByBrightness): ColorInterface
     {
@@ -203,9 +196,7 @@ class ThemeGenerator implements ThemeGeneratorInterface
     /**
      * Select surface color that works well with the background
      *
-     * @param array<ColorInterface> $sortedByBrightness
-     * @param ColorInterface $backgroundColor
-     * @return ColorInterface
+     * @param  array<ColorInterface>  $sortedByBrightness
      */
     private function selectSurfaceColor(
         array $sortedByBrightness,
@@ -230,9 +221,7 @@ class ThemeGenerator implements ThemeGeneratorInterface
     /**
      * Create a variant of a color by adjusting its brightness
      *
-     * @param ColorInterface $color
-     * @param int $adjustment Percentage to adjust (-100 to 100)
-     * @return ColorInterface
+     * @param  int  $adjustment  Percentage to adjust (-100 to 100)
      */
     private function createColorVariant(ColorInterface $color, int $adjustment): ColorInterface
     {

@@ -17,7 +17,7 @@ class GdColorExtractor extends AbstractColorExtractor
      */
     protected function extractColors(ImageInterface $image): array
     {
-        if (!($image instanceof GdImage)) {
+        if (! ($image instanceof GdImage)) {
             throw new \InvalidArgumentException('GdColorExtractor requires GdImage instance');
         }
 
@@ -26,8 +26,8 @@ class GdColorExtractor extends AbstractColorExtractor
         $height = $image->getHeight();
 
         $colors = [];
-        $stepX = max(1, (int)($width / self::SAMPLE_SIZE));
-        $stepY = max(1, (int)($height / self::SAMPLE_SIZE));
+        $stepX = max(1, (int) ($width / self::SAMPLE_SIZE));
+        $stepY = max(1, (int) ($height / self::SAMPLE_SIZE));
 
         for ($y = 0; $y < $height; $y += $stepY) {
             for ($x = 0; $x < $width; $x += $stepX) {
@@ -37,7 +37,7 @@ class GdColorExtractor extends AbstractColorExtractor
                 $b = $rgb & 0xFF;
 
                 $key = "{$r},{$g},{$b}";
-                if (!isset($colors[$key])) {
+                if (! isset($colors[$key])) {
                     $colors[$key] = ['r' => $r, 'g' => $g, 'b' => $b, 'count' => 0];
                 }
                 $colors[$key]['count']++;

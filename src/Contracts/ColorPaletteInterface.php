@@ -18,9 +18,6 @@ interface ColorPaletteInterface
 
     /**
      * Get suggested text color based on background
-     *
-     * @param ColorInterface $backgroundColor
-     * @return ColorInterface
      */
     public function getSuggestedTextColor(ColorInterface $backgroundColor): ColorInterface;
 

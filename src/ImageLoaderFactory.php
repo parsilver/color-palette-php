@@ -18,10 +18,9 @@ class ImageLoaderFactory
 {
     /**
      * Create a new ImageLoader instance with default settings
-     * 
-     * @param string $preferredDriver The preferred image driver ('gd' or 'imagick')
-     * @param string|null $tempDir Custom temporary directory (optional)
-     * @return ImageLoaderInterface
+     *
+     * @param  string  $preferredDriver  The preferred image driver ('gd' or 'imagick')
+     * @param  string|null  $tempDir  Custom temporary directory (optional)
      */
     public static function create(
         string $preferredDriver = 'gd',
@@ -38,11 +37,9 @@ class ImageLoaderFactory
 
     /**
      * Create a new ImageLoader instance with custom HTTP client
-     * 
-     * @param ClientInterface $httpClient
-     * @param string $preferredDriver The preferred image driver ('gd' or 'imagick')
-     * @param string|null $tempDir Custom temporary directory (optional)
-     * @return ImageLoaderInterface
+     *
+     * @param  string  $preferredDriver  The preferred image driver ('gd' or 'imagick')
+     * @param  string|null  $tempDir  Custom temporary directory (optional)
      */
     public static function createWithClient(
         ClientInterface $httpClient,
@@ -60,13 +57,6 @@ class ImageLoaderFactory
 
     /**
      * Create a fully customized ImageLoader instance
-     * 
-     * @param ClientInterface $httpClient
-     * @param RequestFactoryInterface $requestFactory
-     * @param StreamFactoryInterface $streamFactory
-     * @param string $preferredDriver
-     * @param string|null $tempDir
-     * @return ImageLoaderInterface
      */
     public static function createCustom(
         ClientInterface $httpClient,
@@ -86,8 +76,6 @@ class ImageLoaderFactory
 
     /**
      * Create default HTTP client
-     * 
-     * @return ClientInterface
      */
     private static function createDefaultHttpClient(): ClientInterface
     {
@@ -104,21 +92,17 @@ class ImageLoaderFactory
 
     /**
      * Create default request factory
-     * 
-     * @return RequestFactoryInterface
      */
     private static function createDefaultRequestFactory(): RequestFactoryInterface
     {
-        return new HttpFactory();
+        return new HttpFactory;
     }
 
     /**
      * Create default stream factory
-     * 
-     * @return StreamFactoryInterface
      */
     private static function createDefaultStreamFactory(): StreamFactoryInterface
     {
-        return new HttpFactory();
+        return new HttpFactory;
     }
 }

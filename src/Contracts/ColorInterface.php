@@ -11,8 +11,6 @@ interface ColorInterface
 {
     /**
      * Get color in hex format
-     *
-     * @return string
      */
     public function toHex(): string;
 
@@ -25,38 +23,27 @@ interface ColorInterface
 
     /**
      * Get color brightness value
-     *
-     * @return float
      */
     public function getBrightness(): float;
 
     /**
      * Get the luminance of the color
      * This is useful for calculating contrast ratios
-     *
-     * @return float
      */
     public function getLuminance(): float;
 
     /**
      * Calculate contrast ratio with another color
-     *
-     * @param ColorInterface $color
-     * @return float
      */
     public function getContrastRatio(ColorInterface $color): float;
 
     /**
      * Check if the color is light
-     *
-     * @return bool
      */
     public function isLight(): bool;
 
     /**
      * Check if the color is dark
-     *
-     * @return bool
      */
     public function isDark(): bool;
 }

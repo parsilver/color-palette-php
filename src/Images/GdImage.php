@@ -14,12 +14,13 @@ class GdImage extends AbstractImage
     /**
      * Create a new GD image instance
      *
-     * @param resource|\GdImage $resource
+     * @param  resource|\GdImage  $resource
+     *
      * @throws ImageException
      */
     public function __construct($resource)
     {
-        if (!($resource instanceof \GdImage) && !is_resource($resource)) {
+        if (! ($resource instanceof \GdImage) && ! is_resource($resource)) {
             throw new ImageException('Invalid GD image resource provided');
         }
 
@@ -42,13 +43,11 @@ class GdImage extends AbstractImage
     /**
      * Create from file path
      *
-     * @param string $path
-     * @return self
      * @throws ImageException
      */
     public static function createFromPath(string $path): self
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             throw new ImageException("Image file not found: {$path}");
         }
 

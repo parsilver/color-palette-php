@@ -17,12 +17,12 @@ class ImagickColorExtractor extends AbstractColorExtractor
      */
     protected function extractColors(ImageInterface $image): array
     {
-        if (!($image instanceof ImagickImage)) {
+        if (! ($image instanceof ImagickImage)) {
             throw new \InvalidArgumentException('ImagickColorExtractor requires ImagickImage instance');
         }
 
         $imagick = $image->getResource();
-        
+
         // Resize image for faster processing
         $clone = clone $imagick;
         $clone->resizeImage(
@@ -39,19 +39,20 @@ class ImagickColorExtractor extends AbstractColorExtractor
         foreach ($pixels as $pixel) {
             $rgb = $pixel->getColor();
             $key = "{$rgb['r']},{$rgb['g']},{$rgb['b']}";
-            
-            if (!isset($colors[$key])) {
+
+            if (! isset($colors[$key])) {
                 $colors[$key] = [
                     'r' => $rgb['r'],
                     'g' => $rgb['g'],
                     'b' => $rgb['b'],
-                    'count' => 0
+                    'count' => 0,
                 ];
             }
             $colors[$key]['count'] += $pixel->getColorCount();
         }
 
         $clone->clear();
+
         return array_values($colors);
     }
 }

@@ -58,7 +58,7 @@ abstract class AbstractImage implements ImageInterface
      */
     protected function ensureResourceIsValid(): void
     {
-        if (!$this->resource) {
+        if (! $this->resource) {
             throw new ImageException('Invalid or destroyed image resource');
         }
     }

@@ -9,6 +9,4 @@ use Exception;
 /**
  * Exception for image processing errors
  */
-class ImageException extends Exception
-{
-}
+class ImageException extends Exception {}

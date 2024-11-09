@@ -14,12 +14,11 @@ class ImagickImage extends AbstractImage
     /**
      * Create a new Imagick image instance
      *
-     * @param \Imagick $resource
      * @throws ImageException
      */
     public function __construct(\Imagick $resource)
     {
-        if (!extension_loaded('imagick')) {
+        if (! extension_loaded('imagick')) {
             throw new ImageException('Imagick extension is not loaded');
         }
 
@@ -43,13 +42,11 @@ class ImagickImage extends AbstractImage
     /**
      * Create from file path
      *
-     * @param string $path
-     * @return self
      * @throws ImageException
      */
     public static function createFromPath(string $path): self
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             throw new ImageException("Image file not found: {$path}");
         }
 
@@ -59,6 +56,7 @@ class ImagickImage extends AbstractImage
             if ($imagick->getImageColorspace() !== \Imagick::COLORSPACE_RGB) {
                 $imagick->transformImageColorspace(\Imagick::COLORSPACE_RGB);
             }
+
             return new self($imagick);
         } catch (\ImagickException $e) {
             throw new ImageException("Failed to create Imagick image: {$e->getMessage()}");

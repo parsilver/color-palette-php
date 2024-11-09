@@ -15,9 +15,8 @@ class ImageFactory
     /**
      * Create an image instance from a file path
      *
-     * @param string $path
-     * @param string $preferredDriver 'gd' or 'imagick'
-     * @return ImageInterface
+     * @param  string  $preferredDriver  'gd' or 'imagick'
+     *
      * @throws ImageException
      */
     public static function createFromPath(string $path, string $preferredDriver = 'gd'): ImageInterface
@@ -26,7 +25,7 @@ class ImageFactory
             return ImagickImage::createFromPath($path);
         }
 
-        if (!extension_loaded('gd')) {
+        if (! extension_loaded('gd')) {
             throw new ImageException('Neither GD nor Imagick extensions are available');
         }
 

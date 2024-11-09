@@ -1,9 +1,9 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
-use Farzai\ColorPalette\ImageLoaderFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
+use Farzai\ColorPalette\ImageLoaderFactory;
 use Farzai\ColorPalette\ThemeGenerator;
 
 // Create image loader
@@ -18,7 +18,7 @@ $image = $loader->load(
 $extractor = ColorExtractorFactory::createForImage($image);
 $palette = $extractor->extract($image, 5); // Extract 5 dominant colors
 
-$generator = new ThemeGenerator();
+$generator = new ThemeGenerator;
 $theme = $generator->generate($palette);
 
 $colors = $theme->toArray();
@@ -56,7 +56,7 @@ $colors = $theme->toArray();
         </div>
 
         <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; width: 400px; overflow: hidden; border-radius: 10px;">
-            <?php foreach ($colors as $name => $color): ?>
+            <?php foreach ($colors as $name => $color) { ?>
                 <div style="
                     height: 100px; 
                     width: 100px; 
@@ -76,7 +76,7 @@ $colors = $theme->toArray();
                         <?php echo $color; ?>
                     </span>
                 </div>
-            <?php endforeach; ?>
+            <?php } ?>
         </div>
     </div>
 </body>

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
-use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Contracts\ColorExtractorInterface;
+use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Images\GdImage;
 use Farzai\ColorPalette\Images\ImagickImage;
 
@@ -16,15 +16,12 @@ class ColorExtractorFactory
 {
     /**
      * Create color extractor based on image type
-     *
-     * @param ImageInterface $image
-     * @return ColorExtractorInterface
      */
     public static function createForImage(ImageInterface $image): ColorExtractorInterface
     {
         return match (true) {
-            $image instanceof GdImage => new GdColorExtractor(),
-            $image instanceof ImagickImage => new ImagickColorExtractor(),
+            $image instanceof GdImage => new GdColorExtractor,
+            $image instanceof ImagickImage => new ImagickColorExtractor,
             default => throw new \InvalidArgumentException('Unsupported image type'),
         };
     }

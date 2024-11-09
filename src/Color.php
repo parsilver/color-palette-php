@@ -10,15 +10,18 @@ use InvalidArgumentException;
 class Color implements ColorInterface
 {
     private int $red;
+
     private int $green;
+
     private int $blue;
 
     /**
      * Create a new Color instance
      *
-     * @param int $red Red component (0-255)
-     * @param int $green Green component (0-255)
-     * @param int $blue Blue component (0-255)
+     * @param  int  $red  Red component (0-255)
+     * @param  int  $green  Green component (0-255)
+     * @param  int  $blue  Blue component (0-255)
+     *
      * @throws InvalidArgumentException
      */
     public function __construct(int $red, int $green, int $blue)
@@ -35,8 +38,8 @@ class Color implements ColorInterface
     /**
      * Create a Color instance from a hex string
      *
-     * @param string $hex Color in hexadecimal format (e.g., "#ff0000" or "ff0000")
-     * @return self
+     * @param  string  $hex  Color in hexadecimal format (e.g., "#ff0000" or "ff0000")
+     *
      * @throws InvalidArgumentException
      */
     public static function fromHex(string $hex): self
@@ -44,7 +47,7 @@ class Color implements ColorInterface
         // Remove hash if present
         $hex = ltrim($hex, '#');
 
-        if (!preg_match('/^[0-9A-Fa-f]{6}$/', $hex)) {
+        if (! preg_match('/^[0-9A-Fa-f]{6}$/', $hex)) {
             throw new InvalidArgumentException('Invalid hex color format');
         }
 
@@ -58,8 +61,7 @@ class Color implements ColorInterface
     /**
      * Create a Color instance from RGB array
      *
-     * @param array{r: int, g: int, b: int} $rgb
-     * @return self
+     * @param  array{r: int, g: int, b: int}  $rgb
      */
     public static function fromRgb(array $rgb): self
     {
@@ -117,7 +119,7 @@ class Color implements ColorInterface
      */
     public function isDark(): bool
     {
-        return !$this->isLight();
+        return ! $this->isLight();
     }
 
     /**
@@ -127,6 +129,7 @@ class Color implements ColorInterface
     {
         $rgb = array_map(function ($val) {
             $val = $val / 255;
+
             return $val <= 0.03928
                 ? $val / 12.92
                 : pow(($val + 0.055) / 1.055, 2.4);
@@ -149,8 +152,6 @@ class Color implements ColorInterface
     /**
      * Validate a color component value
      *
-     * @param int $value
-     * @param string $component
      * @throws InvalidArgumentException
      */
     private function validateColorComponent(int $value, string $component): void
