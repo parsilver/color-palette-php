@@ -69,7 +69,7 @@ test('it can get luminance', function () {
 test('it can check if color is light', function () {
     $lightColor = new Color('#ffffff');
     $darkColor = new Color('#000000');
-    
+
     expect($lightColor->isLight())->toBeTrue()
         ->and($darkColor->isLight())->toBeFalse();
 });
@@ -77,7 +77,7 @@ test('it can check if color is light', function () {
 test('it can check if color is dark', function () {
     $lightColor = new Color('#ffffff');
     $darkColor = new Color('#000000');
-    
+
     expect($lightColor->isDark())->toBeFalse()
         ->and($darkColor->isDark())->toBeTrue();
 });
@@ -85,14 +85,14 @@ test('it can check if color is dark', function () {
 test('it can get contrast ratio with another color', function () {
     $color1 = new Color('#ffffff');
     $color2 = new Color('#000000');
-    
+
     expect($color1->getContrastRatio($color2))->toBeFloat()
         ->and($color1->getContrastRatio($color2))->toBeGreaterThan(20);
 });
 
 test('it throws exception for invalid hex color', function () {
-    expect(fn() => new Color('invalid'))->toThrow(InvalidArgumentException::class);
-    expect(fn() => new Color('#gggggg'))->toThrow(InvalidArgumentException::class);
+    expect(fn () => new Color('invalid'))->toThrow(InvalidArgumentException::class);
+    expect(fn () => new Color('#gggggg'))->toThrow(InvalidArgumentException::class);
 });
 
 test('it can handle shorthand hex colors', function () {
@@ -103,7 +103,7 @@ test('it can handle shorthand hex colors', function () {
 test('it can mix with another color', function () {
     $color1 = new Color('#ff0000');
     $color2 = new Color('#0000ff');
-    
+
     $mixed = $color1->mix($color2, 50);
     expect($mixed->toHex())->toBe('#800080');
-}); 
+});

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
 use Farzai\ColorPalette\Color;
 use Farzai\ColorPalette\PaletteFactory;
@@ -16,7 +16,7 @@ $paletteFactory = new PaletteFactory($baseColor);
 $palettes = $paletteFactory->createPredefinedPalettes();
 
 // Create theme factory and generate themes
-$themeFactory = new ThemeFactory();
+$themeFactory = new ThemeFactory;
 $themes = $themeFactory->createFromPalettes($palettes);
 
 // Icons for palette types
@@ -109,11 +109,11 @@ foreach ($palettes as $name => &$data) {
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <?php foreach ($palettes as $name => $data) { 
+            <?php foreach ($palettes as $name => $data) {
                 $colors = $data['palette']->getColors();
                 $theme = $themes[$name];
                 $themeColors = $theme->toArray();
-            ?>
+                ?>
                 <div class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-6">
@@ -127,7 +127,7 @@ foreach ($palettes as $name => &$data) {
                                 </div>
                             </div>
                             <button 
-                                onclick="copyPalette('<?php echo implode(', ', array_map(fn($c) => $c->toHex(), $colors)); ?>')"
+                                onclick="copyPalette('<?php echo implode(', ', array_map(fn ($c) => $c->toHex(), $colors)); ?>')"
                                 class="text-sm px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center space-x-1"
                                 title="Copy all colors"
                             >
@@ -140,11 +140,11 @@ foreach ($palettes as $name => &$data) {
 
                         <!-- Color Swatches -->
                         <div class="grid gap-3 mb-6">
-                            <?php foreach ($colors as $index => $color) { 
+                            <?php foreach ($colors as $index => $color) {
                                 $textColor = $color->isLight() ? '#000000' : '#FFFFFF';
                                 $luminance = $color->getLuminance();
                                 $borderColor = $luminance > 0.95 ? '#E5E7EB' : 'transparent';
-                            ?>
+                                ?>
                                 <div 
                                     class="group relative flex items-center rounded-xl overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:shadow-md"
                                     style="border: 1px solid <?php echo $borderColor; ?>"
@@ -181,10 +181,10 @@ foreach ($palettes as $name => &$data) {
                                 style="background-color: <?php echo $themeColors['background']; ?>">
                                 <div class="p-4">
                                     <div class="flex flex-wrap gap-2 mb-4">
-                                        <?php foreach ($themeColors as $role => $hex) { 
+                                        <?php foreach ($themeColors as $role => $hex) {
                                             $roleColor = Color::fromHex($hex);
                                             $textColor = $roleColor->isLight() ? '#000000' : '#FFFFFF';
-                                        ?>
+                                            ?>
                                             <div 
                                                 class="px-3 py-2 rounded-lg text-sm cursor-pointer transition-all duration-200 hover:scale-105"
                                                 style="background-color: <?php echo $hex; ?>; color: <?php echo $textColor; ?>"

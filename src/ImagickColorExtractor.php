@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Contracts\ImageInterface;
-use Farzai\ColorPalette\Images\ImagickImage;
 use Farzai\ColorPalette\Exceptions\ExtensionNotLoadedException;
+use Farzai\ColorPalette\Images\ImagickImage;
 
 /**
  * Imagick implementation of ColorExtractor
@@ -15,7 +15,7 @@ class ImagickColorExtractor extends AbstractColorExtractor
 {
     public function __construct()
     {
-        if (!extension_loaded('imagick')) {
+        if (! extension_loaded('imagick')) {
             throw new ExtensionNotLoadedException('The Imagick extension is required to use ImagickColorExtractor');
         }
     }
@@ -31,7 +31,7 @@ class ImagickColorExtractor extends AbstractColorExtractor
 
         /** @var \Imagick $imagick */
         $imagick = $image->getResource();
-        
+
         // Validate image dimensions
         if ($imagick->getImageWidth() === 0 || $imagick->getImageHeight() === 0) {
             return [];
@@ -55,12 +55,12 @@ class ImagickColorExtractor extends AbstractColorExtractor
 
             foreach ($pixels as $pixel) {
                 $rgb = $pixel->getColor();
-                
+
                 // Skip fully transparent pixels
                 if (isset($rgb['a']) && $rgb['a'] === 0) {
                     continue;
                 }
-                
+
                 $key = "{$rgb['r']},{$rgb['g']},{$rgb['b']}";
 
                 if (! isset($colors[$key])) {
@@ -72,7 +72,7 @@ class ImagickColorExtractor extends AbstractColorExtractor
                     ];
                 }
                 $colors[$key]['count'] += $pixel->getColorCount();
-                
+
                 // Clean up pixel object
                 $pixel->destroy();
             }

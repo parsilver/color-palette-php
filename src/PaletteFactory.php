@@ -16,6 +16,7 @@ class PaletteFactory
      * Create a new color palette from an array of colors
      *
      * @param  array<string|ColorInterface>  $colors
+     *
      * @throws InvalidArgumentException
      */
     public function create(array $colors): ColorPalette
@@ -42,4 +43,4 @@ class PaletteFactory
 
         return new ColorPalette($paletteColors);
     }
-} 
+}

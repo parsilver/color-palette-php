@@ -13,6 +13,7 @@ class ThemeFactory
      * Create a new theme from an array of colors
      *
      * @param  array<string, string|ColorInterface>  $colors
+     *
      * @throws InvalidArgumentException
      */
     public function create(array $colors): Theme
@@ -39,4 +40,4 @@ class ThemeFactory
 
         return new Theme($themeColors);
     }
-} 
+}

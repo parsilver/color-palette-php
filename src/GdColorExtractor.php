@@ -24,7 +24,7 @@ class GdColorExtractor extends AbstractColorExtractor
         $resource = $image->getResource();
         $width = $image->getWidth();
         $height = $image->getHeight();
-        
+
         // Validate image dimensions
         if ($width === 0 || $height === 0) {
             return [];
@@ -40,7 +40,7 @@ class GdColorExtractor extends AbstractColorExtractor
         for ($y = 0; $y < $height; $y += $stepY) {
             for ($x = 0; $x < $width; $x += $stepX) {
                 $rgb = imagecolorat($resource, $x, $y);
-                
+
                 if ($hasAlpha) {
                     $alpha = ($rgb >> 24) & 0x7F;
                     // Skip fully transparent pixels

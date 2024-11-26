@@ -10,7 +10,9 @@ use InvalidArgumentException;
 class Color implements ColorInterface
 {
     private int $red;
+
     private int $green;
+
     private int $blue;
 
     /**
@@ -30,6 +32,7 @@ class Color implements ColorInterface
             $this->red = $color->getRed();
             $this->green = $color->getGreen();
             $this->blue = $color->getBlue();
+
             return;
         }
 
@@ -133,6 +136,7 @@ class Color implements ColorInterface
     public static function fromHsl(float $hue, float $saturation, float $lightness): self
     {
         $rgb = self::hslToRgbStatic($hue, $saturation / 100, $lightness / 100);
+
         return new self($rgb['r'], $rgb['g'], $rgb['b']);
     }
 
@@ -164,6 +168,7 @@ class Color implements ColorInterface
         $hsl = $this->toHsl();
         $hsl['l'] = max(0, min(1, $lightness / 100));
         $rgb = $this->hslToRgb($hsl['h'], $hsl['s'], $hsl['l']);
+
         return new self(
             (int) round($rgb['r']),
             (int) round($rgb['g']),
@@ -264,6 +269,7 @@ class Color implements ColorInterface
     {
         if ($s === 0) {
             $r = $g = $b = (int) round($l * 255);
+
             return ['r' => $r, 'g' => $g, 'b' => $b];
         }
 
@@ -272,9 +278,9 @@ class Color implements ColorInterface
         $q = $l < 0.5 ? $l * (1 + $s) : $l + $s - $l * $s;
         $p = 2 * $l - $q;
 
-        $r = $this->hueToRgb($p, $q, $h + 1/3);
+        $r = $this->hueToRgb($p, $q, $h + 1 / 3);
         $g = $this->hueToRgb($p, $q, $h);
-        $b = $this->hueToRgb($p, $q, $h - 1/3);
+        $b = $this->hueToRgb($p, $q, $h - 1 / 3);
 
         return [
             'r' => (int) round($r * 255),
@@ -288,11 +294,22 @@ class Color implements ColorInterface
      */
     private function hueToRgb(float $p, float $q, float $t): float
     {
-        if ($t < 0) $t += 1;
-        if ($t > 1) $t -= 1;
-        if ($t < 1/6) return $p + ($q - $p) * 6 * $t;
-        if ($t < 1/2) return $q;
-        if ($t < 2/3) return $p + ($q - $p) * (2/3 - $t) * 6;
+        if ($t < 0) {
+            $t += 1;
+        }
+        if ($t > 1) {
+            $t -= 1;
+        }
+        if ($t < 1 / 6) {
+            return $p + ($q - $p) * 6 * $t;
+        }
+        if ($t < 1 / 2) {
+            return $q;
+        }
+        if ($t < 2 / 3) {
+            return $p + ($q - $p) * (2 / 3 - $t) * 6;
+        }
+
         return $p;
     }
 
@@ -303,6 +320,7 @@ class Color implements ColorInterface
     {
         if ($s === 0) {
             $value = (int) round($l * 255);
+
             return [
                 'r' => $value,
                 'g' => $value,
@@ -315,9 +333,9 @@ class Color implements ColorInterface
         $q = $l < 0.5 ? $l * (1 + $s) : $l + $s - $l * $s;
         $p = 2 * $l - $q;
 
-        $r = self::hueToRgbStatic($p, $q, $h + 1/3);
+        $r = self::hueToRgbStatic($p, $q, $h + 1 / 3);
         $g = self::hueToRgbStatic($p, $q, $h);
-        $b = self::hueToRgbStatic($p, $q, $h - 1/3);
+        $b = self::hueToRgbStatic($p, $q, $h - 1 / 3);
 
         return [
             'r' => (int) round($r * 255),
@@ -331,11 +349,22 @@ class Color implements ColorInterface
      */
     private static function hueToRgbStatic(float $p, float $q, float $t): float
     {
-        if ($t < 0) $t += 1;
-        if ($t > 1) $t -= 1;
-        if ($t < 1/6) return $p + ($q - $p) * 6 * $t;
-        if ($t < 1/2) return $q;
-        if ($t < 2/3) return $p + ($q - $p) * (2/3 - $t) * 6;
+        if ($t < 0) {
+            $t += 1;
+        }
+        if ($t > 1) {
+            $t -= 1;
+        }
+        if ($t < 1 / 6) {
+            return $p + ($q - $p) * 6 * $t;
+        }
+        if ($t < 1 / 2) {
+            return $q;
+        }
+        if ($t < 2 / 3) {
+            return $p + ($q - $p) * (2 / 3 - $t) * 6;
+        }
+
         return $p;
     }
 
@@ -373,6 +402,7 @@ class Color implements ColorInterface
         $hsl = $this->toHsl();
         $hsl['s'] = min(1, $hsl['s'] + ($amount / 100));
         $rgb = $this->hslToRgb($hsl['h'], $hsl['s'], $hsl['l']);
+
         return new self(
             (int) round($rgb['r']),
             (int) round($rgb['g']),
@@ -390,6 +420,7 @@ class Color implements ColorInterface
         $hsl = $this->toHsl();
         $hsl['s'] = max(0, $hsl['s'] - ($amount / 100));
         $rgb = $this->hslToRgb($hsl['h'], $hsl['s'], $hsl['l']);
+
         return new self(
             (int) round($rgb['r']),
             (int) round($rgb['g']),
@@ -407,6 +438,7 @@ class Color implements ColorInterface
         $hsl = $this->toHsl();
         $hsl['l'] = min(1, $hsl['l'] + ($amount / 100));
         $rgb = $this->hslToRgb($hsl['h'], $hsl['s'], $hsl['l']);
+
         return new self(
             (int) round($rgb['r']),
             (int) round($rgb['g']),
@@ -424,6 +456,7 @@ class Color implements ColorInterface
         $hsl = $this->toHsl();
         $hsl['l'] = max(0, $hsl['l'] - ($amount / 100));
         $rgb = $this->hslToRgb($hsl['h'], $hsl['s'], $hsl['l']);
+
         return new self(
             (int) round($rgb['r']),
             (int) round($rgb['g']),
@@ -441,6 +474,7 @@ class Color implements ColorInterface
         $hsl = $this->toHsl();
         $hsl['h'] = fmod($hsl['h'] + $amount + 360, 360);
         $rgb = $this->hslToRgb($hsl['h'], $hsl['s'], $hsl['l']);
+
         return new self(
             (int) round($rgb['r']),
             (int) round($rgb['g']),
@@ -477,7 +511,7 @@ class Color implements ColorInterface
      */
     public function isDark(): bool
     {
-        return !$this->isLight();
+        return ! $this->isLight();
     }
 
     /**

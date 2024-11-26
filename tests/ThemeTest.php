@@ -1,7 +1,7 @@
 <?php
 
-use Farzai\ColorPalette\Theme;
 use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\Theme;
 
 test('it can create a theme with colors', function () {
     $theme = new Theme([
@@ -65,4 +65,4 @@ test('it can be created from array', function () {
 
     expect($theme->getPrimary()->toHex())->toBe('#ff0000')
         ->and($theme->getSecondary()->toHex())->toBe('#00ff00');
-}); 
+});

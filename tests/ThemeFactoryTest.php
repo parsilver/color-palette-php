@@ -1,12 +1,12 @@
 <?php
 
-use Farzai\ColorPalette\ThemeFactory;
 use Farzai\ColorPalette\Color;
 use Farzai\ColorPalette\Theme;
+use Farzai\ColorPalette\ThemeFactory;
 
 test('it can create a theme from hex colors', function () {
-    $factory = new ThemeFactory();
-    
+    $factory = new ThemeFactory;
+
     $theme = $factory->create([
         'primary' => '#ff0000',
         'secondary' => '#00ff00',
@@ -18,8 +18,8 @@ test('it can create a theme from hex colors', function () {
 });
 
 test('it can create a theme from Color objects', function () {
-    $factory = new ThemeFactory();
-    
+    $factory = new ThemeFactory;
+
     $theme = $factory->create([
         'primary' => new Color('#ff0000'),
         'secondary' => new Color('#00ff00'),
@@ -31,8 +31,8 @@ test('it can create a theme from Color objects', function () {
 });
 
 test('it can create a theme from mixed input types', function () {
-    $factory = new ThemeFactory();
-    
+    $factory = new ThemeFactory;
+
     $theme = $factory->create([
         'primary' => '#ff0000',
         'secondary' => new Color('#00ff00'),
@@ -44,9 +44,9 @@ test('it can create a theme from mixed input types', function () {
 });
 
 test('it throws exception for invalid color format', function () {
-    $factory = new ThemeFactory();
-    
-    expect(fn() => $factory->create([
+    $factory = new ThemeFactory;
+
+    expect(fn () => $factory->create([
         'primary' => 'invalid-color',
     ]))->toThrow(InvalidArgumentException::class);
-}); 
+});

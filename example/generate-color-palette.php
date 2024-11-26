@@ -5,19 +5,16 @@ declare(strict_types=1);
 require __DIR__.'/../vendor/autoload.php';
 
 use Farzai\ColorPalette\Color;
-use Farzai\ColorPalette\PaletteGenerator;
-use Farzai\ColorPalette\ThemeGenerator;
-use Farzai\ColorPalette\GdColorExtractor;
-use Farzai\ColorPalette\ImageLoader;
 use Farzai\ColorPalette\ColorExtractorFactory;
+use Farzai\ColorPalette\ImageLoader;
 use Farzai\ColorPalette\PaletteFactory;
 use Farzai\ColorPalette\ThemeFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
 
 // Create HTTP client and factories for ImageLoader
-$httpClient = new Client();
-$httpFactory = new HttpFactory();
+$httpClient = new Client;
+$httpFactory = new HttpFactory;
 
 // Create image loader with dependencies
 $imageLoader = new ImageLoader(
@@ -31,16 +28,16 @@ $imageLoader = new ImageLoader(
 // If this is an AJAX request to process an image
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
-    
+
     try {
         $uploadedImage = null;
         $imageUrl = null;
-        
+
         // Handle file upload
         if (isset($_FILES['image'])) {
             $file = $_FILES['image'];
             if ($file['error'] !== UPLOAD_ERR_OK) {
-                throw new Exception(match($file['error']) {
+                throw new Exception(match ($file['error']) {
                     UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive',
                     UPLOAD_ERR_FORM_SIZE => 'The uploaded file exceeds the MAX_FILE_SIZE directive',
                     UPLOAD_ERR_PARTIAL => 'The uploaded file was only partially uploaded',
@@ -52,60 +49,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Verify file type
             $imageInfo = getimagesize($file['tmp_name']);
             if ($imageInfo === false) {
-                throw new Exception("Invalid image file");
+                throw new Exception('Invalid image file');
             }
-            
+
             $mimeType = $imageInfo['mime'];
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            
-            if (!in_array($mimeType, $allowedTypes)) {
-                throw new Exception("Please upload a valid image file (JPEG, PNG, or GIF)");
+
+            if (! in_array($mimeType, $allowedTypes)) {
+                throw new Exception('Please upload a valid image file (JPEG, PNG, or GIF)');
             }
-            
+
             // Create a temporary copy with proper extension
-            $extension = match($mimeType) {
+            $extension = match ($mimeType) {
                 'image/jpeg' => 'jpg',
                 'image/png' => 'png',
                 'image/gif' => 'gif',
-                default => throw new Exception("Unsupported image type")
+                default => throw new Exception('Unsupported image type')
             };
-            
+
             $tempFile = tempnam(sys_get_temp_dir(), 'palette_');
             if ($tempFile === false) {
-                throw new Exception("Failed to create temporary file");
+                throw new Exception('Failed to create temporary file');
             }
-            
+
             // Add proper extension
-            $uploadedImage = $tempFile . '.' . $extension;
+            $uploadedImage = $tempFile.'.'.$extension;
             rename($tempFile, $uploadedImage);
-            
+
             // Copy uploaded file to temporary file
-            if (!copy($file['tmp_name'], $uploadedImage)) {
-                throw new Exception("Failed to process uploaded file");
+            if (! copy($file['tmp_name'], $uploadedImage)) {
+                throw new Exception('Failed to process uploaded file');
             }
         } elseif (isset($_POST['random'])) {
             // Handle random image request
-            $imageUrl = 'https://picsum.photos/800/600?random=' . time();
+            $imageUrl = 'https://picsum.photos/800/600?random='.time();
         } else {
-            throw new Exception("No image provided");
+            throw new Exception('No image provided');
         }
 
         // Load and process image
         $image = $imageLoader->load($uploadedImage ?? $imageUrl);
-        
+
         // Extract colors from image using factory
         $extractor = ColorExtractorFactory::createForImage($image);
         $extractedPalette = $extractor->extract($image, 5);
-        
+
         // Get the dominant color
         $dominantColor = $extractedPalette->getColors()[0];
-        
+
         // Create palette factory and generate palettes
         $paletteFactory = new PaletteFactory($dominantColor);
         $palettes = $paletteFactory->createPredefinedPalettes();
-        
+
         // Create theme factory and generate themes
-        $themeFactory = new ThemeFactory();
+        $themeFactory = new ThemeFactory;
         $themes = $themeFactory->createFromPalettes($palettes);
 
         // Prepare response data
@@ -113,17 +110,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'success' => true,
             'dominantColor' => $dominantColor->toHex(),
             'palettes' => [],
-            'themes' => []
+            'themes' => [],
         ];
 
         foreach ($palettes as $name => $data) {
             $response['palettes'][$name] = [
                 'description' => $data['description'],
-                'colors' => array_map(fn($color) => [
+                'colors' => array_map(fn ($color) => [
                     'hex' => $color->toHex(),
                     'rgb' => $color->toRgb(),
-                    'isLight' => $color->isLight()
-                ], $data['palette']->getColors())
+                    'isLight' => $color->isLight(),
+                ], $data['palette']->getColors()),
             ];
 
             $theme = $themes[$name];
@@ -132,17 +129,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'surface' => $theme->getSurfaceColor()->toHex(),
                 'primary' => $theme->getPrimaryColor()->toHex(),
                 'secondary' => $theme->getSecondaryColor()->toHex(),
-                'accent' => $theme->getAccentColor()->toHex()
+                'accent' => $theme->getAccentColor()->toHex(),
             ];
         }
 
         echo json_encode($response);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
         ]);
     } finally {
         // Clean up temporary files

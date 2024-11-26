@@ -175,6 +175,6 @@ class ColorPalette implements ColorPaletteInterface
      */
     public function toArray(): array
     {
-        return array_map(fn(ColorInterface $color) => $color->toHex(), $this->colors);
+        return array_map(fn (ColorInterface $color) => $color->toHex(), $this->colors);
     }
 }

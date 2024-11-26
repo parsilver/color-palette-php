@@ -1,7 +1,7 @@
 <?php
 
-use Farzai\ColorPalette\ColorPalette;
 use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\ColorPalette;
 
 test('can create color palette from hex colors', function () {
     $palette = ColorPalette::fromHexColors(['#ff0000', '#00ff00']);
@@ -12,7 +12,7 @@ test('can create color palette from hex colors', function () {
 test('can create color palette from RGB colors', function () {
     $palette = ColorPalette::fromRgbColors([
         ['r' => 255, 'g' => 0, 'b' => 0],
-        ['r' => 0, 'g' => 255, 'b' => 0]
+        ['r' => 0, 'g' => 255, 'b' => 0],
     ]);
     expect($palette)->toBeInstanceOf(ColorPalette::class);
     expect($palette->getColors())->toHaveCount(2);
@@ -38,4 +38,4 @@ test('can get suggested surface colors', function () {
     $surfaceColors = $palette->getSuggestedSurfaceColors();
     expect($surfaceColors)->toBeArray();
     expect($surfaceColors)->toHaveCount(6); // primary, secondary, and their variants
-}); 
+});

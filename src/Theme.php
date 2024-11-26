@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Contracts\ColorInterface;
-use InvalidArgumentException;
 use JsonSerializable;
 
 class Theme implements JsonSerializable
@@ -129,6 +128,7 @@ class Theme implements JsonSerializable
         foreach ($this->colors as $key => $color) {
             $result[$key] = $color->toHex();
         }
+
         return $result;
     }
 
@@ -143,6 +143,7 @@ class Theme implements JsonSerializable
         foreach ($colors as $key => $hex) {
             $themeColors[$key] = new Color($hex);
         }
+
         return new self($themeColors);
     }
 

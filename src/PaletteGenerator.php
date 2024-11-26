@@ -147,7 +147,7 @@ class PaletteGenerator
     public function goldenRatio(): ColorPalette
     {
         $goldenAngle = 137.5;
-        
+
         return new ColorPalette([
             $this->baseColor,
             $this->baseColor->rotate($goldenAngle),
@@ -194,4 +194,4 @@ class PaletteGenerator
             $this->baseColor->rotate(60)->warmify(),
         ]);
     }
-} 
+}

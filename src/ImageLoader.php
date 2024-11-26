@@ -8,9 +8,6 @@ use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Contracts\ImageLoaderInterface;
 use Farzai\ColorPalette\Exceptions\ImageLoadException;
 use Farzai\ColorPalette\Images\ImageFactory;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 use RuntimeException;
 
 class ImageLoader implements ImageLoaderInterface
@@ -22,8 +19,11 @@ class ImageLoader implements ImageLoaderInterface
     private const MAX_DOWNLOAD_SIZE = 10485760; // 10MB
 
     private string $driver;
+
     private string $tempDir;
+
     private ?int $maxWidth;
+
     private ?int $maxHeight;
 
     public function __construct(
@@ -76,12 +76,13 @@ class ImageLoader implements ImageLoaderInterface
         try {
             $tempFile = $this->createTempFile();
             $contents = file_get_contents($url);
-            
+
             if ($contents === false) {
                 throw new ImageLoadException('Failed to download image from URL');
             }
-            
+
             file_put_contents($tempFile, $contents);
+
             return ImageFactory::createFromPath($tempFile, $this->driver);
         } catch (Exception $e) {
             throw new ImageLoadException($e->getMessage(), 0, $e);
