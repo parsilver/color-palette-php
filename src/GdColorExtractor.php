@@ -24,17 +24,42 @@ class GdColorExtractor extends AbstractColorExtractor
         $resource = $image->getResource();
         $width = $image->getWidth();
         $height = $image->getHeight();
+        
+        // Validate image dimensions
+        if ($width === 0 || $height === 0) {
+            return [];
+        }
 
         $colors = [];
         $stepX = max(1, (int) ($width / self::SAMPLE_SIZE));
         $stepY = max(1, (int) ($height / self::SAMPLE_SIZE));
 
+        // Check if image has alpha channel
+        $hasAlpha = function_exists('imageistruecolor') && imageistruecolor($resource);
+
         for ($y = 0; $y < $height; $y += $stepY) {
             for ($x = 0; $x < $width; $x += $stepX) {
                 $rgb = imagecolorat($resource, $x, $y);
-                $r = ($rgb >> 16) & 0xFF;
-                $g = ($rgb >> 8) & 0xFF;
-                $b = $rgb & 0xFF;
+                
+                if ($hasAlpha) {
+                    $alpha = ($rgb >> 24) & 0x7F;
+                    // Skip fully transparent pixels
+                    if ($alpha === 127) {
+                        continue;
+                    }
+                    $r = ($rgb >> 16) & 0xFF;
+                    $g = ($rgb >> 8) & 0xFF;
+                    $b = $rgb & 0xFF;
+                } else {
+                    $colors = imagecolorsforindex($resource, $rgb);
+                    $r = $colors['red'];
+                    $g = $colors['green'];
+                    $b = $colors['blue'];
+                    // Skip if color has alpha channel and is fully transparent
+                    if (isset($colors['alpha']) && $colors['alpha'] === 127) {
+                        continue;
+                    }
+                }
 
                 $key = "{$r},{$g},{$b}";
                 if (! isset($colors[$key])) {

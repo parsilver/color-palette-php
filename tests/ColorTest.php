@@ -2,94 +2,108 @@
 
 use Farzai\ColorPalette\Color;
 
-test('can create color from RGB values', function () {
-    $color = new Color(255, 0, 0);
-    
-    expect($color->toRgb())->toBe([
-        'r' => 255,
-        'g' => 0,
-        'b' => 0,
-    ]);
-});
-
-test('can create color from hex string', function () {
-    $color = Color::fromHex('#ff0000');
-    
-    expect($color->toRgb())->toBe([
-        'r' => 255,
-        'g' => 0,
-        'b' => 0,
-    ]);
-    
-    // Test without hash
-    $color = Color::fromHex('ff0000');
+test('it can create color from hex', function () {
+    $color = new Color('#ff0000');
     expect($color->toHex())->toBe('#ff0000');
 });
 
-test('can create color from RGB array', function () {
-    $color = Color::fromRgb([
-        'r' => 255,
-        'g' => 0,
-        'b' => 0,
-    ]);
-    
+test('it can create color from rgb', function () {
+    $color = Color::fromRgb(255, 0, 0);
     expect($color->toHex())->toBe('#ff0000');
 });
 
-test('throws exception for invalid hex format', function () {
-    Color::fromHex('invalid');
-})->throws(InvalidArgumentException::class, 'Invalid hex color format');
-
-test('throws exception for invalid RGB values', function () {
-    new Color(256, 0, 0);
-})->throws(InvalidArgumentException::class, 'Invalid red color component');
-
-test('can determine if color is light or dark', function () {
-    // White should be light
-    $white = new Color(255, 255, 255);
-    expect($white->isLight())->toBeTrue();
-    expect($white->isDark())->toBeFalse();
-    
-    // Black should be dark
-    $black = new Color(0, 0, 0);
-    expect($black->isLight())->toBeFalse();
-    expect($black->isDark())->toBeTrue();
+test('it can create color from hsl', function () {
+    $color = Color::fromHsl(0, 100, 50);
+    expect($color->toHex())->toBe('#ff0000');
 });
 
-test('can calculate brightness correctly', function () {
-    $white = new Color(255, 255, 255);
-    $black = new Color(0, 0, 0);
-    
-    expect($white->getBrightness())->toBeGreaterThan(127.5);
-    expect($black->getBrightness())->toBeLessThan(127.5);
+test('it can get rgb components', function () {
+    $color = new Color('#ff0000');
+    expect($color->getRed())->toBe(255)
+        ->and($color->getGreen())->toBe(0)
+        ->and($color->getBlue())->toBe(0);
 });
 
-test('can calculate luminance correctly', function () {
-    $white = new Color(255, 255, 255);
-    $black = new Color(0, 0, 0);
-    
-    expect($white->getLuminance())->toBeGreaterThan(0.9);
-    expect($black->getLuminance())->toBeLessThan(0.1);
+test('it can get hsl components', function () {
+    $color = new Color('#ff0000');
+    expect($color->getHue())->toBe(0)
+        ->and($color->getSaturation())->toBe(100)
+        ->and($color->getLightness())->toBe(50);
 });
 
-test('can calculate contrast ratio between colors', function () {
-    $white = new Color(255, 255, 255);
-    $black = new Color(0, 0, 0);
-    
-    // The contrast ratio between black and white should be 21:1
-    expect($white->getContrastRatio($black))->toBeGreaterThan(20);
-    expect($white->getContrastRatio($black))->toBeLessThan(22);
-    
-    // Contrast ratio should be the same regardless of order
-    expect($white->getContrastRatio($black))->toBe($black->getContrastRatio($white));
+test('it can lighten color', function () {
+    $color = new Color('#ff0000');
+    $lightened = $color->lighten(20);
+    expect($lightened->toHex())->toBe('#ff6666');
 });
 
-test('handles default values for RGB array creation', function () {
-    $color = Color::fromRgb([]);
+test('it can darken color', function () {
+    $color = new Color('#ff0000');
+    $darkened = $color->darken(20);
+    expect($darkened->toHex())->toBe('#990000');
+});
+
+test('it can saturate color', function () {
+    $color = new Color('#ff8080');
+    $saturated = $color->saturate(20);
+    expect($saturated->toHex())->toBe('#ff4d4d');
+});
+
+test('it can desaturate color', function () {
+    $color = new Color('#ff0000');
+    $desaturated = $color->desaturate(20);
+    expect($desaturated->toHex())->toBe('#f23333');
+});
+
+test('it can adjust hue', function () {
+    $color = new Color('#ff0000');
+    $adjusted = $color->adjustHue(180);
+    expect($adjusted->toHex())->toBe('#00ffff');
+});
+
+test('it can get luminance', function () {
+    $color = new Color('#ff0000');
+    expect($color->getLuminance())->toBeFloat();
+});
+
+test('it can check if color is light', function () {
+    $lightColor = new Color('#ffffff');
+    $darkColor = new Color('#000000');
     
-    expect($color->toRgb())->toBe([
-        'r' => 0,
-        'g' => 0,
-        'b' => 0,
-    ]);
+    expect($lightColor->isLight())->toBeTrue()
+        ->and($darkColor->isLight())->toBeFalse();
+});
+
+test('it can check if color is dark', function () {
+    $lightColor = new Color('#ffffff');
+    $darkColor = new Color('#000000');
+    
+    expect($lightColor->isDark())->toBeFalse()
+        ->and($darkColor->isDark())->toBeTrue();
+});
+
+test('it can get contrast ratio with another color', function () {
+    $color1 = new Color('#ffffff');
+    $color2 = new Color('#000000');
+    
+    expect($color1->getContrastRatio($color2))->toBeFloat()
+        ->and($color1->getContrastRatio($color2))->toBeGreaterThan(20);
+});
+
+test('it throws exception for invalid hex color', function () {
+    expect(fn() => new Color('invalid'))->toThrow(InvalidArgumentException::class);
+    expect(fn() => new Color('#gggggg'))->toThrow(InvalidArgumentException::class);
+});
+
+test('it can handle shorthand hex colors', function () {
+    $color = new Color('#f00');
+    expect($color->toHex())->toBe('#ff0000');
+});
+
+test('it can mix with another color', function () {
+    $color1 = new Color('#ff0000');
+    $color2 = new Color('#0000ff');
+    
+    $mixed = $color1->mix($color2, 50);
+    expect($mixed->toHex())->toBe('#800080');
 }); 

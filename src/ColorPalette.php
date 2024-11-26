@@ -159,4 +159,22 @@ class ColorPalette implements ColorPaletteInterface
 
         return new self($colors);
     }
+
+    /**
+     * Get the number of colors in the palette
+     */
+    public function count(): int
+    {
+        return count($this->colors);
+    }
+
+    /**
+     * Convert the palette to an array of hex colors
+     *
+     * @return array<string>
+     */
+    public function toArray(): array
+    {
+        return array_map(fn(ColorInterface $color) => $color->toHex(), $this->colors);
+    }
 }

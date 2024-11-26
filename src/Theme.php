@@ -5,173 +5,152 @@ declare(strict_types=1);
 namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Contracts\ColorInterface;
-use Farzai\ColorPalette\Contracts\ThemeInterface;
+use InvalidArgumentException;
+use JsonSerializable;
 
-class Theme implements ThemeInterface
+class Theme implements JsonSerializable
 {
+    private array $colors;
+
     /**
      * Create a new Theme instance
+     *
+     * @param  array<string, ColorInterface>  $colors
      */
-    public function __construct(
-        private readonly ColorInterface $primaryColor,
-        private readonly ColorInterface $secondaryColor,
-        private readonly ColorInterface $accentColor,
-        private readonly ColorInterface $backgroundColor,
-        private readonly ColorInterface $surfaceColor
-    ) {}
+    public function __construct(array $colors)
+    {
+        $this->colors = $colors;
+    }
 
     /**
-     * {@inheritdoc}
+     * Get the primary color
+     */
+    public function getPrimary(): ColorInterface
+    {
+        return $this->colors['primary'];
+    }
+
+    /**
+     * Get the primary color (alias for getPrimary)
      */
     public function getPrimaryColor(): ColorInterface
     {
-        return $this->primaryColor;
+        return $this->getPrimary();
     }
 
     /**
-     * {@inheritdoc}
+     * Get the secondary color
+     */
+    public function getSecondary(): ColorInterface
+    {
+        return $this->colors['secondary'];
+    }
+
+    /**
+     * Get the secondary color (alias for getSecondary)
      */
     public function getSecondaryColor(): ColorInterface
     {
-        return $this->secondaryColor;
+        return $this->getSecondary();
     }
 
     /**
-     * {@inheritdoc}
+     * Get the accent color
+     */
+    public function getAccent(): ColorInterface
+    {
+        return $this->colors['accent'];
+    }
+
+    /**
+     * Get the accent color (alias for getAccent)
      */
     public function getAccentColor(): ColorInterface
     {
-        return $this->accentColor;
+        return $this->getAccent();
     }
 
     /**
-     * {@inheritdoc}
+     * Get the background color
+     */
+    public function getBackground(): ColorInterface
+    {
+        return $this->colors['background'];
+    }
+
+    /**
+     * Get the background color (alias for getBackground)
      */
     public function getBackgroundColor(): ColorInterface
     {
-        return $this->backgroundColor;
+        return $this->getBackground();
     }
 
     /**
-     * {@inheritdoc}
+     * Get the surface color
+     */
+    public function getSurface(): ColorInterface
+    {
+        return $this->colors['surface'];
+    }
+
+    /**
+     * Get the surface color (alias for getSurface)
      */
     public function getSurfaceColor(): ColorInterface
     {
-        return $this->surfaceColor;
+        return $this->getSurface();
     }
 
     /**
-     * {@inheritdoc}
+     * Get a color by key
+     */
+    public function get(string $key): ?ColorInterface
+    {
+        return $this->colors[$key] ?? null;
+    }
+
+    /**
+     * Check if a color exists
+     */
+    public function has(string $key): bool
+    {
+        return isset($this->colors[$key]);
+    }
+
+    /**
+     * Get all colors as an array of hex values
+     *
+     * @return array<string, string>
      */
     public function toArray(): array
     {
-        return [
-            'primary' => $this->primaryColor->toHex(),
-            'secondary' => $this->secondaryColor->toHex(),
-            'accent' => $this->accentColor->toHex(),
-            'background' => $this->backgroundColor->toHex(),
-            'surface' => $this->surfaceColor->toHex(),
-            'on_primary' => $this->getTextColorFor($this->primaryColor)->toHex(),
-            'on_secondary' => $this->getTextColorFor($this->secondaryColor)->toHex(),
-            'on_accent' => $this->getTextColorFor($this->accentColor)->toHex(),
-            'on_background' => $this->getTextColorFor($this->backgroundColor)->toHex(),
-            'on_surface' => $this->getTextColorFor($this->surfaceColor)->toHex(),
-        ];
-    }
-
-    /**
-     * Get appropriate text color for a background color
-     */
-    private function getTextColorFor(ColorInterface $backgroundColor): ColorInterface
-    {
-        return $backgroundColor->isLight()
-            ? new Color(0, 0, 0)     // Black text for light backgrounds
-            : new Color(255, 255, 255); // White text for dark backgrounds
-    }
-
-    /**
-     * Create a theme from a color palette JSON file
-     *
-     * @param  string  $jsonPath  Path to the JSON color palette file
-     * @param  string  $baseColor  Base color name from the palette (e.g., 'blue', 'red')
-     *
-     * @throws \InvalidArgumentException
-     */
-    public static function fromPalette(string $jsonPath, string $baseColor): self
-    {
-        $palette = json_decode(file_get_contents($jsonPath), true);
-
-        if (! isset($palette[$baseColor])) {
-            throw new \InvalidArgumentException("Color '{$baseColor}' not found in palette");
+        $result = [];
+        foreach ($this->colors as $key => $color) {
+            $result[$key] = $color->toHex();
         }
-
-        $colors = $palette[$baseColor];
-
-        return new self(
-            Color::fromHex($colors['500']), // Primary
-            Color::fromHex($colors['300']), // Secondary
-            Color::fromHex($colors['a400']), // Accent
-            Color::fromHex($colors['50']),  // Background
-            Color::fromHex($colors['100'])  // Surface
-        );
+        return $result;
     }
 
     /**
-     * Create a theme from hex color values
+     * Create a theme from an array of hex colors
      *
-     * @param  array<string, string>  $colors  Array of hex color values
-     *
-     * @throws \InvalidArgumentException
+     * @param  array<string, string>  $colors
      */
-    public static function fromHexColors(array $colors): self
+    public static function fromArray(array $colors): self
     {
-        $requiredColors = ['primary', 'secondary', 'accent', 'background', 'surface'];
-
-        foreach ($requiredColors as $color) {
-            if (! isset($colors[$color])) {
-                throw new \InvalidArgumentException("Required color '{$color}' not provided");
-            }
+        $themeColors = [];
+        foreach ($colors as $key => $hex) {
+            $themeColors[$key] = new Color($hex);
         }
-
-        return new self(
-            Color::fromHex($colors['primary']),
-            Color::fromHex($colors['secondary']),
-            Color::fromHex($colors['accent']),
-            Color::fromHex($colors['background']),
-            Color::fromHex($colors['surface'])
-        );
+        return new self($themeColors);
     }
 
     /**
-     * Create a monochromatic theme from a single color
+     * Convert to JSON
      */
-    public static function createMonochromatic(ColorInterface $baseColor): self
+    public function jsonSerialize(): array
     {
-        $rgb = $baseColor->toRgb();
-
-        // Create variations of the base color
-        return new self(
-            $baseColor, // Primary color (original)
-            new Color(  // Secondary color (lighter)
-                min(255, (int) ($rgb['r'] * 1.2)),
-                min(255, (int) ($rgb['g'] * 1.2)),
-                min(255, (int) ($rgb['b'] * 1.2))
-            ),
-            new Color(  // Accent color (more saturated)
-                min(255, (int) ($rgb['r'] * 1.4)),
-                min(255, (int) ($rgb['g'] * 0.8)),
-                min(255, (int) ($rgb['b'] * 0.8))
-            ),
-            new Color(  // Background color (very light)
-                min(255, (int) ($rgb['r'] * 0.95 + 242)),
-                min(255, (int) ($rgb['g'] * 0.95 + 242)),
-                min(255, (int) ($rgb['b'] * 0.95 + 242))
-            ),
-            new Color(  // Surface color (light)
-                min(255, (int) ($rgb['r'] * 0.9 + 230)),
-                min(255, (int) ($rgb['g'] * 0.9 + 230)),
-                min(255, (int) ($rgb['b'] * 0.9 + 230))
-            )
-        );
+        return $this->toArray();
     }
 }

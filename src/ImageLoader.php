@@ -21,14 +21,21 @@ class ImageLoader implements ImageLoaderInterface
 
     private const MAX_DOWNLOAD_SIZE = 10485760; // 10MB
 
+    private string $driver;
+    private string $tempDir;
+    private ?int $maxWidth;
+    private ?int $maxHeight;
+
     public function __construct(
-        private readonly ClientInterface $httpClient,
-        private readonly RequestFactoryInterface $requestFactory,
-        private readonly StreamFactoryInterface $streamFactory,
-        private readonly string $preferredDriver = 'gd',
-        private readonly string $tempDir = '/tmp'
+        string $driver = 'gd',
+        ?string $tempDir = null,
+        ?int $maxWidth = null,
+        ?int $maxHeight = null
     ) {
-        //
+        $this->driver = $driver;
+        $this->tempDir = $tempDir ?? sys_get_temp_dir();
+        $this->maxWidth = $maxWidth;
+        $this->maxHeight = $maxHeight;
     }
 
     /**
@@ -67,37 +74,17 @@ class ImageLoader implements ImageLoaderInterface
     private function loadFromUrl(string $url): ImageInterface
     {
         try {
-            $request = $this->requestFactory->createRequest('GET', $url);
-            $response = $this->httpClient->sendRequest($request);
-
-            if ($response->getStatusCode() >= 400) {
-                throw new ImageLoadException(
-                    "Failed to download image. Status code: {$response->getStatusCode()}"
-                );
-            }
-
-            // If redirected, follow the redirect
-            if ($response->getStatusCode() === 302) {
-                $url = $response->getHeaderLine('Location');
-
-                return $this->loadFromUrl($url);
-            }
-
-            if ($response->getBody()->getSize() > self::MAX_DOWNLOAD_SIZE) {
-                throw new ImageLoadException('Image size exceeds maximum allowed size');
-            }
-
-            // Create temporary file
             $tempFile = $this->createTempFile();
-            $stream = $this->streamFactory->createStreamFromFile($tempFile, 'w');
-            $stream->write($response->getBody()->getContents());
-
-            return ImageFactory::createFromPath($tempFile, $this->preferredDriver);
-        } finally {
-            // Cleanup temporary file if it exists
-            if (isset($tempFile) && file_exists($tempFile)) {
-                unlink($tempFile);
+            $contents = file_get_contents($url);
+            
+            if ($contents === false) {
+                throw new ImageLoadException('Failed to download image from URL');
             }
+            
+            file_put_contents($tempFile, $contents);
+            return ImageFactory::createFromPath($tempFile, $this->driver);
+        } catch (Exception $e) {
+            throw new ImageLoadException($e->getMessage(), 0, $e);
         }
     }
 
@@ -116,7 +103,7 @@ class ImageLoader implements ImageLoaderInterface
             throw new ImageLoadException("Unsupported image type: {$path}");
         }
 
-        return ImageFactory::createFromPath($path, $this->preferredDriver);
+        return ImageFactory::createFromPath($path, $this->driver);
     }
 
     /**
