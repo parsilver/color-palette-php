@@ -27,7 +27,7 @@ $themeColors = array_merge([
     'background' => '#FFFFFF',
     'surface' => '#F7FAFC',
     'text' => '#1A202C',
-    'text_light' => '#4A5568'
+    'text_light' => '#4A5568',
 ], $themeColors);
 
 ?>
