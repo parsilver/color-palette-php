@@ -93,6 +93,150 @@ class Color implements ColorInterface
     }
 
     /**
+     * Convert RGB to HSL
+     */
+    public function toHsl(): array
+    {
+        $r = $this->red / 255;
+        $g = $this->green / 255;
+        $b = $this->blue / 255;
+
+        $max = max($r, $g, $b);
+        $min = min($r, $g, $b);
+        $h = 0;
+        $s = 0;
+        $l = ($max + $min) / 2;
+
+        if ($max !== $min) {
+            $d = $max - $min;
+            $s = $l > 0.5 ? $d / (2 - $max - $min) : $d / ($max + $min);
+
+            switch ($max) {
+                case $r:
+                    $h = ($g - $b) / $d + ($g < $b ? 6 : 0);
+                    break;
+                case $g:
+                    $h = ($b - $r) / $d + 2;
+                    break;
+                case $b:
+                    $h = ($r - $g) / $d + 4;
+                    break;
+            }
+
+            $h /= 6;
+        }
+
+        return [
+            'h' => round($h * 360),
+            's' => round($s * 100),
+            'l' => round($l * 100),
+        ];
+    }
+
+    /**
+     * Create a Color instance from HSL values
+     */
+    public static function fromHsl(float $h, float $s, float $l): self
+    {
+        // Convert HSL percentages to decimals
+        $h = ($h % 360) / 360;
+        $s = min(100, max(0, $s)) / 100;
+        $l = min(100, max(0, $l)) / 100;
+
+        if ($s === 0) {
+            $r = $g = $b = $l;
+        } else {
+            $q = $l < 0.5 ? $l * (1 + $s) : $l + $s - $l * $s;
+            $p = 2 * $l - $q;
+
+            $r = self::hueToRgb($p, $q, $h + 1/3);
+            $g = self::hueToRgb($p, $q, $h);
+            $b = self::hueToRgb($p, $q, $h - 1/3);
+        }
+
+        return new self(
+            (int) round($r * 255),
+            (int) round($g * 255),
+            (int) round($b * 255)
+        );
+    }
+
+    private static function hueToRgb(float $p, float $q, float $t): float
+    {
+        if ($t < 0) $t += 1;
+        if ($t > 1) $t -= 1;
+        if ($t < 1/6) return $p + ($q - $p) * 6 * $t;
+        if ($t < 1/2) return $q;
+        if ($t < 2/3) return $p + ($q - $p) * (2/3 - $t) * 6;
+        return $p;
+    }
+
+    public function lighten(float $amount): self
+    {
+        $hsl = $this->toHsl();
+        return self::fromHsl(
+            $hsl['h'],
+            $hsl['s'],
+            min(100, $hsl['l'] + $amount * 100)
+        );
+    }
+
+    public function darken(float $amount): self
+    {
+        $hsl = $this->toHsl();
+        return self::fromHsl(
+            $hsl['h'],
+            $hsl['s'],
+            max(0, $hsl['l'] - $amount * 100)
+        );
+    }
+
+    public function saturate(float $amount): self
+    {
+        $hsl = $this->toHsl();
+        return self::fromHsl(
+            $hsl['h'],
+            min(100, $hsl['s'] + $amount * 100),
+            $hsl['l']
+        );
+    }
+
+    public function desaturate(float $amount): self
+    {
+        $hsl = $this->toHsl();
+        return self::fromHsl(
+            $hsl['h'],
+            max(0, $hsl['s'] - $amount * 100),
+            $hsl['l']
+        );
+    }
+
+    public function rotate(float $degrees): self
+    {
+        $hsl = $this->toHsl();
+        return self::fromHsl(
+            ($hsl['h'] + $degrees) % 360,
+            $hsl['s'],
+            $hsl['l']
+        );
+    }
+
+    public function adjustHue(float $degrees): self
+    {
+        return $this->rotate($degrees);
+    }
+
+    public function withLightness(float $lightness): self
+    {
+        $hsl = $this->toHsl();
+        return self::fromHsl(
+            $hsl['h'],
+            $hsl['s'],
+            min(100, max(0, $lightness * 100))
+        );
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getBrightness(): float

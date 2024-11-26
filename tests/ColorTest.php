@@ -92,4 +92,66 @@ test('handles default values for RGB array creation', function () {
         'g' => 0,
         'b' => 0,
     ]);
+});
+
+test('it can convert RGB to HSL', function () {
+    $color = new Color(255, 0, 0); // Pure red
+    $hsl = $color->toHsl();
+
+    expect($hsl['h'])->toBe(0);
+    expect($hsl['s'])->toBe(100);
+    expect($hsl['l'])->toBe(50);
+});
+
+test('it can create color from HSL', function () {
+    $color = Color::fromHsl(0, 100, 50); // Pure red
+    expect($color->toHex())->toBe('#ff0000');
+});
+
+test('it can lighten color', function () {
+    $color = new Color(255, 0, 0); // Pure red
+    $lightened = $color->lighten(0.2);
+    
+    $hsl = $lightened->toHsl();
+    expect($hsl['l'])->toBeGreaterThan(50);
+});
+
+test('it can darken color', function () {
+    $color = new Color(255, 0, 0); // Pure red
+    $darkened = $color->darken(0.2);
+    
+    $hsl = $darkened->toHsl();
+    expect($hsl['l'])->toBeLessThan(50);
+});
+
+test('it can rotate hue', function () {
+    $color = new Color(255, 0, 0); // Pure red
+    $rotated = $color->rotate(120); // Should be green
+    
+    $hsl = $rotated->toHsl();
+    expect($hsl['h'])->toBe(120);
+});
+
+test('it can saturate color', function () {
+    $color = Color::fromHsl(0, 50, 50); // Semi-saturated red
+    $saturated = $color->saturate(0.2);
+    
+    $hsl = $saturated->toHsl();
+    expect($hsl['s'])->toBe(70);
+});
+
+test('it can desaturate color', function () {
+    $color = Color::fromHsl(0, 100, 50); // Fully saturated red
+    $desaturated = $color->desaturate(0.2);
+    
+    $hsl = $desaturated->toHsl();
+    expect($hsl['s'])->toBe(80);
+});
+
+test('it can adjust lightness', function () {
+    $color = new Color(255, 0, 0); // Pure red
+    $adjusted = $color->withLightness(0.8);
+    
+    $hsl = $adjusted->toHsl();
+    expect($hsl['l'])->toBe(80);
 }); 

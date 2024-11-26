@@ -10,14 +10,12 @@ use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 class ColorPalette implements ColorPaletteInterface
 {
     /**
-     * @var array<int, ColorInterface>
+     * @var array<string|int, ColorInterface>
      */
     private array $colors;
 
     /**
-     * Create a new ColorPalette instance
-     *
-     * @param  array<int, ColorInterface>  $colors
+     * @param array<string|int, ColorInterface> $colors
      */
     public function __construct(array $colors)
     {
@@ -30,6 +28,30 @@ class ColorPalette implements ColorPaletteInterface
     public function getColors(): array
     {
         return $this->colors;
+    }
+
+    /**
+     * @return array<string|int, string>
+     */
+    public function toHexArray(): array
+    {
+        $result = [];
+        foreach ($this->colors as $key => $color) {
+            $result[$key] = $color->toHex();
+        }
+        return $result;
+    }
+
+    /**
+     * @return array<string|int, array{r: int, g: int, b: int}>
+     */
+    public function toRgbArray(): array
+    {
+        $result = [];
+        foreach ($this->colors as $key => $color) {
+            $result[$key] = $color->toRgb();
+        }
+        return $result;
     }
 
     /**
@@ -61,8 +83,7 @@ class ColorPalette implements ColorPaletteInterface
         $baseColors = $this->colors;
 
         // Sort colors by brightness for better surface color selection
-        usort($baseColors, fn (ColorInterface $a, ColorInterface $b) => $b->getBrightness() <=> $a->getBrightness()
-        );
+        usort($baseColors, fn (ColorInterface $a, ColorInterface $b) => $b->getBrightness() <=> $a->getBrightness());
 
         // Primary surface color (usually the lightest color)
         $suggestedColors['surface'] = $baseColors[0];
@@ -90,7 +111,7 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Find a suitable accent color from the palette
      *
-     * @param  array<ColorInterface>  $colors
+     * @param array<ColorInterface> $colors
      */
     private function findAccentColor(array $colors): ColorInterface
     {
@@ -114,7 +135,7 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Create a variant of a color by adjusting its brightness
      *
-     * @param  int  $adjustment  Percentage to adjust brightness (-100 to 100)
+     * @param int $adjustment Percentage to adjust brightness (-100 to 100)
      */
     private function createVariant(ColorInterface $color, int $adjustment): ColorInterface
     {
@@ -131,7 +152,7 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Create a color palette from predefined color values
      *
-     * @param  array<string>  $hexColors  Array of hex color codes
+     * @param array<string> $hexColors Array of hex color codes
      */
     public static function fromHexColors(array $hexColors): self
     {
@@ -146,7 +167,7 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Create a color palette from RGB values
      *
-     * @param  array<array{r: int, g: int, b: int}>  $rgbColors  Array of RGB color arrays
+     * @param array<array{r: int, g: int, b: int}> $rgbColors Array of RGB color arrays
      */
     public static function fromRgbColors(array $rgbColors): self
     {
