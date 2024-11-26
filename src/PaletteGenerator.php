@@ -168,7 +168,7 @@ class PaletteGenerator
     public function websiteTheme(): ColorPalette
     {
         $baseHsl = $this->baseColor->toHsl();
-        
+
         return new ColorPalette([
             'primary' => $this->baseColor,
             'secondary' => $this->baseColor->rotate(30)->saturate(0.1),
@@ -179,4 +179,4 @@ class PaletteGenerator
             'text_light' => Color::fromHsl($baseHsl['h'], 10, 30),
         ]);
     }
-} 
+}

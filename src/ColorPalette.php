@@ -15,7 +15,7 @@ class ColorPalette implements ColorPaletteInterface
     private array $colors;
 
     /**
-     * @param array<string|int, ColorInterface> $colors
+     * @param  array<string|int, ColorInterface>  $colors
      */
     public function __construct(array $colors)
     {
@@ -39,6 +39,7 @@ class ColorPalette implements ColorPaletteInterface
         foreach ($this->colors as $key => $color) {
             $result[$key] = $color->toHex();
         }
+
         return $result;
     }
 
@@ -51,6 +52,7 @@ class ColorPalette implements ColorPaletteInterface
         foreach ($this->colors as $key => $color) {
             $result[$key] = $color->toRgb();
         }
+
         return $result;
     }
 
@@ -111,7 +113,7 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Find a suitable accent color from the palette
      *
-     * @param array<ColorInterface> $colors
+     * @param  array<ColorInterface>  $colors
      */
     private function findAccentColor(array $colors): ColorInterface
     {
@@ -135,7 +137,7 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Create a variant of a color by adjusting its brightness
      *
-     * @param int $adjustment Percentage to adjust brightness (-100 to 100)
+     * @param  int  $adjustment  Percentage to adjust brightness (-100 to 100)
      */
     private function createVariant(ColorInterface $color, int $adjustment): ColorInterface
     {
@@ -152,7 +154,7 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Create a color palette from predefined color values
      *
-     * @param array<string> $hexColors Array of hex color codes
+     * @param  array<string>  $hexColors  Array of hex color codes
      */
     public static function fromHexColors(array $hexColors): self
     {
@@ -167,7 +169,7 @@ class ColorPalette implements ColorPaletteInterface
     /**
      * Create a color palette from RGB values
      *
-     * @param array<array{r: int, g: int, b: int}> $rgbColors Array of RGB color arrays
+     * @param  array<array{r: int, g: int, b: int}>  $rgbColors  Array of RGB color arrays
      */
     public static function fromRgbColors(array $rgbColors): self
     {

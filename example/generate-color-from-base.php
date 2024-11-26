@@ -61,7 +61,7 @@ $websiteTheme = $generator->websiteTheme();
             <section class="bg-white rounded-xl p-6 shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4">Website Theme</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <?php foreach ($websiteTheme->toHexArray() as $name => $hex): ?>
+                    <?php foreach ($websiteTheme->toHexArray() as $name => $hex) { ?>
                         <div class="color-card rounded-lg overflow-hidden shadow-md">
                             <div class="h-24" style="background-color: <?php echo $hex; ?>"></div>
                             <div class="p-3 bg-white">
@@ -69,7 +69,7 @@ $websiteTheme = $generator->websiteTheme();
                                 <p class="text-sm text-gray-500"><?php echo $hex; ?></p>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </div>
             </section>
 
@@ -77,14 +77,14 @@ $websiteTheme = $generator->websiteTheme();
             <section class="bg-white rounded-xl p-6 shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4">Monochromatic</h2>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <?php foreach ($monochromatic->toHexArray() as $hex): ?>
+                    <?php foreach ($monochromatic->toHexArray() as $hex) { ?>
                         <div class="color-card rounded-lg overflow-hidden shadow-md">
                             <div class="h-24" style="background-color: <?php echo $hex; ?>"></div>
                             <div class="p-3 bg-white">
                                 <p class="text-sm text-gray-500"><?php echo $hex; ?></p>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </div>
             </section>
 
@@ -94,14 +94,14 @@ $websiteTheme = $generator->websiteTheme();
                 <section class="bg-white rounded-xl p-6 shadow-lg">
                     <h2 class="text-2xl font-semibold mb-4">Complementary</h2>
                     <div class="grid grid-cols-2 gap-4">
-                        <?php foreach ($complementary->toHexArray() as $hex): ?>
+                        <?php foreach ($complementary->toHexArray() as $hex) { ?>
                             <div class="color-card rounded-lg overflow-hidden shadow-md">
                                 <div class="h-24" style="background-color: <?php echo $hex; ?>"></div>
                                 <div class="p-3 bg-white">
                                     <p class="text-sm text-gray-500"><?php echo $hex; ?></p>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </section>
 
@@ -109,14 +109,14 @@ $websiteTheme = $generator->websiteTheme();
                 <section class="bg-white rounded-xl p-6 shadow-lg">
                     <h2 class="text-2xl font-semibold mb-4">Analogous</h2>
                     <div class="grid grid-cols-3 gap-4">
-                        <?php foreach ($analogous->toHexArray() as $hex): ?>
+                        <?php foreach ($analogous->toHexArray() as $hex) { ?>
                             <div class="color-card rounded-lg overflow-hidden shadow-md">
                                 <div class="h-24" style="background-color: <?php echo $hex; ?>"></div>
                                 <div class="p-3 bg-white">
                                     <p class="text-sm text-gray-500"><?php echo $hex; ?></p>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </section>
             </div>
@@ -127,14 +127,14 @@ $websiteTheme = $generator->websiteTheme();
                 <section class="bg-white rounded-xl p-6 shadow-lg">
                     <h2 class="text-2xl font-semibold mb-4">Triadic</h2>
                     <div class="grid grid-cols-3 gap-4">
-                        <?php foreach ($triadic->toHexArray() as $hex): ?>
+                        <?php foreach ($triadic->toHexArray() as $hex) { ?>
                             <div class="color-card rounded-lg overflow-hidden shadow-md">
                                 <div class="h-24" style="background-color: <?php echo $hex; ?>"></div>
                                 <div class="p-3 bg-white">
                                     <p class="text-sm text-gray-500"><?php echo $hex; ?></p>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </section>
 
@@ -142,14 +142,14 @@ $websiteTheme = $generator->websiteTheme();
                 <section class="bg-white rounded-xl p-6 shadow-lg">
                     <h2 class="text-2xl font-semibold mb-4">Split Complementary</h2>
                     <div class="grid grid-cols-3 gap-4">
-                        <?php foreach ($splitComplementary->toHexArray() as $hex): ?>
+                        <?php foreach ($splitComplementary->toHexArray() as $hex) { ?>
                             <div class="color-card rounded-lg overflow-hidden shadow-md">
                                 <div class="h-24" style="background-color: <?php echo $hex; ?>"></div>
                                 <div class="p-3 bg-white">
                                     <p class="text-sm text-gray-500"><?php echo $hex; ?></p>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </section>
 
@@ -157,14 +157,14 @@ $websiteTheme = $generator->websiteTheme();
                 <section class="bg-white rounded-xl p-6 shadow-lg">
                     <h2 class="text-2xl font-semibold mb-4">Tetradic</h2>
                     <div class="grid grid-cols-2 gap-4">
-                        <?php foreach ($tetradic->toHexArray() as $hex): ?>
+                        <?php foreach ($tetradic->toHexArray() as $hex) { ?>
                             <div class="color-card rounded-lg overflow-hidden shadow-md">
                                 <div class="h-24" style="background-color: <?php echo $hex; ?>"></div>
                                 <div class="p-3 bg-white">
                                     <p class="text-sm text-gray-500"><?php echo $hex; ?></p>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </section>
             </div>
@@ -175,14 +175,14 @@ $websiteTheme = $generator->websiteTheme();
                 <section class="bg-white rounded-xl p-6 shadow-lg">
                     <h2 class="text-2xl font-semibold mb-4">Pastel</h2>
                     <div class="grid grid-cols-4 gap-4">
-                        <?php foreach ($pastel->toHexArray() as $hex): ?>
+                        <?php foreach ($pastel->toHexArray() as $hex) { ?>
                             <div class="color-card rounded-lg overflow-hidden shadow-md">
                                 <div class="h-24" style="background-color: <?php echo $hex; ?>"></div>
                                 <div class="p-3 bg-white">
                                     <p class="text-sm text-gray-500"><?php echo $hex; ?></p>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </section>
 
@@ -190,14 +190,14 @@ $websiteTheme = $generator->websiteTheme();
                 <section class="bg-white rounded-xl p-6 shadow-lg">
                     <h2 class="text-2xl font-semibold mb-4">Vibrant</h2>
                     <div class="grid grid-cols-4 gap-4">
-                        <?php foreach ($vibrant->toHexArray() as $hex): ?>
+                        <?php foreach ($vibrant->toHexArray() as $hex) { ?>
                             <div class="color-card rounded-lg overflow-hidden shadow-md">
                                 <div class="h-24" style="background-color: <?php echo $hex; ?>"></div>
                                 <div class="p-3 bg-white">
                                     <p class="text-sm text-gray-500"><?php echo $hex; ?></p>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </section>
             </div>

@@ -127,4 +127,4 @@ test('it can generate website theme', function () {
         'text',
         'text_light',
     ]);
-}); 
+});

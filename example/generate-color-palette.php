@@ -16,19 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (isset($_FILES['image'])) {
             // Handle uploaded image
-            if (!isset($_FILES['image']['tmp_name']) || !is_uploaded_file($_FILES['image']['tmp_name'])) {
+            if (! isset($_FILES['image']['tmp_name']) || ! is_uploaded_file($_FILES['image']['tmp_name'])) {
                 throw new Exception('No file was uploaded.');
             }
 
             $sourceFile = $_FILES['image']['tmp_name'];
-            
+
             // Validate file type
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
             $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
             $mimeType = finfo_file($fileInfo, $sourceFile);
             finfo_close($fileInfo);
 
-            if (!in_array($mimeType, $allowedTypes)) {
+            if (! in_array($mimeType, $allowedTypes)) {
                 throw new Exception('Invalid file type. Only JPG, PNG and GIF are allowed.');
             }
 
@@ -40,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 default => throw new Exception('Unsupported image type')
             };
 
-            $tempFile = tempnam(sys_get_temp_dir(), 'img_') . '.' . $extension;
-            if (!copy($sourceFile, $tempFile)) {
+            $tempFile = tempnam(sys_get_temp_dir(), 'img_').'.'.$extension;
+            if (! copy($sourceFile, $tempFile)) {
                 throw new Exception('Failed to process uploaded file.');
             }
 
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (isset($_POST['imageUrl'])) {
             // Handle image URL
             $imageUrl = filter_var($_POST['imageUrl'], FILTER_SANITIZE_URL);
-            if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+            if (! filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 throw new Exception('Invalid image URL.');
             }
 
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Validate content type
-            if (!str_starts_with($contentType, 'image/')) {
+            if (! str_starts_with($contentType, 'image/')) {
                 throw new Exception('URL does not point to a valid image.');
             }
 
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 default => throw new Exception('Unsupported image type')
             };
 
-            $tempFile = tempnam(sys_get_temp_dir(), 'img_') . '.' . $extension;
+            $tempFile = tempnam(sys_get_temp_dir(), 'img_').'.'.$extension;
             if (file_put_contents($tempFile, $imageData) === false) {
                 throw new Exception('Failed to save image data.');
             }
@@ -106,8 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Prepare response
         $response = [
             'success' => true,
-            'dominantColors' => array_map(fn($color) => $color->toHex(), $palette->getColors()),
-            'surfaceColors' => array_map(fn($color) => $color->toHex(), $surfaceColors),
+            'dominantColors' => array_map(fn ($color) => $color->toHex(), $palette->getColors()),
+            'surfaceColors' => array_map(fn ($color) => $color->toHex(), $surfaceColors),
         ];
 
         echo json_encode($response);
