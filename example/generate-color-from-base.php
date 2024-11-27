@@ -65,6 +65,14 @@ $themeColors = array_merge([
         <!-- Header with Gradient -->
         <div class="gradient-bg text-white py-8">
             <div class="max-w-7xl mx-auto px-4">
+                <div class="py-4">
+                    <a href="generate-color-palette.php" class="text-white hover:text-gray-200 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Try Color Generator from Image
+                    </a>
+                </div>
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 class="text-4xl font-bold mb-2">Color Palette Generator</h1>
