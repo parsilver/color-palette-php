@@ -18,15 +18,4 @@ interface ImageInterface
      * Get image height
      */
     public function getHeight(): int;
-
-    /**
-     * Get image resource
-     * This method should return the native image resource (GD or Imagick)
-     */
-    public function getResource(): mixed;
-
-    /**
-     * Clean up resources
-     */
-    public function destroy(): void;
 }

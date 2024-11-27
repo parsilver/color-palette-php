@@ -4,75 +4,29 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette\Images;
 
-use Farzai\ColorPalette\Exceptions\ImageException;
+use Farzai\ColorPalette\Contracts\ImageInterface;
 
-/**
- * GD implementation of ImageInterface
- */
-class GdImage extends AbstractImage
+class GdImage implements ImageInterface
 {
-    /**
-     * Create a new GD image instance
-     *
-     * @param  resource|\GdImage  $resource
-     *
-     * @throws ImageException
-     */
-    public function __construct($resource)
-    {
-        if (! ($resource instanceof \GdImage) && ! is_resource($resource)) {
-            throw new ImageException('Invalid GD image resource provided');
-        }
+    public function __construct(private readonly \GdImage $resource) {}
 
-        $this->resource = $resource;
-        $this->width = imagesx($resource);
-        $this->height = imagesy($resource);
+    public function getWidth(): int
+    {
+        return imagesx($this->resource);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function destroy(): void
+    public function getHeight(): int
     {
-        if ($this->resource) {
-            imagedestroy($this->resource);
-            $this->resource = null;
-        }
+        return imagesy($this->resource);
     }
 
-    /**
-     * Create from file path
-     *
-     * @throws ImageException
-     */
-    public static function createFromPath(string $path): self
+    public function getResource(): \GdImage
     {
-        if (! file_exists($path)) {
-            throw new ImageException("Image file not found: {$path}");
-        }
-
-        $imageInfo = getimagesize($path);
-        if ($imageInfo === false) {
-            throw new ImageException("Invalid image file: {$path}");
-        }
-
-        $resource = match ($imageInfo[2]) {
-            IMAGETYPE_JPEG => imagecreatefromjpeg($path),
-            IMAGETYPE_PNG => imagecreatefrompng($path),
-            IMAGETYPE_GIF => imagecreatefromgif($path),
-            IMAGETYPE_WEBP => imagecreatefromwebp($path),
-            default => throw new ImageException("Unsupported image type: {$imageInfo[2]}")
-        };
-
-        if ($resource === false) {
-            throw new ImageException("Failed to create image resource from: {$path}");
-        }
-
-        return new self($resource);
+        return $this->resource;
     }
 
     public function __destruct()
     {
-        $this->destroy();
+        imagedestroy($this->resource);
     }
 }
