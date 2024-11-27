@@ -22,6 +22,13 @@ interface ColorInterface
     public function toRgb(): array;
 
     /**
+     * Convert the color to HSL format
+     *
+     * @return array{h: float, s: float, l: float}
+     */
+    public function toHsl(): array;
+
+    /**
      * Get the brightness value of the color
      */
     public function getBrightness(): float;
@@ -37,12 +44,57 @@ interface ColorInterface
     public function isDark(): bool;
 
     /**
+     * Calculate the contrast ratio between this color and another color
+     */
+    public function getContrastRatio(ColorInterface $color): float;
+
+    /**
      * Get the relative luminance of the color
      */
     public function getLuminance(): float;
 
     /**
-     * Calculate the contrast ratio between this color and another color
+     * Lighten the color by a given amount
      */
-    public function getContrastRatio(ColorInterface $color): float;
+    public function lighten(float $amount): self;
+
+    /**
+     * Darken the color by a given amount
+     */
+    public function darken(float $amount): self;
+
+    /**
+     * Saturate the color by a given amount
+     */
+    public function saturate(float $amount): self;
+
+    /**
+     * Desaturate the color by a given amount
+     */
+    public function desaturate(float $amount): self;
+
+    /**
+     * Rotate the color by a given degrees
+     */
+    public function rotate(float $degrees): self;
+
+    /**
+     * Set the lightness of the color
+     */
+    public function withLightness(float $lightness): self;
+
+    /**
+     * Get the red component of the color
+     */
+    public function getRed(): int;
+
+    /**
+     * Get the green component of the color
+     */
+    public function getGreen(): int;
+
+    /**
+     * Get the blue component of the color
+     */
+    public function getBlue(): int;
 }

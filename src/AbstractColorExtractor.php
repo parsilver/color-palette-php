@@ -15,9 +15,9 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
 {
     protected const SAMPLE_SIZE = 50; // Number of pixels to sample in each dimension
 
-    protected const MIN_SATURATION = 0.15; // Minimum saturation for color consideration
+    protected const MIN_SATURATION = 0.05; // Reduced from 0.15
 
-    protected const MIN_BRIGHTNESS = 0.15; // Minimum brightness for color consideration
+    protected const MIN_BRIGHTNESS = 0.05; // Reduced from 0.15
 
     /**
      * {@inheritdoc}

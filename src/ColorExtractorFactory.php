@@ -4,25 +4,45 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
-use Farzai\ColorPalette\Contracts\ColorExtractorInterface;
-use Farzai\ColorPalette\Contracts\ImageInterface;
-use Farzai\ColorPalette\Images\GdImage;
-use Farzai\ColorPalette\Images\ImagickImage;
+use InvalidArgumentException;
 
-/**
- * Factory for creating appropriate color extractor instances
- */
 class ColorExtractorFactory
 {
     /**
-     * Create color extractor based on image type
+     * Create a new color extractor instance
+     *
+     * @throws InvalidArgumentException
      */
-    public static function createForImage(ImageInterface $image): ColorExtractorInterface
+    public function make(string $driver = 'gd'): AbstractColorExtractor
     {
-        return match (true) {
-            $image instanceof GdImage => new GdColorExtractor,
-            $image instanceof ImagickImage => new ImagickColorExtractor,
-            default => throw new \InvalidArgumentException('Unsupported image type'),
+        return match ($driver) {
+            'gd' => $this->createGdExtractor(),
+            'imagick' => $this->createImagickExtractor(),
+            default => throw new InvalidArgumentException("Unsupported driver: {$driver}"),
         };
+    }
+
+    /**
+     * Create GD color extractor
+     */
+    private function createGdExtractor(): GdColorExtractor
+    {
+        if (! extension_loaded('gd')) {
+            throw new InvalidArgumentException('GD extension is not available');
+        }
+
+        return new GdColorExtractor;
+    }
+
+    /**
+     * Create Imagick color extractor
+     */
+    private function createImagickExtractor(): ImagickColorExtractor
+    {
+        if (! extension_loaded('imagick')) {
+            throw new InvalidArgumentException('Imagick extension is not available');
+        }
+
+        return new ImagickColorExtractor;
     }
 }

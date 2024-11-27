@@ -6,29 +6,57 @@ use Farzai\ColorPalette\Color;
 use Farzai\ColorPalette\PaletteGenerator;
 
 $baseColor = isset($_GET['color']) ? $_GET['color'] : '#2196F3';
-$baseColor = Color::fromHex($baseColor);
-$generator = new PaletteGenerator($baseColor);
 
-// Generate different palettes
-$websiteTheme = $generator->websiteTheme();
-$complementary = $generator->complementary();
-$analogous = $generator->analogous(3);
+try {
+    $baseColor = Color::fromHex($baseColor);
+    $generator = new PaletteGenerator($baseColor);
 
-// Convert colors to hex arrays
-$themeColors = $websiteTheme->toHexArray();
-$complementaryColors = array_values($complementary->toHexArray());
-$analogousColors = array_values($analogous->toHexArray());
+    // Generate different palettes
+    $websiteTheme = $generator->websiteTheme();
+    $complementary = $generator->complementary();
+    $analogous = $generator->analogous();
 
-// Ensure all theme colors are present
-$themeColors = array_merge([
-    'primary' => $baseColor->toHex(),
-    'secondary' => $complementaryColors[1] ?? $baseColor->lighten(10)->toHex(),
-    'accent' => $analogousColors[2] ?? $baseColor->saturate(10)->toHex(),
-    'background' => '#FFFFFF',
-    'surface' => '#F7FAFC',
-    'text' => '#1A202C',
-    'text_light' => '#4A5568',
-], $themeColors);
+    // Convert colors to hex arrays
+    $themeColors = array_map(fn ($color) => $color->toHex(), $websiteTheme->getColors());
+    $complementaryColors = array_map(fn ($color) => $color->toHex(), $complementary->getColors());
+    $analogousColors = array_map(fn ($color) => $color->toHex(), $analogous->getColors());
+
+    // Ensure all theme colors are present with proper defaults
+    $themeColors = array_merge([
+        'primary' => $baseColor->toHex(),
+        'secondary' => $complementaryColors[1] ?? $baseColor->rotate(30)->desaturate(0.2)->toHex(),
+        'accent' => $analogousColors[2] ?? $baseColor->rotate(180)->saturate(0.2)->toHex(),
+        'background' => '#FFFFFF',
+        'surface' => '#F7FAFC',
+        'text' => '#1A202C',
+        'text_light' => '#4A5568',
+    ], $themeColors);
+} catch (\Exception $e) {
+    // Handle invalid color input
+    $baseColor = Color::fromHex('#2196F3');
+    $generator = new PaletteGenerator($baseColor);
+
+    // Generate different palettes
+    $websiteTheme = $generator->websiteTheme();
+    $complementary = $generator->complementary();
+    $analogous = $generator->analogous();
+
+    // Convert colors to hex arrays
+    $themeColors = array_map(fn ($color) => $color->toHex(), $websiteTheme->getColors());
+    $complementaryColors = array_map(fn ($color) => $color->toHex(), $complementary->getColors());
+    $analogousColors = array_map(fn ($color) => $color->toHex(), $analogous->getColors());
+
+    // Ensure all theme colors are present with proper defaults
+    $themeColors = array_merge([
+        'primary' => $baseColor->toHex(),
+        'secondary' => $complementaryColors[1] ?? $baseColor->rotate(30)->desaturate(0.2)->toHex(),
+        'accent' => $analogousColors[2] ?? $baseColor->rotate(180)->saturate(0.2)->toHex(),
+        'background' => '#FFFFFF',
+        'surface' => '#F7FAFC',
+        'text' => '#1A202C',
+        'text_light' => '#4A5568',
+    ], $themeColors);
+}
 
 ?>
 <!DOCTYPE html>

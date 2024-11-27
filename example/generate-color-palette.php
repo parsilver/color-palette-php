@@ -7,10 +7,14 @@ use Farzai\ColorPalette\ImageLoaderFactory;
 
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Ensure we output JSON and handle errors properly
     header('Content-Type: application/json');
+    error_reporting(E_ERROR);
+    ini_set('display_errors', '0');
 
     try {
-        $loader = ImageLoaderFactory::create();
+        $loaderFactory = new ImageLoaderFactory;
+        $loader = $loaderFactory->create();
         $image = null;
         $tempFile = null;
 
@@ -92,7 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Extract colors
-        $extractor = ColorExtractorFactory::createForImage($image);
+        $extractorFactory = new ColorExtractorFactory;
+        $extractor = $extractorFactory->make('gd');
         $palette = $extractor->extract($image, 6);
 
         // Get suggested surface colors

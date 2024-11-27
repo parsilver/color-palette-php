@@ -4,67 +4,32 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette\Images;
 
-use Farzai\ColorPalette\Exceptions\ImageException;
+use Farzai\ColorPalette\Contracts\ImageInterface;
 
 /**
- * Imagick implementation of ImageInterface
+ * @requires extension imagick
  */
-class ImagickImage extends AbstractImage
+class ImagickImage implements ImageInterface
 {
-    /**
-     * Create a new Imagick image instance
-     *
-     * @throws ImageException
-     */
-    public function __construct(\Imagick $resource)
-    {
-        if (! extension_loaded('imagick')) {
-            throw new ImageException('Imagick extension is not loaded');
-        }
+    public function __construct(private readonly \Imagick $resource) {}
 
-        $this->resource = $resource;
-        $geometry = $resource->getImageGeometry();
-        $this->width = $geometry['width'];
-        $this->height = $geometry['height'];
+    public function getWidth(): int
+    {
+        return $this->resource->getImageWidth();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function destroy(): void
+    public function getHeight(): int
     {
-        if ($this->resource instanceof \Imagick) {
-            $this->resource->clear();
-            $this->resource = null;
-        }
+        return $this->resource->getImageHeight();
     }
 
-    /**
-     * Create from file path
-     *
-     * @throws ImageException
-     */
-    public static function createFromPath(string $path): self
+    public function getResource(): \Imagick
     {
-        if (! file_exists($path)) {
-            throw new ImageException("Image file not found: {$path}");
-        }
-
-        try {
-            $imagick = new \Imagick($path);
-            // Convert to RGB colorspace if needed
-            if ($imagick->getImageColorspace() !== \Imagick::COLORSPACE_RGB) {
-                $imagick->transformImageColorspace(\Imagick::COLORSPACE_RGB);
-            }
-
-            return new self($imagick);
-        } catch (\ImagickException $e) {
-            throw new ImageException("Failed to create Imagick image: {$e->getMessage()}");
-        }
+        return $this->resource;
     }
 
     public function __destruct()
     {
-        $this->destroy();
+        $this->resource->clear();
     }
 }

@@ -4,179 +4,135 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
+use Farzai\ColorPalette\Contracts\ColorInterface;
+
 class PaletteGenerator
 {
-    private Color $baseColor;
+    private ColorInterface $baseColor;
 
-    public function __construct(Color $baseColor)
+    public function __construct(ColorInterface $baseColor)
     {
         $this->baseColor = $baseColor;
     }
 
-    /**
-     * Generate monochromatic colors
-     */
     public function monochromatic(int $count = 5): ColorPalette
     {
         $colors = [$this->baseColor];
         $hsl = $this->baseColor->toHsl();
-        $lightnessStep = 0.8 / ($count - 1);
+        $step = 0.8 / ($count - 1);
 
         for ($i = 1; $i < $count; $i++) {
-            $lightness = $lightnessStep * $i;
-            $colors[] = Color::fromHsl($hsl['h'], $hsl['s'], $lightness * 100);
+            $lightness = max(0, min(100, $hsl['l'] + ($step * $i * 100)));
+            $colors[] = Color::fromHsl($hsl['h'], $hsl['s'], $lightness);
         }
 
         return new ColorPalette($colors);
     }
 
-    /**
-     * Generate complementary colors
-     */
     public function complementary(): ColorPalette
     {
-        return new ColorPalette([
-            $this->baseColor,
-            $this->baseColor->rotate(180),
-        ]);
+        $complement = $this->baseColor->rotate(180);
+
+        return new ColorPalette([$this->baseColor, $complement]);
     }
 
-    /**
-     * Generate analogous colors
-     */
-    public function analogous(int $count = 3, float $angle = 30): ColorPalette
+    public function analogous(): ColorPalette
     {
-        $colors = [];
-        $middleIndex = floor($count / 2);
+        $color1 = $this->baseColor->rotate(-30);
+        $color2 = $this->baseColor;
+        $color3 = $this->baseColor->rotate(30);
 
-        for ($i = 0; $i < $count; $i++) {
-            if ($i === $middleIndex) {
-                $colors[] = $this->baseColor;
-            } else {
-                $rotation = ($i - $middleIndex) * $angle;
-                $colors[] = $this->baseColor->rotate($rotation)->saturate(0.1);
-            }
-        }
-
-        return new ColorPalette($colors);
+        return new ColorPalette([$color1, $color2, $color3]);
     }
 
-    /**
-     * Generate triadic colors
-     */
     public function triadic(): ColorPalette
     {
-        return new ColorPalette([
-            $this->baseColor,
-            $this->baseColor->rotate(120),
-            $this->baseColor->rotate(240),
-        ]);
+        $color1 = $this->baseColor;
+        $color2 = $this->baseColor->rotate(120);
+        $color3 = $this->baseColor->rotate(240);
+
+        return new ColorPalette([$color1, $color2, $color3]);
     }
 
-    /**
-     * Generate tetradic (double complementary) colors
-     */
     public function tetradic(): ColorPalette
     {
-        return new ColorPalette([
-            $this->baseColor,
-            $this->baseColor->rotate(90),
-            $this->baseColor->rotate(180),
-            $this->baseColor->rotate(270),
-        ]);
+        $color1 = $this->baseColor;
+        $color2 = $this->baseColor->rotate(90);
+        $color3 = $this->baseColor->rotate(180);
+        $color4 = $this->baseColor->rotate(270);
+
+        return new ColorPalette([$color1, $color2, $color3, $color4]);
     }
 
-    /**
-     * Generate split complementary colors
-     */
     public function splitComplementary(): ColorPalette
     {
-        return new ColorPalette([
-            $this->baseColor,
-            $this->baseColor->rotate(150),
-            $this->baseColor->rotate(210),
-        ]);
+        $color1 = $this->baseColor;
+        $color2 = $this->baseColor->rotate(150);
+        $color3 = $this->baseColor->rotate(210);
+
+        return new ColorPalette([$color1, $color2, $color3]);
     }
 
-    /**
-     * Generate shades (darker variations)
-     */
     public function shades(int $count = 5): ColorPalette
     {
         $colors = [$this->baseColor];
         $step = 0.8 / ($count - 1);
 
         for ($i = 1; $i < $count; $i++) {
-            $amount = $step * $i;
-            $colors[] = $this->baseColor->darken($amount);
+            $colors[] = $this->baseColor->darken($step * $i);
         }
 
         return new ColorPalette($colors);
     }
 
-    /**
-     * Generate tints (lighter variations)
-     */
     public function tints(int $count = 5): ColorPalette
     {
         $colors = [$this->baseColor];
         $step = 0.8 / ($count - 1);
 
         for ($i = 1; $i < $count; $i++) {
-            $amount = $step * $i;
-            $colors[] = $this->baseColor->lighten($amount);
+            $colors[] = $this->baseColor->lighten($step * $i);
         }
 
         return new ColorPalette($colors);
     }
 
-    /**
-     * Generate a pastel palette
-     */
-    public function pastel(int $count = 4): ColorPalette
+    public function pastel(): ColorPalette
     {
         $colors = [];
-        $hueStep = 360 / $count;
+        $hsl = $this->baseColor->toHsl();
+        $baseHue = $hsl['h'];
 
-        for ($i = 0; $i < $count; $i++) {
-            $hue = ($this->baseColor->toHsl()['h'] + ($hueStep * $i)) % 360;
-            $colors[] = Color::fromHsl($hue, 35, 85); // Pastel colors have high lightness and low saturation
+        for ($i = 0; $i < 5; $i++) {
+            $hue = ($baseHue + ($i * 72)) % 360;
+            $colors[] = Color::fromHsl($hue, 25, 90);
         }
 
         return new ColorPalette($colors);
     }
 
-    /**
-     * Generate a vibrant palette
-     */
-    public function vibrant(int $count = 4): ColorPalette
+    public function vibrant(): ColorPalette
     {
         $colors = [];
-        $hueStep = 360 / $count;
+        $hsl = $this->baseColor->toHsl();
+        $baseHue = $hsl['h'];
 
-        for ($i = 0; $i < $count; $i++) {
-            $hue = ($this->baseColor->toHsl()['h'] + ($hueStep * $i)) % 360;
-            $colors[] = Color::fromHsl($hue, 85, 60); // Vibrant colors have high saturation
+        for ($i = 0; $i < 5; $i++) {
+            $hue = ($baseHue + ($i * 72)) % 360;
+            $colors[] = Color::fromHsl($hue, 100, 50);
         }
 
         return new ColorPalette($colors);
     }
 
-    /**
-     * Generate a modern website theme
-     */
     public function websiteTheme(): ColorPalette
     {
-        $baseHsl = $this->baseColor->toHsl();
-
         return new ColorPalette([
             'primary' => $this->baseColor,
-            'secondary' => $this->baseColor->rotate(30)->saturate(0.1),
+            'secondary' => $this->baseColor->rotate(30)->desaturate(0.2),
             'accent' => $this->baseColor->rotate(180)->saturate(0.2),
-            'background' => Color::fromHsl($baseHsl['h'], 10, 98),
-            'surface' => Color::fromHsl($baseHsl['h'], 5, 100),
-            'text' => Color::fromHsl($baseHsl['h'], 15, 15),
-            'text_light' => Color::fromHsl($baseHsl['h'], 10, 30),
+            'background' => Color::fromHsl(0, 0, 98),
+            'surface' => Color::fromHsl(0, 0, 100),
         ]);
     }
 }
