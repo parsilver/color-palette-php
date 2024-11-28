@@ -1,94 +1,154 @@
 @import "{{ site.theme }}";
 
-// Custom styles
-.main-nav {
-  margin: 20px 0;
-  padding: 10px 0;
-  border-bottom: 1px solid #eaecef;
-
-  .nav-link {
-    display: inline-block;
-    padding: 8px 16px;
-    margin-right: 10px;
-    color: #24292e;
-    text-decoration: none;
-    border-radius: 3px;
-
-    &:hover {
-      background-color: #f6f8fa;
-      text-decoration: none;
-    }
-  }
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #3b82f6;
+    --text-color: #1f2937;
+    --background-color: #ffffff;
+    --code-background: #f3f4f6;
+    --border-color: #e5e7eb;
 }
 
-.markdown-body {
-  max-width: 1012px;
-  margin: 0 auto;
-}
-
-.page-header {
-  padding: 3rem;
-  background-color: #159957;
-  background-image: linear-gradient(120deg, #155799, #159957);
-  color: #fff;
-  text-align: center;
-}
-
-.main-content {
-  h1, h2, h3, h4, h5, h6 {
-    color: #24292e;
-    margin-top: 24px;
-    margin-bottom: 16px;
-    font-weight: 600;
-    line-height: 1.25;
-  }
-
-  h1 {
-    padding-bottom: .3em;
-    font-size: 2em;
-    border-bottom: 1px solid #eaecef;
-  }
-
-  h2 {
-    padding-bottom: .3em;
-    font-size: 1.5em;
-    border-bottom: 1px solid #eaecef;
-  }
-
-  code {
-    padding: .2em .4em;
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: var(--background-color);
     margin: 0;
-    font-size: 85%;
-    background-color: rgba(27,31,35,.05);
-    border-radius: 3px;
-  }
+}
 
-  pre {
-    padding: 16px;
-    overflow: auto;
-    font-size: 85%;
-    line-height: 1.45;
-    background-color: #f6f8fa;
-    border-radius: 3px;
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
 
-    code {
-      display: inline;
-      max-width: auto;
-      padding: 0;
-      margin: 0;
-      overflow: visible;
-      line-height: inherit;
-      word-wrap: normal;
-      background-color: transparent;
-      border: 0;
+.site-header {
+    background: var(--background-color);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.site-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.site-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1.5rem;
+    
+    a {
+        color: var(--text-color);
+        text-decoration: none;
+        padding: 0.5rem 0;
+        border-bottom: 2px solid transparent;
+        transition: border-color 0.2s;
+        
+        &:hover, &.active {
+            border-bottom-color: var(--primary-color);
+        }
     }
-  }
+}
+
+.site-content {
+    padding: 3rem 0;
+    min-height: calc(100vh - 200px);
 }
 
 .site-footer {
-  margin-top: 4rem;
-  padding-top: 2rem;
-  border-top: 1px solid #eaecef;
-  text-align: center;
-  color: #586069;
+    background: var(--code-background);
+    padding: 2rem 0;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+// Typography
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color);
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; }
+
+// Code blocks
+pre {
+    background: var(--code-background);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+}
+
+code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.9em;
+    padding: 0.2em 0.4em;
+    background: var(--code-background);
+    border-radius: 0.25rem;
+}
+
+// Links
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+// Color examples
+.color-example {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.color-swatch {
+    width: 100px;
+    height: 100px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .site-nav {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    h3 { font-size: 1.5rem; }
+    h4 { font-size: 1.25rem; }
 } 

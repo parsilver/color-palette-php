@@ -1,166 +1,190 @@
 # Core Concepts
 
-This document explains the core concepts and components of the Color Palette PHP library.
+This guide explains the core concepts of color theory and how they are implemented in Color Palette PHP.
 
-## Color Representation
+## Color Spaces
 
-The library uses the `Color` class as the fundamental building block for color manipulation. Colors can be represented in multiple formats:
-
-- RGB (Red, Green, Blue)
-- HSL (Hue, Saturation, Lightness)
-- Hexadecimal (#RRGGBB)
+### RGB (Red, Green, Blue)
+RGB is an additive color model where red, green, and blue light are added together to create colors.
 
 ```php
 use Farzai\ColorPalette\Color;
 
-// Create from RGB values (0-255)
-$color = new Color(33, 150, 243);
+// Create a color using RGB values (0-255)
+$color = new Color(37, 99, 235);
 
-// Create from Hex
-$color = Color::fromHex('#2196f3');
-
-// Access color components
-echo $color->getRed();   // 33
-echo $color->getGreen(); // 150
-echo $color->getBlue();  // 243
-
-// Convert between formats
-$rgb = $color->toRgb();  // Returns array with 'r', 'g', 'b' keys
-$hex = $color->toHex();  // Returns string like '#2196f3'
-$hsl = $color->toHsl();  // Returns array with 'h', 's', 'l' keys
+// Get RGB components
+$red = $color->getRed();    // 37
+$green = $color->getGreen(); // 99
+$blue = $color->getBlue();   // 235
 ```
 
-## Image Processing
-
-The library supports two image processing backends:
-
-### GD (Default)
-- Faster processing
-- Lower memory usage
-- Available in most PHP installations
-
-### ImageMagick
-- Better color accuracy
-- Support for more image formats
-- More advanced image manipulation capabilities
+### HSL (Hue, Saturation, Lightness)
+HSL represents colors using hue (color type), saturation (color intensity), and lightness (brightness).
 
 ```php
-use Farzai\ColorPalette\ImageFactory;
-use Farzai\ColorPalette\ColorExtractorFactory;
+// Convert from RGB to HSL
+$hsl = $color->toHsl();
+// Returns: ['h' => 220, 's' => 83, 'l' => 53]
 
-// Create image instance
-$imageFactory = new ImageFactory();
-$image = $imageFactory->createFromPath('image.jpg');
-
-// Choose backend
-$extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->create('gd');  // or 'imagick'
+// Create a color from HSL
+$color = Color::fromHsl(220, 83, 53);
 ```
 
-## Color Extraction
+### HSV (Hue, Saturation, Value)
+Similar to HSL but uses value instead of lightness for brightness control.
 
-There are two ways to extract colors from images:
-
-### 1. Using ColorExtractor (Recommended)
 ```php
-// Extract colors directly
-$colors = $extractor->extract($image);
-$palette = new ColorPalette($colors);
+// Convert to HSV
+$hsv = $color->toHsv();
+// Returns: ['h' => 220, 's' => 84, 'v' => 92]
+
+// Create from HSV
+$color = Color::fromHsv(220, 84, 92);
 ```
 
-### 2. Using PaletteGenerator
-```php
-use Farzai\ColorPalette\PaletteGenerator;
+### CMYK (Cyan, Magenta, Yellow, Key)
+CMYK is a subtractive color model used in printing.
 
-$generator = new PaletteGenerator();
-$palette = $generator->generate($image);
+```php
+// Convert to CMYK
+$cmyk = $color->toCmyk();
+// Returns: ['c' => 84, 'm' => 58, 'y' => 0, 'k' => 8]
+
+// Create from CMYK
+$color = Color::fromCmyk(84, 58, 0, 8);
 ```
 
-## Color Palettes
-
-A `ColorPalette` represents a collection of colors and implements `ArrayAccess` and `Countable`. It provides methods for:
+### LAB (Lightness, A, B)
+LAB color space is designed to be perceptually uniform.
 
 ```php
-// Get all colors
-$colors = $palette->getColors();
+// Convert to LAB
+$lab = $color->toLab();
+// Returns: ['l' => 45, 'a' => 15, 'b' => -67]
 
-// Count colors
-$count = count($palette);
+// Create from LAB
+$color = Color::fromLab(45, 15, -67);
+```
 
-// Access colors as array
-$firstColor = $palette[0];
+## Color Manipulation
 
-// Convert to array of hex values
-$hexArray = $palette->toArray();
+### Lightness Adjustments
+```php
+// Lighten by 20%
+$lighter = $color->lighten(20);
 
-// Get suggested text color for a background
-$textColor = $palette->getSuggestedTextColor($backgroundColor);
+// Darken by 20%
+$darker = $color->darken(20);
+```
 
-// Get surface colors for UI
-$surfaceColors = $palette->getSuggestedSurfaceColors();
-// Returns: surface, background, accent, surface_variant
+### Saturation Adjustments
+```php
+// Increase saturation by 20%
+$saturated = $color->saturate(20);
+
+// Decrease saturation by 20%
+$desaturated = $color->desaturate(20);
+```
+
+### Hue Rotation
+```php
+// Rotate hue by 45 degrees
+$rotated = $color->rotate(45);
+```
+
+## Color Analysis
+
+### Brightness and Contrast
+```php
+// Get color brightness (0-1)
+$brightness = $color->getBrightness();
+
+// Check if color is light or dark
+$isLight = $color->isLight();
+$isDark = $color->isDark();
+
+// Get contrast ratio with another color
+$contrastRatio = $color->getContrastRatio($otherColor);
+```
+
+### Luminance
+```php
+// Get relative luminance (used for contrast calculations)
+$luminance = $color->getLuminance();
 ```
 
 ## Theme Generation
 
-Themes provide a structured way to organize colors for applications:
-
+### Creating Color Palettes
 ```php
+use Farzai\ColorPalette\ColorPalette;
+
+// Create a palette from an array of colors
+$palette = new ColorPalette([$color1, $color2, $color3]);
+
+// Get suggested text color for a background
+$textColor = $palette->getSuggestedTextColor($backgroundColor);
+
+// Get suggested surface colors
+$surfaceColors = $palette->getSuggestedSurfaceColors();
+```
+
+### Theme Generation
+```php
+use Farzai\ColorPalette\Theme;
 use Farzai\ColorPalette\ThemeGenerator;
 
+// Create a theme from a base color
 $generator = new ThemeGenerator();
-$theme = $generator->generate($palette);
+$theme = $generator->generate($baseColor);
 
 // Access theme colors
 $primary = $theme->getPrimary();
 $secondary = $theme->getSecondary();
-$accent = $theme->getAccent();
-
-// Check if theme has specific color
-if ($theme->hasColor('primary')) {
-    $color = $theme->getColor('primary');
-}
+$background = $theme->getBackground();
+$surface = $theme->getSurface();
 ```
 
-## Color Relationships
+## Image Color Extraction
 
-The library considers several factors when working with colors:
-
-### Contrast Ratio
-- Used to ensure text readability
-- Calculated according to WCAG guidelines
-- Helps in selecting appropriate text colors
-
-### Color Brightness
-- Determines if a color is light or dark
-- Used in surface color generation
-- Helps in creating balanced color schemes
-
-### Color Harmony
-- Used in theme generation
-- Helps create visually pleasing color combinations
-- Considers color theory principles
-
-## Error Handling
-
-The library uses specific exceptions for different error cases:
-
+### Using Different Backends
 ```php
-use Farzai\ColorPalette\Exceptions\ImageLoadException;
-use Farzai\ColorPalette\Exceptions\ImageException;
+use Farzai\ColorPalette\ImageFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
 
-try {
-    $image = $imageFactory->createFromPath('image.jpg');
-} catch (ImageLoadException $e) {
-    // Handle image loading errors
-} catch (ImageException $e) {
-    // Handle other image processing errors
-}
+// Create an image instance
+$imageFactory = new ImageFactory();
+$image = $imageFactory->createFromPath('path/to/image.jpg');
 
-// Color validation
-try {
-    $color = new Color(300, 0, 0); // Will throw InvalidArgumentException
-} catch (\InvalidArgumentException $e) {
-    // Handle invalid color values
-}
+// Create a color extractor (GD or Imagick)
+$extractorFactory = new ColorExtractorFactory();
+$extractor = $extractorFactory->create('gd'); // or 'imagick'
+
+// Extract colors
+$colors = $extractor->extract($image);
 ```
+
+## Best Practices
+
+1. **Color Accessibility**
+   - Always check contrast ratios for text colors
+   - Use `getSuggestedTextColor()` for readable text
+   - Ensure color combinations meet WCAG guidelines
+
+2. **Performance**
+   - Cache extracted colors for frequently used images
+   - Use the appropriate color space for your needs
+   - Consider using GD for better performance
+
+3. **Color Space Selection**
+   - Use RGB for screen display
+   - Use CMYK for print applications
+   - Use HSL/HSV for intuitive color manipulation
+   - Use LAB for perceptual color differences
+
+4. **Theme Generation**
+   - Start with a base color that represents your brand
+   - Use color theory principles for harmony
+   - Consider dark mode alternatives
+   - Test themes across different devices and lighting conditions
