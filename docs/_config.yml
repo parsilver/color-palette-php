@@ -6,25 +6,32 @@ plugins:
 
 title: Color Palette PHP
 description: A powerful PHP library for extracting color palettes from images and generating color themes
-theme: jekyll-theme-cayman
-markdown: kramdown
-kramdown:
-  syntax_highlighter: rouge
+show_downloads: true
+github:
+  repository_url: https://github.com/parsilver/color-palette-php
+  zip_url: https://github.com/parsilver/color-palette-php/archive/refs/heads/main.zip
+  tar_url: https://github.com/parsilver/color-palette-php/archive/refs/heads/main.tar.gz
 
 # Navigation
-nav_links:
+nav:
   - title: Getting Started
-    url: /getting-started
+    url: getting-started
   - title: Core Concepts
-    url: /core-concepts
+    url: core-concepts
   - title: API Reference
-    url: /api/
+    url: api/
   - title: Examples
-    url: /examples/
+    url: examples/
   - title: Color Playground
-    url: /playground
+    url: playground
   - title: GitHub
     url: https://github.com/parsilver/color-palette-php
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
 
 # Custom variables
 version: "1.0.0"
