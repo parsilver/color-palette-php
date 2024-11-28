@@ -25,13 +25,21 @@ composer require farzai/color-palette
 ### 1. Creating a Color Palette from an Image
 
 ```php
-use Farzai\ColorPalette\ColorPaletteFactory;
+use Farzai\ColorPalette\ImageFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
+use Farzai\ColorPalette\ColorPalette;
 
-// Create a factory instance
-$factory = new ColorPaletteFactory();
+// Create an image instance
+$imageFactory = new ImageFactory();
+$image = $imageFactory->createFromPath('path/to/image.jpg');
 
-// Create a palette from an image file
-$palette = $factory->createFromPath('path/to/image.jpg');
+// Create a color extractor
+$extractorFactory = new ColorExtractorFactory();
+$extractor = $extractorFactory->create('gd'); // or 'imagick'
+
+// Extract colors to create a palette
+$colors = $extractor->extract($image);
+$palette = new ColorPalette($colors);
 
 // Get all colors in the palette
 $colors = $palette->getColors();
@@ -81,22 +89,16 @@ echo $color->toRgb();       // rgb(33, 150, 243)
 echo $color->toHsl();       // hsl(207, 90%, 54%)
 ```
 
-### 4. Custom Color Extraction
+### 4. Surface Colors and Text Suggestions
 
 ```php
-use Farzai\ColorPalette\ColorExtractorFactory;
-use Farzai\ColorPalette\ImageLoader;
+// Get suggested surface colors
+$surfaceColors = $palette->getSuggestedSurfaceColors();
+// Available keys: 'surface', 'background', 'accent', 'surface_variant'
 
-// Create an image loader
-$imageLoader = new ImageLoader();
-$image = $imageLoader->load('path/to/image.jpg');
-
-// Create a color extractor (GD or Imagick)
-$extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->create('gd'); // or 'imagick'
-
-// Extract colors
-$colors = $extractor->extract($image);
+// Get suggested text color for a background
+$backgroundColor = $colors[0];
+$textColor = $palette->getSuggestedTextColor($backgroundColor);
 ```
 
 ## Error Handling
@@ -108,7 +110,7 @@ use Farzai\ColorPalette\Exceptions\ImageLoadException;
 use Farzai\ColorPalette\Exceptions\ImageException;
 
 try {
-    $palette = $factory->createFromPath('path/to/image.jpg');
+    $image = $imageFactory->createFromPath('path/to/image.jpg');
 } catch (ImageLoadException $e) {
     // Handle image loading errors
     echo "Failed to load image: " . $e->getMessage();
@@ -123,6 +125,5 @@ try {
 Now that you're familiar with the basics, you can:
 
 1. Learn about [Core Concepts](core-concepts.md)
-2. Explore [Advanced Usage](advanced-usage/README.md)
-3. Check out more [Examples](examples/README.md)
-4. Read the full [API Reference](api/README.md) 
+2. Explore the [Examples](examples/README.md)
+3. Read the [API Reference](api/README.md) 

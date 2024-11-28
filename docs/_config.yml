@@ -1,0 +1,28 @@
+remote_theme: pages-themes/cayman@v0.2.0
+plugins:
+  - jekyll-remote-theme
+
+title: Color Palette PHP
+description: A powerful PHP library for extracting color palettes from images and generating color themes
+show_downloads: true
+github:
+  repository_url: https://github.com/parsilver/color-palette-php
+  zip_url: https://github.com/parsilver/color-palette-php/archive/refs/heads/main.zip
+  tar_url: https://github.com/parsilver/color-palette-php/archive/refs/heads/main.tar.gz
+
+# Navigation
+nav:
+  - title: Getting Started
+    url: getting-started
+  - title: Core Concepts
+    url: core-concepts
+  - title: API Reference
+    url: api/
+  - title: Examples
+    url: examples/
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge 

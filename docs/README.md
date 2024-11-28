@@ -1,73 +1,45 @@
-# Color Palette PHP Documentation
+# Color Palette Documentation
 
-Welcome to the Color Palette PHP documentation. This guide will help you understand and utilize all features of the package.
+Welcome to the Color Palette PHP library documentation. This documentation will help you understand how to use the library effectively.
+
+## Package Information
+- Packagist Package: [farzai/color-palette](https://packagist.org/packages/farzai/color-palette)
+- GitHub Repository: [parsilver/color-palette-php](https://github.com/parsilver/color-palette-php)
 
 ## Table of Contents
 
 1. [Getting Started](getting-started.md)
    - Installation
-   - Basic Configuration
-   - Quick Start Guide
+   - Basic Usage
+   - Configuration
 
 2. [Core Concepts](core-concepts.md)
-   - Color Representation
-   - Color Palettes
-   - Themes
    - Color Extraction
+   - Color Manipulation
+   - Theme Generation
+   - Surface Colors
+   - Contrast Calculations
 
-3. [Components](components/README.md)
-   - [Color Class](components/color.md)
-   - [ColorPalette Class](components/color-palette.md)
-   - [Theme Class](components/theme.md)
-   - [PaletteGenerator](components/palette-generator.md)
-   - [ThemeGenerator](components/theme-generator.md)
+3. [API Reference](api/README.md)
+   - ColorPalette
+   - Color
+   - ImageFactory
+   - ColorExtractorFactory
+   - Theme & ThemeGenerator
 
-4. [Image Processing](image-processing/README.md)
-   - [Image Loaders](image-processing/image-loaders.md)
-   - [Color Extractors](image-processing/color-extractors.md)
-   - [GD vs Imagick](image-processing/gd-vs-imagick.md)
-
-5. [Advanced Usage](advanced-usage/README.md)
-   - [Custom Color Extraction](advanced-usage/custom-extraction.md)
-   - [Theme Generation](advanced-usage/theme-generation.md)
-   - [Color Manipulation](advanced-usage/color-manipulation.md)
-   - [Error Handling](advanced-usage/error-handling.md)
-
-6. [Examples](examples/README.md)
-   - [Basic Examples](examples/basic.md)
-   - [Web Implementation](examples/web-implementation.md)
-   - [Theme Generation](examples/theme-generation.md)
-   - [Color Extraction](examples/color-extraction.md)
-
-7. [API Reference](api/README.md)
-   - [Color](api/color.md)
-   - [ColorPalette](api/color-palette.md)
-   - [Theme](api/theme.md)
-   - [ImageLoader](api/image-loader.md)
-   - [ColorExtractor](api/color-extractor.md)
-
-8. [Contributing](../CONTRIBUTING.md)
-   - How to Contribute
-   - Development Setup
-   - Testing Guidelines
-   - Pull Request Process
+4. [Examples](examples/README.md)
+   - Basic Color Extraction
+   - Theme Generation
+   - Surface Color Generation
+   - Text Color Suggestions
 
 ## Quick Links
 
-- [Installation Guide](getting-started.md#installation)
-- [Basic Usage](getting-started.md#basic-usage)
-- [API Reference](api/README.md)
-- [Examples](examples/README.md)
-- [Contributing Guidelines](../CONTRIBUTING.md)
+- [GitHub Repository](https://github.com/parsilver/color-palette-php)
+- [Issue Tracker](https://github.com/parsilver/color-palette-php/issues)
+- [Packagist Package](https://packagist.org/packages/farzai/color-palette)
+- [Changelog](../CHANGELOG.md)
 
-## Support
+## Contributing
 
-If you encounter any issues or have questions, please:
-
-1. Check the [documentation](https://github.com/farzai/color-palette/docs)
-2. Look for existing [issues](https://github.com/farzai/color-palette/issues)
-3. Create a new issue if needed
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE.md) file for details. 
+Please see our [Contributing Guide](../CONTRIBUTING.md) for details on how to contribute to this project. 

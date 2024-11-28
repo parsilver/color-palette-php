@@ -1,150 +1,166 @@
 # Core Concepts
 
-This document explains the fundamental concepts and components of the Color Palette PHP package.
+This document explains the core concepts and components of the Color Palette PHP library.
 
 ## Color Representation
 
-### The Color Class
+The library uses the `Color` class as the fundamental building block for color manipulation. Colors can be represented in multiple formats:
 
-The `Color` class is the fundamental building block of our package. It represents a single color and provides various methods for color manipulation and conversion.
+- RGB (Red, Green, Blue)
+- HSL (Hue, Saturation, Lightness)
+- Hexadecimal (#RRGGBB)
 
 ```php
 use Farzai\ColorPalette\Color;
 
-// Create a color
+// Create from RGB values (0-255)
+$color = new Color(33, 150, 243);
+
+// Create from Hex
 $color = Color::fromHex('#2196f3');
+
+// Access color components
+echo $color->getRed();   // 33
+echo $color->getGreen(); // 150
+echo $color->getBlue();  // 243
+
+// Convert between formats
+$rgb = $color->toRgb();  // Returns array with 'r', 'g', 'b' keys
+$hex = $color->toHex();  // Returns string like '#2196f3'
+$hsl = $color->toHsl();  // Returns array with 'h', 's', 'l' keys
 ```
 
-Colors can be represented in multiple formats:
-- Hexadecimal (`#RRGGBB`)
-- RGB (`rgb(r, g, b)`)
-- HSL (`hsl(h, s, l)`)
+## Image Processing
 
-### Color Properties
+The library supports two image processing backends:
 
-Each color has several properties:
-- Red, Green, Blue components (0-255)
-- Hue (0-360), Saturation (0-100), Lightness (0-100)
-- Alpha/Opacity (0-1)
+### GD (Default)
+- Faster processing
+- Lower memory usage
+- Available in most PHP installations
+
+### ImageMagick
+- Better color accuracy
+- Support for more image formats
+- More advanced image manipulation capabilities
+
+```php
+use Farzai\ColorPalette\ImageFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
+
+// Create image instance
+$imageFactory = new ImageFactory();
+$image = $imageFactory->createFromPath('image.jpg');
+
+// Choose backend
+$extractorFactory = new ColorExtractorFactory();
+$extractor = $extractorFactory->create('gd');  // or 'imagick'
+```
+
+## Color Extraction
+
+There are two ways to extract colors from images:
+
+### 1. Using ColorExtractor (Recommended)
+```php
+// Extract colors directly
+$colors = $extractor->extract($image);
+$palette = new ColorPalette($colors);
+```
+
+### 2. Using PaletteGenerator
+```php
+use Farzai\ColorPalette\PaletteGenerator;
+
+$generator = new PaletteGenerator();
+$palette = $generator->generate($image);
+```
 
 ## Color Palettes
 
-A color palette is a collection of colors that work well together. The `ColorPalette` class manages these collections.
-
-### Creating Palettes
+A `ColorPalette` represents a collection of colors and implements `ArrayAccess` and `Countable`. It provides methods for:
 
 ```php
-use Farzai\ColorPalette\ColorPaletteFactory;
+// Get all colors
+$colors = $palette->getColors();
 
-$factory = new ColorPaletteFactory();
-$palette = $factory->createFromPath('image.jpg');
+// Count colors
+$count = count($palette);
+
+// Access colors as array
+$firstColor = $palette[0];
+
+// Convert to array of hex values
+$hexArray = $palette->toArray();
+
+// Get suggested text color for a background
+$textColor = $palette->getSuggestedTextColor($backgroundColor);
+
+// Get surface colors for UI
+$surfaceColors = $palette->getSuggestedSurfaceColors();
+// Returns: surface, background, accent, surface_variant
 ```
 
-### Palette Operations
+## Theme Generation
 
-Palettes provide methods for:
-- Getting all colors
-- Finding dominant colors
-- Suggesting text colors for contrast
-- Generating surface colors
-- Color similarity calculations
-
-## Themes
-
-Themes are structured color collections designed for specific use cases (e.g., web interfaces).
-
-### Theme Structure
-
-A theme typically includes:
-- Primary color
-- Secondary color
-- Accent color
-- Background colors
-- Surface colors
-- Text colors
-
-### Theme Generation
+Themes provide a structured way to organize colors for applications:
 
 ```php
 use Farzai\ColorPalette\ThemeGenerator;
 
 $generator = new ThemeGenerator();
 $theme = $generator->generate($palette);
-```
 
-## Color Extraction
+// Access theme colors
+$primary = $theme->getPrimary();
+$secondary = $theme->getSecondary();
+$accent = $theme->getAccent();
 
-Color extraction is the process of identifying key colors from an image.
-
-### Extraction Methods
-
-1. **GD Extractor**
-   - Uses PHP's GD library
-   - Faster processing
-   - Lower memory usage
-   - Suitable for most use cases
-
-2. **Imagick Extractor**
-   - Uses ImageMagick
-   - More accurate color detection
-   - Better handling of complex images
-   - Higher memory usage
-
-### Extraction Process
-
-1. Image loading
-2. Color quantization
-3. Color clustering
-4. Dominant color selection
-5. Color refinement
-
-```php
-use Farzai\ColorPalette\ColorExtractorFactory;
-use Farzai\ColorPalette\ImageLoader;
-
-$loader = new ImageLoader();
-$image = $loader->load('image.jpg');
-
-$factory = new ColorExtractorFactory();
-$extractor = $factory->create('gd');
-$colors = $extractor->extract($image);
+// Check if theme has specific color
+if ($theme->hasColor('primary')) {
+    $color = $theme->getColor('primary');
+}
 ```
 
 ## Color Relationships
 
-### Color Distance
+The library considers several factors when working with colors:
 
-Color distance is calculated using various algorithms:
-- Euclidean distance in RGB space
-- CIE76 Delta E
-- Weighted RGB distance
+### Contrast Ratio
+- Used to ensure text readability
+- Calculated according to WCAG guidelines
+- Helps in selecting appropriate text colors
+
+### Color Brightness
+- Determines if a color is light or dark
+- Used in surface color generation
+- Helps in creating balanced color schemes
 
 ### Color Harmony
+- Used in theme generation
+- Helps create visually pleasing color combinations
+- Considers color theory principles
 
-The package considers color harmony principles:
-- Complementary colors
-- Analogous colors
-- Triadic colors
-- Split-complementary colors
+## Error Handling
 
-## Best Practices
+The library uses specific exceptions for different error cases:
 
-1. **Image Processing**
-   - Use GD for general purposes
-   - Use Imagick for professional-grade color accuracy
-   - Process images at appropriate sizes for performance
+```php
+use Farzai\ColorPalette\Exceptions\ImageLoadException;
+use Farzai\ColorPalette\Exceptions\ImageException;
 
-2. **Color Management**
-   - Store colors in a consistent format
-   - Use appropriate color spaces for different operations
-   - Consider color accessibility guidelines
+try {
+    $image = $imageFactory->createFromPath('image.jpg');
+} catch (ImageLoadException $e) {
+    // Handle image loading errors
+} catch (ImageException $e) {
+    // Handle other image processing errors
+}
 
-3. **Performance**
-   - Cache extracted palettes when possible
-   - Optimize image sizes before processing
-   - Use appropriate color quantization levels
-
-4. **Error Handling**
-   - Always handle image loading exceptions
-   - Validate color values and formats
-   - Provide fallback colors when needed 
+// Color validation
+try {
+    $color = new Color(300, 0, 0); // Will throw InvalidArgumentException
+} catch (\InvalidArgumentException $e) {
+    // Handle invalid color values
+}
+```
