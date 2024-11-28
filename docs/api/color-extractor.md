@@ -1,248 +1,290 @@
-# ColorExtractor API Reference
+---
+layout: default
+title: ColorExtractor Class - Color Palette PHP API
+description: Documentation for the ColorExtractor class, including color extraction from images using GD and ImageMagick backends
+keywords: php color extraction, image color analysis, dominant colors, color quantization
+---
 
-The Color Extractor system consists of multiple classes that work together to extract colors from images. This document covers the main components of the color extraction system.
+# ColorExtractor Class
 
-## Class Hierarchy
+The `ColorExtractor` classes provide functionality for extracting dominant colors from images using different image processing backends.
 
-```php
-AbstractColorExtractor
-├── GdColorExtractor
-└── ImagickColorExtractor
-
-ColorExtractorFactory
-```
-
-## ColorExtractorFactory
-
-The factory class for creating color extractors based on the desired driver.
-
-### Class Synopsis
-
-```php
-namespace Farzai\ColorPalette;
-
-class ColorExtractorFactory
-{
-    public function create(string $driver = null): ColorExtractorInterface
-    public function createForImage(ImageInterface $image): ColorExtractorInterface
-}
-```
-
-### Methods
-
-#### create()
-
-Creates a color extractor with the specified driver.
-
-```php
-public function create(string $driver = null): ColorExtractorInterface
-```
-
-##### Parameters
-- `$driver` (?string): The driver to use ('gd' or 'imagick')
-
-##### Returns
-- (ColorExtractorInterface): The color extractor instance
-
-##### Example
-```php
-$factory = new ColorExtractorFactory();
-$extractor = $factory->create('gd');
-```
-
-#### createForImage()
-
-Creates a color extractor suitable for the given image.
-
-```php
-public function createForImage(ImageInterface $image): ColorExtractorInterface
-```
-
-##### Parameters
-- `$image` (ImageInterface): The image to extract colors from
-
-##### Returns
-- (ColorExtractorInterface): The color extractor instance
-
-##### Example
-```php
-$image = $loader->load('image.jpg');
-$extractor = $factory->createForImage($image);
-```
-
-## AbstractColorExtractor
-
-The base class for all color extractors, providing common functionality.
-
-### Class Synopsis
+## Overview
 
 ```php
 namespace Farzai\ColorPalette;
 
 abstract class AbstractColorExtractor implements ColorExtractorInterface
 {
-    // Configuration
-    public function setMaxColors(int $maxColors): self
-    public function getMaxColors(): int
-    public function setQuality(int $quality): self
-    public function getQuality(): int
-    
-    // Extraction
-    abstract public function extract(ImageInterface $image): array
-    protected function quantizeColors(array $pixels): array
-    protected function findDominantColors(array $pixels): array
+    // ...
 }
-```
-
-### Configuration Methods
-
-#### setMaxColors()
-
-Sets the maximum number of colors to extract.
-
-```php
-public function setMaxColors(int $maxColors): self
-```
-
-##### Parameters
-- `$maxColors` (int): Maximum number of colors (1-256)
-
-##### Returns
-- (self): The extractor instance
-
-#### setQuality()
-
-Sets the quality of color extraction.
-
-```php
-public function setQuality(int $quality): self
-```
-
-##### Parameters
-- `$quality` (int): Quality level (1-100)
-
-##### Returns
-- (self): The extractor instance
-
-## GdColorExtractor
-
-Color extractor implementation using the GD library.
-
-### Class Synopsis
-
-```php
-namespace Farzai\ColorPalette;
 
 class GdColorExtractor extends AbstractColorExtractor
 {
-    public function extract(ImageInterface $image): array
+    // ...
 }
-```
-
-### Usage Example
-
-```php
-$extractor = new GdColorExtractor();
-$extractor->setMaxColors(5)
-          ->setQuality(75);
-
-$colors = $extractor->extract($image);
-```
-
-## ImagickColorExtractor
-
-Color extractor implementation using the ImageMagick library.
-
-### Class Synopsis
-
-```php
-namespace Farzai\ColorPalette;
 
 class ImagickColorExtractor extends AbstractColorExtractor
 {
-    public function extract(ImageInterface $image): array
+    // ...
 }
 ```
 
-### Usage Example
+The color extractor system provides:
+- Multiple backend support (GD and ImageMagick)
+- Configurable color extraction
+- Color filtering and clustering
+- Efficient color sampling
+
+## Factory Usage
+
+<div class="method-doc">
+  <div class="method-header">
+    <h3>Creating an Extractor</h3>
+    <div class="method-signature">ColorExtractorFactory::make(string $driver = 'gd', array $config = []): AbstractColorExtractor</div>
+  </div>
+  <div class="method-content">
+    <div class="method-description">
+      Creates a color extractor instance using the specified backend.
+    </div>
+    <div class="parameters">
+      <h4>Parameters</h4>
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td>$driver</td>
+          <td>string</td>
+          <td>'gd' or 'imagick'</td>
+        </tr>
+        <tr>
+          <td>$config</td>
+          <td>array</td>
+          <td>Optional configuration settings</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+## Color Extraction Methods
+
+<div class="method-grid">
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>extract</h3>
+      <div class="method-signature">public function extract(ImageInterface $image, int $count = 5): ColorPaletteInterface</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Extracts dominant colors from an image.
+      </div>
+      <div class="parameters">
+        <h4>Parameters</h4>
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td>$image</td>
+            <td>ImageInterface</td>
+            <td>Image to analyze</td>
+          </tr>
+          <tr>
+            <td>$count</td>
+            <td>int</td>
+            <td>Number of colors to extract (default: 5)</td>
+          </tr>
+        </table>
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>ColorPalette containing the extracted colors</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## Configuration Options
+
+The color extractor can be configured with the following options:
+
+<div class="config-options">
+  <table>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>sample_size</td>
+      <td>int</td>
+      <td>50</td>
+      <td>Number of pixels to sample in each dimension</td>
+    </tr>
+    <tr>
+      <td>min_saturation</td>
+      <td>float</td>
+      <td>0.05</td>
+      <td>Minimum color saturation (0-1)</td>
+    </tr>
+    <tr>
+      <td>min_brightness</td>
+      <td>float</td>
+      <td>0.05</td>
+      <td>Minimum color brightness (0-1)</td>
+    </tr>
+  </table>
+</div>
+
+## Backend-Specific Features
+
+### GD Backend
+
+<div class="backend-features">
+  <div class="feature">
+    <h3>Advantages</h3>
+    <ul>
+      <li>Faster processing for basic operations</li>
+      <li>Lower memory usage</li>
+      <li>Available in most PHP installations</li>
+    </ul>
+  </div>
+
+  <div class="feature">
+    <h3>Supported Formats</h3>
+    <ul>
+      <li>JPEG</li>
+      <li>PNG</li>
+      <li>GIF</li>
+      <li>BMP</li>
+      <li>WEBP</li>
+    </ul>
+  </div>
+</div>
+
+### ImageMagick Backend
+
+<div class="backend-features">
+  <div class="feature">
+    <h3>Advantages</h3>
+    <ul>
+      <li>More accurate color sampling</li>
+      <li>Support for more image formats</li>
+      <li>Advanced image processing capabilities</li>
+    </ul>
+  </div>
+
+  <div class="feature">
+    <h3>Additional Formats</h3>
+    <ul>
+      <li>TIFF</li>
+      <li>PSD</li>
+      <li>SVG</li>
+      <li>EPS</li>
+      <li>And many more</li>
+    </ul>
+  </div>
+</div>
+
+## Examples
+
+### Basic Color Extraction
 
 ```php
-$extractor = new ImagickColorExtractor();
-$extractor->setMaxColors(5)
-          ->setQuality(90);
+use Farzai\ColorPalette\ImageFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
 
-$colors = $extractor->extract($image);
+// Create image instance
+$imageFactory = new ImageFactory();
+$image = $imageFactory->createFromPath('path/to/image.jpg');
+
+// Create extractor with default settings
+$extractorFactory = new ColorExtractorFactory();
+$extractor = $extractorFactory->make('gd');
+
+// Extract 5 dominant colors
+$palette = $extractor->extract($image, 5);
+
+// Access extracted colors
+foreach ($palette->getColors() as $color) {
+    echo $color->toHex() . "\n";
+}
+```
+
+### Custom Configuration
+
+```php
+// Create extractor with custom settings
+$extractor = $extractorFactory->make('gd', [
+    'sample_size' => 100,        // More accurate but slower
+    'min_saturation' => 0.1,     // Ignore very unsaturated colors
+    'min_brightness' => 0.1      // Ignore very dark colors
+]);
+
+// Extract colors with custom configuration
+$palette = $extractor->extract($image, 8);
+```
+
+### Using ImageMagick Backend
+
+```php
+// Create ImageMagick extractor
+$extractor = $extractorFactory->make('imagick');
+
+// Extract colors from high-resolution image
+$image = $imageFactory->createFromPath('path/to/large-image.tiff');
+$palette = $extractor->extract($image, 10);
+```
+
+### Error Handling
+
+```php
+use Farzai\ColorPalette\Exceptions\ImageException;
+use Farzai\ColorPalette\Exceptions\ExtractorException;
+
+try {
+    $image = $imageFactory->createFromPath('path/to/image.jpg');
+    $palette = $extractor->extract($image);
+} catch (ImageException $e) {
+    // Handle image loading errors
+    echo "Failed to load image: " . $e->getMessage();
+} catch (ExtractorException $e) {
+    // Handle color extraction errors
+    echo "Failed to extract colors: " . $e->getMessage();
+}
 ```
 
 ## Best Practices
 
-### 1. Choosing the Right Extractor
+1. **Backend Selection**
+   - Use GD for basic web images and better performance
+   - Use ImageMagick for professional graphics and advanced formats
 
-```php
-// For better performance
-$extractor = new GdColorExtractor();
-$extractor->setMaxColors(5)
-          ->setQuality(75);
+2. **Performance Optimization**
+   - Adjust sample size based on image dimensions
+   - Implement caching for frequently analyzed images
+   - Process images in batches when possible
 
-// For better accuracy
-$extractor = new ImagickColorExtractor();
-$extractor->setMaxColors(8)
-          ->setQuality(90);
-```
+3. **Color Quality**
+   - Use appropriate saturation and brightness thresholds
+   - Consider image type when configuring extraction
+   - Validate extracted colors for your use case
 
-### 2. Optimizing Extraction
+4. **Error Handling**
+   - Always implement proper error handling
+   - Provide fallback colors when extraction fails
+   - Log extraction issues for debugging
 
-```php
-// Balance between speed and accuracy
-$extractor = $factory->create('gd');
-$extractor->setMaxColors(5)  // Fewer colors = faster extraction
-          ->setQuality(50);  // Lower quality = faster processing
+## See Also
 
-$colors = $extractor->extract($image);
-```
-
-### 3. Error Handling
-
-```php
-use Farzai\ColorPalette\Exceptions\ExtractionException;
-
-try {
-    $colors = $extractor->extract($image);
-} catch (ExtractionException $e) {
-    // Handle extraction errors
-    echo "Color extraction failed: " . $e->getMessage();
-}
-```
-
-### 4. Memory Management
-
-```php
-// For large images
-$extractor = $factory->create('gd'); // GD uses less memory
-$extractor->setQuality(25);          // Lower quality for less memory usage
-
-try {
-    $colors = $extractor->extract($image);
-} finally {
-    // Clean up
-    $image->destroy();
-}
-```
-
-## Performance Considerations
-
-1. **Driver Selection**
-   - GD: Faster, less memory intensive
-   - Imagick: More accurate, higher memory usage
-
-2. **Quality Settings**
-   - Higher quality = better results but slower processing
-   - Lower quality = faster processing but less accurate results
-
-3. **Number of Colors**
-   - More colors = more processing time
-   - Recommended: 5-8 colors for most use cases
-
-4. **Image Size**
-   - Large images should use lower quality settings
-   - Consider resizing large images before processing 
+- [Color Class](color)
+- [ColorPalette Class](color-palette)
+- [ImageFactory Class](image-loader)
+- [Color Analysis](color-manipulation)

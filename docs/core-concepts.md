@@ -1,190 +1,277 @@
+---
+layout: default
+title: Core Concepts - Color Palette PHP
+description: Learn about color spaces, manipulation techniques, and best practices in Color Palette PHP
+keywords: color spaces, color manipulation, color theory, color extraction, php color library
+---
+
 # Core Concepts
 
-This guide explains the core concepts of color theory and how they are implemented in Color Palette PHP.
+Understanding the core concepts of color manipulation and extraction is essential for getting the most out of Color Palette PHP.
+
+<div class="quick-links">
+  <a href="#color-spaces">Color Spaces</a> •
+  <a href="#color-manipulation">Color Manipulation</a> •
+  <a href="#color-extraction">Color Extraction</a> •
+  <a href="#theme-generation">Theme Generation</a> •
+  <a href="#best-practices">Best Practices</a>
+</div>
 
 ## Color Spaces
 
-### RGB (Red, Green, Blue)
-RGB is an additive color model where red, green, and blue light are added together to create colors.
+Color Palette PHP supports multiple color spaces, each serving different purposes:
+
+<div class="color-spaces">
+  <div class="color-space">
+    <h3>RGB (Red, Green, Blue)</h3>
+    <p>The standard color space for digital displays. Each color is represented by its red, green, and blue components.</p>
+    
+    ```php
+    use Farzai\ColorPalette\Color;
+    
+    // Create color from RGB values
+    $color = new Color(37, 99, 235);
+    
+    // Get RGB components
+    $rgb = $color->toRgb();
+    echo "R: {$rgb['r']}, G: {$rgb['g']}, B: {$rgb['b']}";
+    ```
+  </div>
+
+  <div class="color-space">
+    <h3>HSL (Hue, Saturation, Lightness)</h3>
+    <p>A more intuitive color space for adjustments. Hue represents the color, saturation the intensity, and lightness the brightness.</p>
+    
+    ```php
+    // Convert to HSL
+    $hsl = $color->toHsl();
+    echo "H: {$hsl['h']}°, S: {$hsl['s']}%, L: {$hsl['l']}%";
+    
+    // Create from HSL
+    $color = Color::fromHsl(220, 84, 53);
+    ```
+  </div>
+
+  <div class="color-space">
+    <h3>CMYK (Cyan, Magenta, Yellow, Key)</h3>
+    <p>Used primarily for print media. Represents colors using cyan, magenta, yellow, and black (key) components.</p>
+    
+    ```php
+    // Convert to CMYK
+    $cmyk = $color->toCmyk();
+    echo "C: {$cmyk['c']}%, M: {$cmyk['m']}%, Y: {$cmyk['y']}%, K: {$cmyk['k']}%";
+    ```
+  </div>
+
+  <div class="color-space">
+    <h3>LAB (Lightness, A, B)</h3>
+    <p>A perceptually uniform color space. Useful for accurate color matching and calculations.</p>
+    
+    ```php
+    // Convert to LAB
+    $lab = $color->toLab();
+    echo "L: {$lab['l']}, a: {$lab['a']}, b: {$lab['b']}";
+    ```
+  </div>
+</div>
+
+## Color Manipulation
+
+Color Palette PHP provides various methods for manipulating colors:
+
+### Basic Adjustments
 
 ```php
 use Farzai\ColorPalette\Color;
 
-// Create a color using RGB values (0-255)
 $color = new Color(37, 99, 235);
 
-// Get RGB components
-$red = $color->getRed();    // 37
-$green = $color->getGreen(); // 99
-$blue = $color->getBlue();   // 235
+// Lightness adjustments
+$lighter = $color->lighten(0.2);    // Increase lightness by 20%
+$darker = $color->darken(0.2);      // Decrease lightness by 20%
+
+// Saturation adjustments
+$saturated = $color->saturate(0.1); // Increase saturation by 10%
+$desaturated = $color->desaturate(0.1); // Decrease saturation by 10%
+
+// Hue adjustments
+$rotated = $color->rotate(180);     // Rotate hue by 180 degrees
 ```
 
-### HSL (Hue, Saturation, Lightness)
-HSL represents colors using hue (color type), saturation (color intensity), and lightness (brightness).
+### Color Mixing
 
 ```php
-// Convert from RGB to HSL
-$hsl = $color->toHsl();
-// Returns: ['h' => 220, 's' => 83, 'l' => 53]
+use Farzai\ColorPalette\Color;
 
-// Create a color from HSL
-$color = Color::fromHsl(220, 83, 53);
+$color1 = new Color(37, 99, 235);  // Blue
+$color2 = new Color(239, 68, 68);  // Red
+
+// Mix colors with different weights
+$mixed = $color1->mix($color2, 0.5);  // 50-50 mix
+$biased = $color1->mix($color2, 0.7); // 70% of color1, 30% of color2
 ```
 
-### HSV (Hue, Saturation, Value)
-Similar to HSL but uses value instead of lightness for brightness control.
+### Color Analysis
 
 ```php
-// Convert to HSV
-$hsv = $color->toHsv();
-// Returns: ['h' => 220, 's' => 84, 'v' => 92]
+use Farzai\ColorPalette\Color;
 
-// Create from HSV
-$color = Color::fromHsv(220, 84, 92);
-```
+$color = new Color(37, 99, 235);
 
-### CMYK (Cyan, Magenta, Yellow, Key)
-CMYK is a subtractive color model used in printing.
-
-```php
-// Convert to CMYK
-$cmyk = $color->toCmyk();
-// Returns: ['c' => 84, 'm' => 58, 'y' => 0, 'k' => 8]
-
-// Create from CMYK
-$color = Color::fromCmyk(84, 58, 0, 8);
-```
-
-### LAB (Lightness, A, B)
-LAB color space is designed to be perceptually uniform.
-
-```php
-// Convert to LAB
-$lab = $color->toLab();
-// Returns: ['l' => 45, 'a' => 15, 'b' => -67]
-
-// Create from LAB
-$color = Color::fromLab(45, 15, -67);
-```
-
-## Color Manipulation
-
-### Lightness Adjustments
-```php
-// Lighten by 20%
-$lighter = $color->lighten(20);
-
-// Darken by 20%
-$darker = $color->darken(20);
-```
-
-### Saturation Adjustments
-```php
-// Increase saturation by 20%
-$saturated = $color->saturate(20);
-
-// Decrease saturation by 20%
-$desaturated = $color->desaturate(20);
-```
-
-### Hue Rotation
-```php
-// Rotate hue by 45 degrees
-$rotated = $color->rotate(45);
-```
-
-## Color Analysis
-
-### Brightness and Contrast
-```php
-// Get color brightness (0-1)
+// Brightness and contrast
 $brightness = $color->getBrightness();
-
-// Check if color is light or dark
 $isLight = $color->isLight();
 $isDark = $color->isDark();
 
-// Get contrast ratio with another color
+// Contrast ratio with another color
+$otherColor = new Color(255, 255, 255);
 $contrastRatio = $color->getContrastRatio($otherColor);
-```
 
-### Luminance
-```php
-// Get relative luminance (used for contrast calculations)
+// Luminance
 $luminance = $color->getLuminance();
 ```
 
-## Theme Generation
+## Color Extraction
 
-### Creating Color Palettes
-```php
-use Farzai\ColorPalette\ColorPalette;
+Color Palette PHP uses advanced algorithms to extract dominant colors from images:
 
-// Create a palette from an array of colors
-$palette = new ColorPalette([$color1, $color2, $color3]);
+### Extraction Process
 
-// Get suggested text color for a background
-$textColor = $palette->getSuggestedTextColor($backgroundColor);
+1. **Image Loading**: Support for various image formats
+2. **Color Sampling**: Efficient pixel sampling
+3. **Color Quantization**: Reducing colors to a manageable palette
+4. **Color Clustering**: Grouping similar colors
+5. **Palette Generation**: Creating the final color palette
 
-// Get suggested surface colors
-$surfaceColors = $palette->getSuggestedSurfaceColors();
-```
-
-### Theme Generation
-```php
-use Farzai\ColorPalette\Theme;
-use Farzai\ColorPalette\ThemeGenerator;
-
-// Create a theme from a base color
-$generator = new ThemeGenerator();
-$theme = $generator->generate($baseColor);
-
-// Access theme colors
-$primary = $theme->getPrimary();
-$secondary = $theme->getSecondary();
-$background = $theme->getBackground();
-$surface = $theme->getSurface();
-```
-
-## Image Color Extraction
-
-### Using Different Backends
 ```php
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
 
-// Create an image instance
+// Load image
 $imageFactory = new ImageFactory();
-$image = $imageFactory->createFromPath('path/to/image.jpg');
+$image = $imageFactory->createFromPath('image.jpg');
 
-// Create a color extractor (GD or Imagick)
+// Configure extractor
 $extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->create('gd'); // or 'imagick'
+$extractor = $extractorFactory->make('gd', [
+    'sample_size' => 50,
+    'min_saturation' => 0.05,
+    'min_brightness' => 0.05
+]);
 
 // Extract colors
-$colors = $extractor->extract($image);
+$palette = $extractor->extract($image, 5);
 ```
+
+## Theme Generation
+
+Create harmonious color schemes using various color theory principles:
+
+### Color Schemes
+
+```php
+use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\PaletteGenerator;
+
+$baseColor = new Color(37, 99, 235);
+$generator = new PaletteGenerator($baseColor);
+
+// Generate different schemes
+$analogous = $generator->analogous();      // Similar colors
+$complementary = $generator->complementary(); // Opposite colors
+$triadic = $generator->triadic();          // Three evenly spaced colors
+$tetradic = $generator->tetradic();        // Four evenly spaced colors
+
+// Generate a complete website theme
+$theme = $generator->websiteTheme();
+```
+
+### Theme Components
+
+- **Primary Color**: Main brand color
+- **Secondary Color**: Supporting color
+- **Accent Color**: Highlight color
+- **Background Color**: Page background
+- **Surface Colors**: UI element backgrounds
+- **Text Colors**: Automatically selected for contrast
 
 ## Best Practices
 
-1. **Color Accessibility**
-   - Always check contrast ratios for text colors
-   - Use `getSuggestedTextColor()` for readable text
-   - Ensure color combinations meet WCAG guidelines
+### Performance Optimization
 
-2. **Performance**
-   - Cache extracted colors for frequently used images
-   - Use the appropriate color space for your needs
-   - Consider using GD for better performance
+1. **Image Processing**
+   - Use appropriate image sizes
+   - Choose the right backend (GD vs ImageMagick)
+   - Implement caching for extracted palettes
 
-3. **Color Space Selection**
-   - Use RGB for screen display
-   - Use CMYK for print applications
-   - Use HSL/HSV for intuitive color manipulation
-   - Use LAB for perceptual color differences
+2. **Color Manipulation**
+   - Cache computed values
+   - Batch color transformations
+   - Use appropriate color spaces for specific operations
 
-4. **Theme Generation**
-   - Start with a base color that represents your brand
-   - Use color theory principles for harmony
-   - Consider dark mode alternatives
-   - Test themes across different devices and lighting conditions
+### Accessibility
+
+1. **Contrast Ratios**
+   ```php
+   // Ensure text is readable
+   $backgroundColor = $palette->getColors()[0];
+   $textColor = $palette->getSuggestedTextColor($backgroundColor);
+   
+   // Check contrast ratio
+   $contrastRatio = $backgroundColor->getContrastRatio($textColor);
+   $isAccessible = $contrastRatio >= 4.5; // WCAG AA standard
+   ```
+
+2. **Color Blindness**
+   - Test palettes with color blindness simulators
+   - Use patterns or shapes alongside colors
+   - Ensure sufficient contrast between adjacent colors
+
+### Error Handling
+
+```php
+use Farzai\ColorPalette\Exceptions\ImageException;
+use Farzai\ColorPalette\Exceptions\ColorException;
+
+try {
+    $image = $imageFactory->createFromPath('image.jpg');
+    $palette = $extractor->extract($image);
+} catch (ImageException $e) {
+    // Handle image-related errors
+    log_error('Image processing failed: ' . $e->getMessage());
+} catch (ColorException $e) {
+    // Handle color-related errors
+    log_error('Color processing failed: ' . $e->getMessage());
+}
+```
+
+## Further Reading
+
+<div class="further-reading">
+  <div class="resource">
+    <h3>📚 Color Theory</h3>
+    <p>Learn more about color theory and its application in design:</p>
+    <ul>
+      <li><a href="https://www.colormatters.com/color-and-design/basic-color-theory">Basic Color Theory</a></li>
+      <li><a href="https://www.interaction-design.org/literature/topics/color-theory">Color Theory in Design</a></li>
+    </ul>
+  </div>
+  
+  <div class="resource">
+    <h3>🎨 Color Accessibility</h3>
+    <p>Understand color accessibility guidelines:</p>
+    <ul>
+      <li><a href="https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html">WCAG Color Contrast Guidelines</a></li>
+      <li><a href="https://webaim.org/articles/contrast/">WebAIM: Color Contrast</a></li>
+    </ul>
+  </div>
+  
+  <div class="resource">
+    <h3>🔧 Technical Resources</h3>
+    <p>Dive deeper into color processing:</p>
+    <ul>
+      <li><a href="https://www.php.net/manual/en/book.image.php">PHP GD Documentation</a></li>
+      <li><a href="https://www.php.net/manual/en/book.imagick.php">PHP ImageMagick Documentation</a></li>
+    </ul>
+  </div>
+</div>

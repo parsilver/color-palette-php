@@ -1,11 +1,20 @@
 ---
 layout: default
-title: Color Palette PHP Documentation
+title: Color Palette PHP - Image Color Extraction and Manipulation Library
+description: A powerful PHP library for extracting color palettes from images, generating color themes, and manipulating colors in multiple color spaces
+keywords: php color palette, image color extraction, color manipulation, color themes
 ---
 
 # Color Palette PHP
 
 A powerful PHP library for extracting color palettes from images and generating color themes. This package supports multiple image processing backends (GD and Imagick) and provides a rich set of color manipulation features.
+
+<div class="badges">
+  <a href="https://packagist.org/packages/farzai/color-palette"><img src="https://img.shields.io/packagist/v/farzai/color-palette.svg" alt="Latest Stable Version"></a>
+  <a href="https://github.com/parsilver/color-palette-php/actions"><img src="https://github.com/parsilver/color-palette-php/workflows/tests/badge.svg" alt="Build Status"></a>
+  <a href="https://packagist.org/packages/farzai/color-palette"><img src="https://img.shields.io/packagist/dt/farzai/color-palette.svg" alt="Total Downloads"></a>
+  <a href="https://github.com/parsilver/color-palette-php/blob/main/LICENSE.md"><img src="https://img.shields.io/packagist/l/farzai/color-palette.svg" alt="License"></a>
+</div>
 
 <div class="color-example">
     <div class="color-swatch" style="background: #2563eb">Primary</div>
@@ -14,40 +23,32 @@ A powerful PHP library for extracting color palettes from images and generating 
     <div class="color-swatch" style="background: #f3f4f6; color: #1f2937">Background</div>
 </div>
 
-## 🎨 Features
+## 🎨 Key Features
 
-### Color Extraction
-- Extract dominant colors from images using advanced color quantization
-- Support for multiple image formats (JPEG, PNG, GIF, etc.)
-- Multiple image processing backends (GD and Imagick)
+### Advanced Color Extraction
+- **Multiple Backends**: Support for both GD and Imagick image processing
+- **Smart Sampling**: Efficient color sampling algorithms for accurate palette generation
+- **Format Support**: Compatible with JPEG, PNG, GIF, and other common image formats
+- **Customizable**: Adjustable color count and sampling parameters
 
-### Color Spaces
-- RGB color space manipulation
-- HSL (Hue, Saturation, Lightness) color space
-- HSV (Hue, Saturation, Value) color space
-- CMYK color space conversion
-- LAB color space support
-- Hex color code support
+### Comprehensive Color Space Support
+- **RGB**: Standard RGB color manipulation
+- **HSL/HSV**: Intuitive color adjustments with Hue, Saturation, and Lightness/Value
+- **CMYK**: Print-ready color space conversion
+- **LAB**: Perceptually uniform color space for accurate color matching
+- **Hex**: Web-friendly hexadecimal color codes
 
-### Color Manipulation
-- Lighten and darken colors
-- Saturate and desaturate colors
-- Rotate hue
-- Adjust color brightness
-- Color mixing and blending
+### Powerful Color Manipulation
+- **Color Adjustment**: Lighten, darken, saturate, and desaturate colors
+- **Color Mixing**: Blend colors and create gradients
+- **Color Rotation**: Rotate hues and create color variations
+- **Brightness Control**: Fine-tune color brightness and contrast
 
-### Color Analysis
-- Color contrast ratio calculations
-- Luminance calculations
-- Light/dark color detection
-- Automatic text color suggestions
-- Color accessibility checks
-
-### Theme Generation
-- Generate color themes with surface, background, and accent colors
-- Smart surface color recommendations
-- Automatic text color contrast optimization
-- Theme variation generation
+### Intelligent Theme Generation
+- **Automatic Palettes**: Generate harmonious color schemes
+- **Accessibility**: Built-in contrast ratio calculations
+- **Smart Defaults**: Automatic text color optimization
+- **Theme Variations**: Create light and dark theme variants
 
 ## 🚀 Quick Start
 
@@ -68,31 +69,47 @@ use Farzai\ColorPalette\ColorPalette;
 $imageFactory = new ImageFactory();
 $image = $imageFactory->createFromPath('path/to/image.jpg');
 
-// Create a color extractor
+// Extract colors
 $extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->create('gd'); // or 'imagick'
+$extractor = $extractorFactory->make('gd'); // or 'imagick'
+$colors = $extractor->extract($image, 5); // Extract 5 dominant colors
 
-// Extract colors to create a palette
-$colors = $extractor->extract($image);
+// Create a palette and get color suggestions
 $palette = new ColorPalette($colors);
-
-// Get suggested text color for a background
-$backgroundColor = $colors[0];
-$textColor = $palette->getSuggestedTextColor($backgroundColor);
-
-// Get suggested surface colors
+$textColor = $palette->getSuggestedTextColor($colors[0]);
 $surfaceColors = $palette->getSuggestedSurfaceColors();
 ```
 
 ## 📚 Documentation
 
-Explore our comprehensive documentation to learn more about Color Palette PHP:
+Our comprehensive documentation covers everything you need:
 
-- [Getting Started](getting-started) - Quick installation and basic setup guide
-- [Core Concepts](core-concepts) - Understanding color spaces and manipulation
-- [API Reference](api) - Complete API documentation with examples
-- [Examples](examples) - Real-world examples and use cases
-- [Color Playground](playground) - Interactive color manipulation demo
+<div class="doc-sections">
+  <div class="doc-section">
+    <h3><a href="getting-started">🏁 Getting Started</a></h3>
+    <p>Quick installation and basic setup guide to get you up and running.</p>
+  </div>
+  
+  <div class="doc-section">
+    <h3><a href="core-concepts">🎯 Core Concepts</a></h3>
+    <p>Deep dive into color spaces, manipulation, and best practices.</p>
+  </div>
+  
+  <div class="doc-section">
+    <h3><a href="api/">📖 API Reference</a></h3>
+    <p>Complete API documentation with detailed examples and use cases.</p>
+  </div>
+  
+  <div class="doc-section">
+    <h3><a href="examples/">💡 Examples</a></h3>
+    <p>Real-world examples and code snippets for common scenarios.</p>
+  </div>
+  
+  <div class="doc-section">
+    <h3><a href="playground">🎮 Color Playground</a></h3>
+    <p>Interactive demo to experiment with color manipulation features.</p>
+  </div>
+</div>
 
 ## 🛠 Requirements
 
@@ -102,7 +119,11 @@ Explore our comprehensive documentation to learn more about Color Palette PHP:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](https://github.com/parsilver/color-palette-php/blob/main/CONTRIBUTING.md) for details on how to contribute to this project.
+We welcome contributions! Please see our [Contributing Guide](https://github.com/parsilver/color-palette-php/blob/main/CONTRIBUTING.md) for details.
+
+## 📄 License
+
+The Color Palette PHP library is open-sourced software licensed under the [MIT license](https://github.com/parsilver/color-palette-php/blob/main/LICENSE.md).
 
 ## 📦 Resources
 

@@ -1,297 +1,350 @@
-# Theme Class API Reference
+---
+layout: default
+title: Theme Class - Color Palette PHP API
+description: Documentation for the Theme class, including theme creation, color management, and theme generation
+keywords: php color theme, theme generation, color scheme, theme management
+---
 
-The `Theme` class represents a structured collection of colors designed for use in user interfaces and design systems.
+# Theme Class
 
-## Class Synopsis
+The `Theme` class provides functionality for creating and managing color themes with predefined roles and relationships.
+
+## Overview
 
 ```php
 namespace Farzai\ColorPalette;
 
-class Theme
+class Theme implements ThemeInterface
 {
-    // Factory Methods
-    public static function fromColors(array $colors): self
-    public static function fromPalette(ColorPaletteInterface $palette): self
-    
-    // Color Getters
-    public function getPrimary(): ColorInterface
-    public function getSecondary(): ColorInterface
-    public function getAccent(): ColorInterface
-    public function getBackground(): ColorInterface
-    public function getSurface(): ColorInterface
-    
-    // Text Colors
-    public function getOnPrimary(): ColorInterface
-    public function getOnSecondary(): ColorInterface
-    public function getOnBackground(): ColorInterface
-    public function getOnSurface(): ColorInterface
-    
-    // Theme Variants
-    public function getLightVariant(): self
-    public function getDarkVariant(): self
-    
-    // Theme Operations
-    public function toArray(): array
-    public function toCssVariables(string $prefix = ''): string
-    public function merge(Theme $theme): self
+    // ...
 }
 ```
 
-## Factory Methods
+The `Theme` class provides functionality for:
+- Managing themed color collections
+- Accessing color roles (primary, secondary, accent, etc.)
+- Converting themes to different formats
+- Theme generation and customization
 
-### fromColors()
+## Creating Themes
 
-Creates a new Theme instance from an array of colors.
+<div class="method-doc">
+  <div class="method-header">
+    <h3>Constructor</h3>
+    <div class="method-signature">public function __construct(array $colors = [])</div>
+  </div>
+  <div class="method-content">
+    <div class="method-description">
+      Creates a new Theme instance with predefined colors.
+    </div>
+    <div class="parameters">
+      <h4>Parameters</h4>
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td>$colors</td>
+          <td>array&lt;string, ColorInterface&gt;</td>
+          <td>Array of colors with role keys</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+### Static Constructors
+
+<div class="method-grid">
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>fromColors</h3>
+      <div class="method-signature">public static function fromColors(array $colors): Theme</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Creates a theme from an array of colors with role assignments.
+      </div>
+      <div class="parameters">
+        <h4>Parameters</h4>
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td>$colors</td>
+            <td>array&lt;string, ColorInterface&gt;</td>
+            <td>Array of colors with role keys</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+## Color Role Methods
+
+<div class="method-grid">
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>getPrimaryColor</h3>
+      <div class="method-signature">public function getPrimaryColor(): ColorInterface</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Gets the primary color of the theme.
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>Primary color instance</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>getSecondaryColor</h3>
+      <div class="method-signature">public function getSecondaryColor(): ColorInterface</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Gets the secondary color of the theme.
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>Secondary color instance</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>getAccentColor</h3>
+      <div class="method-signature">public function getAccentColor(): ColorInterface</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Gets the accent color of the theme.
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>Accent color instance</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>getBackgroundColor</h3>
+      <div class="method-signature">public function getBackgroundColor(): ColorInterface</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Gets the background color of the theme.
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>Background color instance</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>getSurfaceColor</h3>
+      <div class="method-signature">public function getSurfaceColor(): ColorInterface</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Gets the surface color of the theme.
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>Surface color instance</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## Theme Management Methods
+
+<div class="method-grid">
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>getColor</h3>
+      <div class="method-signature">public function getColor(string $name): ColorInterface</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Gets a color by its role name.
+      </div>
+      <div class="parameters">
+        <h4>Parameters</h4>
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td>$name</td>
+            <td>string</td>
+            <td>Color role name</td>
+          </tr>
+        </table>
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>Color instance for the specified role</p>
+      </div>
+      <div class="throws">
+        <h4>Throws</h4>
+        <p>InvalidArgumentException if color role not found</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>hasColor</h3>
+      <div class="method-signature">public function hasColor(string $name): bool</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Checks if a color role exists in the theme.
+      </div>
+      <div class="parameters">
+        <h4>Parameters</h4>
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td>$name</td>
+            <td>string</td>
+            <td>Color role name</td>
+          </tr>
+        </table>
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>True if color role exists, false otherwise</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>getColors</h3>
+      <div class="method-signature">public function getColors(): array</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Gets all colors in the theme with their roles.
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>Array of colors with role keys</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="method-doc">
+    <div class="method-header">
+      <h3>toArray</h3>
+      <div class="method-signature">public function toArray(): array</div>
+    </div>
+    <div class="method-content">
+      <div class="method-description">
+        Converts the theme to an array of hex color values.
+      </div>
+      <div class="return-value">
+        <h4>Returns</h4>
+        <p>Array of hex color values with role keys</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+## Examples
+
+### Creating a Theme
 
 ```php
-public static function fromColors(array $colors): self
-```
+use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\Theme;
 
-#### Parameters
-- `$colors` (array): Associative array of colors with keys:
-  - primary
-  - secondary
-  - accent
-  - background
-  - surface
+// Create colors
+$primary = new Color(37, 99, 235);    // Blue
+$secondary = new Color(239, 68, 68);   // Red
+$accent = new Color(34, 197, 94);      // Green
+$background = new Color(249, 250, 251); // Light gray
+$surface = new Color(255, 255, 255);    // White
 
-#### Example
-```php
+// Create theme with constructor
+$theme = new Theme([
+    'primary' => $primary,
+    'secondary' => $secondary,
+    'accent' => $accent,
+    'background' => $background,
+    'surface' => $surface
+]);
+
+// Or use static constructor
 $theme = Theme::fromColors([
-    'primary' => Color::fromHex('#2196f3'),
-    'secondary' => Color::fromHex('#f44336'),
-    'accent' => Color::fromHex('#4caf50'),
-    'background' => Color::fromHex('#ffffff'),
-    'surface' => Color::fromHex('#f5f5f5')
+    'primary' => $primary,
+    'secondary' => $secondary,
+    'accent' => $accent,
+    'background' => $background,
+    'surface' => $surface
 ]);
 ```
 
-### fromPalette()
-
-Creates a new Theme instance from a ColorPalette.
+### Accessing Theme Colors
 
 ```php
-public static function fromPalette(ColorPaletteInterface $palette): self
-```
+// Get colors by role
+$primary = $theme->getPrimaryColor();
+$secondary = $theme->getSecondaryColor();
+$accent = $theme->getAccentColor();
 
-#### Parameters
-- `$palette` (ColorPaletteInterface): Color palette to generate theme from
-
-#### Example
-```php
-$theme = Theme::fromPalette($palette);
-```
-
-## Color Getters
-
-### getPrimary()
-
-Gets the primary color of the theme.
-
-```php
-public function getPrimary(): ColorInterface
-```
-
-#### Returns
-- (ColorInterface): Primary color
-
-### getSecondary()
-
-Gets the secondary color of the theme.
-
-```php
-public function getSecondary(): ColorInterface
-```
-
-#### Returns
-- (ColorInterface): Secondary color
-
-### getAccent()
-
-Gets the accent color of the theme.
-
-```php
-public function getAccent(): ColorInterface
-```
-
-#### Returns
-- (ColorInterface): Accent color
-
-### getBackground()
-
-Gets the background color of the theme.
-
-```php
-public function getBackground(): ColorInterface
-```
-
-#### Returns
-- (ColorInterface): Background color
-
-### getSurface()
-
-Gets the surface color of the theme.
-
-```php
-public function getSurface(): ColorInterface
-```
-
-#### Returns
-- (ColorInterface): Surface color
-
-## Text Colors
-
-### getOnPrimary()
-
-Gets the text color for use on primary color backgrounds.
-
-```php
-public function getOnPrimary(): ColorInterface
-```
-
-#### Returns
-- (ColorInterface): Text color for primary backgrounds
-
-### getOnSecondary()
-
-Gets the text color for use on secondary color backgrounds.
-
-```php
-public function getOnSecondary(): ColorInterface
-```
-
-#### Returns
-- (ColorInterface): Text color for secondary backgrounds
-
-### getOnBackground()
-
-Gets the text color for use on the background color.
-
-```php
-public function getOnBackground(): ColorInterface
-```
-
-#### Returns
-- (ColorInterface): Text color for the background
-
-### getOnSurface()
-
-Gets the text color for use on surface color backgrounds.
-
-```php
-public function getOnSurface(): ColorInterface
-```
-
-#### Returns
-- (ColorInterface): Text color for surface backgrounds
-
-## Theme Variants
-
-### getLightVariant()
-
-Creates a light variant of the theme.
-
-```php
-public function getLightVariant(): self
-```
-
-#### Returns
-- (self): New Theme instance with light colors
-
-### getDarkVariant()
-
-Creates a dark variant of the theme.
-
-```php
-public function getDarkVariant(): self
-```
-
-#### Returns
-- (self): New Theme instance with dark colors
-
-## Theme Operations
-
-### toArray()
-
-Converts the theme to an array representation.
-
-```php
-public function toArray(): array
-```
-
-#### Returns
-- (array): Associative array of theme colors
-
-#### Example
-```php
-$colors = $theme->toArray();
-/*
-[
-    'primary' => Color,
-    'secondary' => Color,
-    'accent' => Color,
-    'background' => Color,
-    'surface' => Color,
-    'on_primary' => Color,
-    'on_secondary' => Color,
-    'on_background' => Color,
-    'on_surface' => Color
-]
-*/
-```
-
-### toCssVariables()
-
-Generates CSS custom properties (variables) from the theme.
-
-```php
-public function toCssVariables(string $prefix = ''): string
-```
-
-#### Parameters
-- `$prefix` (string): Optional prefix for CSS variable names
-
-#### Returns
-- (string): CSS custom properties definition
-
-#### Example
-```php
-echo $theme->toCssVariables('theme-');
-/*
-:root {
-    --theme-primary: #2196f3;
-    --theme-secondary: #f44336;
-    --theme-accent: #4caf50;
-    --theme-background: #ffffff;
-    --theme-surface: #f5f5f5;
-    --theme-on-primary: #ffffff;
-    --theme-on-secondary: #ffffff;
-    --theme-on-background: #000000;
-    --theme-on-surface: #000000;
+// Check if color role exists
+if ($theme->hasColor('primary')) {
+    $color = $theme->getColor('primary');
 }
-*/
+
+// Get all colors
+$colors = $theme->getColors();
+
+// Convert to hex values
+$hexColors = $theme->toArray();
 ```
 
-### merge()
-
-Merges another theme into this one.
+### Theme Generation
 
 ```php
-public function merge(Theme $theme): self
+use Farzai\ColorPalette\PaletteGenerator;
+
+// Create a generator with base color
+$generator = new PaletteGenerator($primary);
+
+// Generate website theme
+$websiteTheme = $generator->websiteTheme();
+
+// Access generated theme colors
+$background = $websiteTheme->getBackgroundColor();
+$surface = $websiteTheme->getSurfaceColor();
 ```
 
-#### Parameters
-- `$theme` (Theme): Theme to merge with
+## See Also
 
-#### Returns
-- (self): New merged Theme instance
-
-#### Example
-```php
-$customTheme = Theme::fromColors([
-    'primary' => Color::fromHex('#000000'),
-    // ... other colors
-]);
-
-$mergedTheme = $theme->merge($customTheme);
-``` 
+- [Color Class](color)
+- [ColorPalette Class](color-palette)
+- [PaletteGenerator Class](palette-generation)
+- [Color Schemes](color-schemes) 

@@ -1,141 +1,233 @@
 ---
 layout: default
-title: Getting Started
+title: Getting Started with Color Palette PHP
+description: Learn how to install and start using Color Palette PHP for image color extraction and manipulation
+keywords: php color palette installation, setup guide, quickstart, color extraction tutorial
 ---
 
-# Getting Started with Color Palette PHP
+# Getting Started
 
-This guide will help you get started with Color Palette PHP, a powerful library for extracting and manipulating color palettes from images.
+This guide will help you get up and running with Color Palette PHP quickly. We'll cover installation, basic setup, and common usage patterns.
 
-## Installation
+<div class="quick-links">
+  <a href="#prerequisites">Prerequisites</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#basic-usage">Basic Usage</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#next-steps">Next Steps</a>
+</div>
 
-### Requirements
+## Prerequisites
 
-Before installing, make sure your system meets these requirements:
+Before you begin, ensure your system meets the following requirements:
 
 - PHP 8.1 or higher
 - One of the following image processing extensions:
-  - GD extension (recommended)
-  - ImageMagick extension
+  - GD extension (recommended for most use cases)
+  - ImageMagick extension (recommended for advanced image processing)
 - Composer for dependency management
 
-### Installing via Composer
+You can check your PHP version and installed extensions using:
+
+```bash
+php -v
+php -m | grep -E 'gd|imagick'
+```
+
+## Installation
+
+### Via Composer
+
+The recommended way to install Color Palette PHP is through Composer:
 
 ```bash
 composer require farzai/color-palette
 ```
 
+### Manual Installation
+
+If you're not using Composer, you can download the library directly:
+
+1. Download the [latest release](https://github.com/parsilver/color-palette-php/releases)
+2. Extract the files into your project
+3. Include the autoloader:
+
+```php
+require_once 'path/to/color-palette-php/vendor/autoload.php';
+```
+
 ## Basic Usage
 
-### 1. Creating a Color Palette from an Image
+### 1. Extract Colors from an Image
+
+Here's a simple example of extracting dominant colors from an image:
 
 ```php
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
-use Farzai\ColorPalette\ColorPalette;
 
-// Create an image instance
+// Create image instance
 $imageFactory = new ImageFactory();
 $image = $imageFactory->createFromPath('path/to/image.jpg');
 
-// Create a color extractor
+// Create color extractor
 $extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->create('gd'); // or 'imagick'
+$extractor = $extractorFactory->make('gd'); // or 'imagick'
 
-// Extract colors to create a palette
-$colors = $extractor->extract($image);
-$palette = new ColorPalette($colors);
+// Extract 5 dominant colors
+$palette = $extractor->extract($image, 5);
 
-// Get all colors in the palette
-$colors = $palette->getColors();
-
-// Work with individual colors
-foreach ($colors as $color) {
-    echo $color->toHex() . "\n";    // Get hex value (#RRGGBB)
-    echo $color->toRgb() . "\n";    // Get RGB values
-    echo $color->toHsl() . "\n";    // Get HSL values
+// Get colors as hex values
+foreach ($palette->getColors() as $color) {
+    echo $color->toHex() . "\n";
 }
 ```
 
-### 2. Generating a Theme
+### 2. Generate Color Themes
+
+Create harmonious color themes from a base color:
 
 ```php
-use Farzai\ColorPalette\ThemeGenerator;
+use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\PaletteGenerator;
 
-// Create a theme generator
-$generator = new ThemeGenerator();
+// Create a base color
+$baseColor = new Color(37, 99, 235); // #2563eb (blue)
 
-// Generate a theme from your palette
-$theme = $generator->generate($palette);
+// Create a palette generator
+$generator = new PaletteGenerator($baseColor);
 
-// Access theme colors
-$primary = $theme->getPrimary();
-$secondary = $theme->getSecondary();
-$accent = $theme->getAccent();
+// Generate different color schemes
+$analogous = $generator->analogous();
+$complementary = $generator->complementary();
+$triadic = $generator->triadic();
+$websiteTheme = $generator->websiteTheme();
 ```
 
-### 3. Working with Colors
+### 3. Color Manipulation
+
+Perform various color manipulations:
 
 ```php
 use Farzai\ColorPalette\Color;
 
-// Create a color from hex
-$color = Color::fromHex('#2196f3');
+// Create a color
+$color = new Color(37, 99, 235);
 
-// Get color properties
-echo $color->getRed();      // Red component (0-255)
-echo $color->getGreen();    // Green component (0-255)
-echo $color->getBlue();     // Blue component (0-255)
-echo $color->getLightness(); // Lightness value (0-100)
+// Color transformations
+$lighter = $color->lighten(0.2);    // Lighten by 20%
+$darker = $color->darken(0.2);      // Darken by 20%
+$saturated = $color->saturate(0.1); // Increase saturation by 10%
+$rotated = $color->rotate(180);     // Rotate hue by 180 degrees
 
-// Convert to different formats
-echo $color->toHex();       // #2196f3
-echo $color->toRgb();       // rgb(33, 150, 243)
-echo $color->toHsl();       // hsl(207, 90%, 54%)
+// Color format conversions
+$hex = $color->toHex();           // #2563eb
+$rgb = $color->toRgb();           // ['r' => 37, 'g' => 99, 'b' => 235]
+$hsl = $color->toHsl();           // ['h' => 220, 's' => 84, 'l' => 53]
+$cmyk = $color->toCmyk();         // ['c' => 84, 'm' => 58, 'y' => 0, 'k' => 8]
+$lab = $color->toLab();           // ['l' => 45, 'a' => 8, 'b' => -65]
 ```
 
-### 4. Surface Colors and Text Suggestions
+## Configuration
+
+### Customizing Color Extraction
+
+You can customize the color extraction process:
 
 ```php
-// Get suggested surface colors
-$surfaceColors = $palette->getSuggestedSurfaceColors();
-// Available keys: 'surface', 'background', 'accent', 'surface_variant'
+use Farzai\ColorPalette\ColorExtractorFactory;
+use Farzai\ColorPalette\Config;
 
-// Get suggested text color for a background
-$backgroundColor = $colors[0];
-$textColor = $palette->getSuggestedTextColor($backgroundColor);
+// Create a custom configuration
+$config = new Config([
+    'sample_size' => 50,           // Number of pixels to sample
+    'min_saturation' => 0.05,      // Minimum color saturation (0-1)
+    'min_brightness' => 0.05,      // Minimum color brightness (0-1)
+    'max_colors' => 10,            // Maximum number of colors to extract
+]);
+
+// Create extractor with custom config
+$extractorFactory = new ColorExtractorFactory();
+$extractor = $extractorFactory->make('gd', $config);
 ```
 
-## Error Handling
+### Backend Selection
 
-It's important to handle potential errors when working with images:
+Choose between GD and ImageMagick backends based on your needs:
 
 ```php
-use Farzai\ColorPalette\Exceptions\ImageLoadException;
-use Farzai\ColorPalette\Exceptions\ImageException;
+// Using GD (default)
+$extractor = $extractorFactory->make('gd');
 
-try {
-    $image = $imageFactory->createFromPath('path/to/image.jpg');
-} catch (ImageLoadException $e) {
-    // Handle image loading errors
-    echo "Failed to load image: " . $e->getMessage();
-} catch (ImageException $e) {
-    // Handle other image processing errors
-    echo "Image processing error: " . $e->getMessage();
-}
+// Using ImageMagick
+$extractor = $extractorFactory->make('imagick');
 ```
 
 ## Next Steps
 
-Now that you're familiar with the basics, here's what you can explore next:
+Now that you have Color Palette PHP set up, you can:
 
-1. [Core Concepts](core-concepts) - Learn about color spaces, manipulation, and advanced features
-2. [Examples](examples) - See practical examples and use cases
-3. [API Reference](api) - Browse the complete API documentation
-4. [Color Playground](playground) - Experiment with color manipulations in real-time
+<div class="next-steps">
+  <div class="next-step">
+    <h3><a href="core-concepts">📚 Learn Core Concepts</a></h3>
+    <p>Understand color spaces, manipulation techniques, and best practices.</p>
+  </div>
+  
+  <div class="next-step">
+    <h3><a href="examples/">💡 Explore Examples</a></h3>
+    <p>See real-world examples and common use cases.</p>
+  </div>
+  
+  <div class="next-step">
+    <h3><a href="api/">📖 Browse API Reference</a></h3>
+    <p>Dive into detailed API documentation.</p>
+  </div>
+  
+  <div class="next-step">
+    <h3><a href="playground">🎮 Try Color Playground</a></h3>
+    <p>Experiment with color manipulation in our interactive playground.</p>
+  </div>
+</div>
 
-## Need Help?
+## Troubleshooting
 
-- Check out our [GitHub repository](https://github.com/parsilver/color-palette-php) for the latest updates
-- [Open an issue](https://github.com/parsilver/color-palette-php/issues) if you find a bug or have a feature request
-- Read our [Contributing Guide](https://github.com/parsilver/color-palette-php/blob/main/CONTRIBUTING.md) if you'd like to contribute 
+### Common Issues
+
+1. **Missing Extensions**
+   ```bash
+   Error: GD/ImageMagick extension not found
+   ```
+   Solution: Install the required PHP extension:
+   ```bash
+   # For GD
+   sudo apt-get install php8.1-gd
+   
+   # For ImageMagick
+   sudo apt-get install php8.1-imagick
+   ```
+
+2. **Memory Limits**
+   ```bash
+   Error: Allowed memory size exhausted
+   ```
+   Solution: Increase PHP memory limit in php.ini:
+   ```ini
+   memory_limit = 256M
+   ```
+
+3. **Permission Issues**
+   ```bash
+   Error: Failed to open stream: Permission denied
+   ```
+   Solution: Ensure proper file permissions:
+   ```bash
+   chmod 644 /path/to/image.jpg
+   ```
+
+### Getting Help
+
+If you encounter any issues:
+
+1. Check our [GitHub Issues](https://github.com/parsilver/color-palette-php/issues) for similar problems
+2. Review the [API Documentation](api/) for detailed information
+3. [Create a new issue](https://github.com/parsilver/color-palette-php/issues/new) if you need help 

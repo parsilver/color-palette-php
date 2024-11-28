@@ -1,70 +1,203 @@
-# API Documentation
+---
+layout: default
+title: API Reference - Color Palette PHP
+description: Complete API documentation for Color Palette PHP library, including color manipulation, extraction, and theme generation
+keywords: php color palette api, color manipulation api, color extraction api, theme generation api
+---
 
-This section provides detailed documentation for all the classes and interfaces in the Color Palette library.
+# API Reference
 
-## Core Classes
+Welcome to the Color Palette PHP API documentation. This comprehensive guide covers all the classes, methods, and features available in the library.
 
-### Color Handling
-- [Color](color.md) - Core color representation and manipulation
-- [ColorPalette](color-palette.md) - Collection of colors with analysis features
-- [Theme](theme.md) - Structured color themes for applications
+<div class="api-overview">
+  <div class="api-section">
+    <h2>🎨 Core Components</h2>
+    <ul>
+      <li><a href="color">Color</a> - Core color representation and manipulation</li>
+      <li><a href="color-palette">ColorPalette</a> - Collection of colors with analysis tools</li>
+      <li><a href="theme">Theme</a> - Theme generation and management</li>
+    </ul>
+  </div>
 
-### Image Processing
-- [ImageFactory](image-loader.md#imagefactory) - Create image instances
-- [ImageLoader](image-loader.md) - Load and process images
-- [ColorExtractor](color-extractor.md) - Extract colors from images
-- [PaletteGenerator](palette-generation.md) - Alternative way to generate palettes
+  <div class="api-section">
+    <h2>🖼️ Image Processing</h2>
+    <ul>
+      <li><a href="image-loader">ImageLoader</a> - Image loading and processing</li>
+      <li><a href="color-extractor">ColorExtractor</a> - Color extraction from images</li>
+    </ul>
+  </div>
 
-### Factories
-- [ColorExtractorFactory](color-extractor.md#colorextractorfactory) - Create color extractors (GD/Imagick)
-- [ImageLoaderFactory](image-loader.md#imageloaderfactory) - Create image loaders
-- [ImageFactory](image-loader.md#imagefactory) - Create image instances
+  <div class="api-section">
+    <h2>🔧 Color Operations</h2>
+    <ul>
+      <li><a href="color-manipulation">Color Manipulation</a> - Adjusting colors</li>
+      <li><a href="color-spaces">Color Spaces</a> - Working with different color spaces</li>
+      <li><a href="color-schemes">Color Schemes</a> - Generating color combinations</li>
+    </ul>
+  </div>
 
-## Features
+  <div class="api-section">
+    <h2>🎯 Advanced Features</h2>
+    <ul>
+      <li><a href="palette-generation">Palette Generation</a> - Creating color palettes</li>
+      <li><a href="utilities">Utilities</a> - Helper functions and tools</li>
+    </ul>
+  </div>
+</div>
 
-### Color Operations
-- [Color Manipulation](color-manipulation.md) - Transform and modify colors
-- [Color Spaces](color-spaces.md) - RGB, HSL, and Hex conversions
-- [Color Schemes](color-schemes.md) - Generate harmonious color combinations
+## Quick Start
 
-### Utilities
-- [Contrast Calculation](utilities.md#contrast) - Calculate color contrast ratios
-- [Brightness Analysis](utilities.md#brightness) - Analyze color brightness
-- [Surface Colors](utilities.md#surface-colors) - Generate UI surface colors
+Here's a quick overview of the most commonly used features:
 
-## Interfaces
+### Creating Colors
 
-The library uses interfaces in the `Contracts` namespace for dependency injection and abstraction:
+```php
+use Farzai\ColorPalette\Color;
+
+// From RGB values
+$color = new Color(37, 99, 235);
+
+// From hex string
+$color = Color::fromHex('#2563eb');
+
+// From HSL values
+$color = Color::fromHsl(220, 84, 53);
+```
+
+### Extracting Colors from Images
+
+```php
+use Farzai\ColorPalette\ImageFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
+
+// Load image
+$imageFactory = new ImageFactory();
+$image = $imageFactory->createFromPath('image.jpg');
+
+// Extract colors
+$extractorFactory = new ColorExtractorFactory();
+$extractor = $extractorFactory->make('gd');
+$palette = $extractor->extract($image, 5);
+```
+
+### Generating Themes
+
+```php
+use Farzai\ColorPalette\PaletteGenerator;
+
+// Create generator with base color
+$generator = new PaletteGenerator($color);
+
+// Generate different schemes
+$analogous = $generator->analogous();
+$complementary = $generator->complementary();
+$websiteTheme = $generator->websiteTheme();
+```
+
+## Class Reference
+
+### Core Classes
+
+<div class="class-grid">
+  <div class="class-card">
+    <h3>Color</h3>
+    <p>Core class for color representation and manipulation.</p>
+    <a href="color" class="api-link">View Documentation →</a>
+  </div>
+
+  <div class="class-card">
+    <h3>ColorPalette</h3>
+    <p>Manages collections of colors with analysis tools.</p>
+    <a href="color-palette" class="api-link">View Documentation →</a>
+  </div>
+
+  <div class="class-card">
+    <h3>Theme</h3>
+    <p>Handles theme generation and management.</p>
+    <a href="theme" class="api-link">View Documentation →</a>
+  </div>
+
+  <div class="class-card">
+    <h3>ColorExtractor</h3>
+    <p>Extracts dominant colors from images.</p>
+    <a href="color-extractor" class="api-link">View Documentation →</a>
+  </div>
+</div>
+
+## Interface Reference
 
 ### Core Interfaces
-- `ColorInterface` - Color representation contract
-- `ColorPaletteInterface` - Color collection contract
-- `ThemeInterface` - Theme generation contract
 
-### Processing Interfaces
-- `ColorExtractorInterface` - Color extraction contract
-- `ImageInterface` - Image handling contract
-- `ImageLoaderInterface` - Image loading contract
-- `ThemeGeneratorInterface` - Theme generation contract
+```php
+// ColorInterface - Base interface for color operations
+interface ColorInterface {
+    public function toHex(): string;
+    public function toRgb(): array;
+    public function toHsl(): array;
+    // ... more methods
+}
 
-## Exception Handling
+// ColorPaletteInterface - Interface for palette operations
+interface ColorPaletteInterface {
+    public function getColors(): array;
+    public function getSuggestedTextColor(ColorInterface $backgroundColor): ColorInterface;
+    public function getSuggestedSurfaceColors(): array;
+}
 
-The library uses the following exceptions:
-- `ImageLoadException` - Image loading failures
-- `ImageException` - General image processing errors
-- `InvalidArgumentException` - Invalid color values or parameters
+// ThemeInterface - Interface for theme operations
+interface ThemeInterface {
+    public function getPrimaryColor(): ColorInterface;
+    public function getSecondaryColor(): ColorInterface;
+    public function getAccentColor(): ColorInterface;
+    // ... more methods
+}
+```
 
-## Implementation Notes
+## Error Handling
 
-1. **Color Extraction Methods**
-   - Direct extraction using `ColorExtractor`
-   - Simplified extraction using `PaletteGenerator`
+The library uses custom exceptions for different types of errors:
 
-2. **Image Processing**
-   - GD backend (default, faster)
-   - ImageMagick backend (more features)
+```php
+use Farzai\ColorPalette\Exceptions\ColorException;
+use Farzai\ColorPalette\Exceptions\ImageException;
+use Farzai\ColorPalette\Exceptions\InvalidArgumentException;
 
-3. **Color Collections**
-   - `ColorPalette` implements `ArrayAccess` and `Countable`
-   - Supports array-like access to colors
-   - Provides color analysis methods
+try {
+    // Your code here
+} catch (ColorException $e) {
+    // Handle color-related errors
+} catch (ImageException $e) {
+    // Handle image-related errors
+} catch (InvalidArgumentException $e) {
+    // Handle invalid argument errors
+}
+```
+
+## Best Practices
+
+1. **Color Creation**
+   - Use the most appropriate constructor for your use case
+   - Validate color values before creation
+   - Use named constructors for clarity
+
+2. **Color Extraction**
+   - Cache extracted palettes for frequently used images
+   - Use appropriate sample sizes for performance
+   - Handle extraction errors gracefully
+
+3. **Theme Generation**
+   - Start with a carefully chosen base color
+   - Test themes across different contexts
+   - Consider accessibility requirements
+
+4. **Performance**
+   - Use the GD backend for better performance
+   - Implement caching where appropriate
+   - Batch color operations when possible
+
+## See Also
+
+- [Getting Started Guide](../getting-started)
+- [Core Concepts](../core-concepts)
+- [Examples](../examples/)
+- [Color Playground](../playground)

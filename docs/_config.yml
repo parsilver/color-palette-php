@@ -3,10 +3,15 @@ plugins:
   - jekyll-remote-theme
   - jekyll-seo-tag
   - jekyll-sitemap
+  - jekyll-redirect-from
 
 title: Color Palette PHP
-description: A powerful PHP library for extracting color palettes from images and generating color themes
+tagline: Extract and manipulate color palettes from images with PHP
+description: A powerful PHP library for extracting color palettes from images, generating color themes, and manipulating colors in multiple color spaces (RGB, HSL, CMYK, LAB)
+keywords: php color palette, image color extraction, color manipulation, color themes, php library
+author: parsilver
 show_downloads: true
+google_analytics: # Add your Google Analytics ID
 github:
   repository_url: https://github.com/parsilver/color-palette-php
   zip_url: https://github.com/parsilver/color-palette-php/archive/refs/heads/main.zip
@@ -16,24 +21,41 @@ github:
 nav:
   - title: Getting Started
     url: getting-started
+    description: Quick installation and basic setup guide
   - title: Core Concepts
     url: core-concepts
+    description: Understanding color spaces and manipulation
   - title: API Reference
     url: api/
+    description: Complete API documentation with examples
   - title: Examples
     url: examples/
-  - title: Color Playground
-    url: playground
+    description: Real-world examples and use cases
   - title: GitHub
     url: https://github.com/parsilver/color-palette-php
+    description: View source code on GitHub
 
 # Markdown settings
 markdown: kramdown
 kramdown:
   input: GFM
   syntax_highlighter: rouge
+  auto_ids: true
+  toc_levels: 1..3
+
+# SEO settings
+twitter:
+  username: parsilver
+  card: summary
+
+social:
+  name: Color Palette PHP
+  links:
+    - https://github.com/parsilver/color-palette-php
 
 # Custom variables
 version: "1.0.0"
 github_username: parsilver
 repository: parsilver/color-palette-php
+baseurl: "/color-palette-php"
+url: "https://parsilver.github.io"
