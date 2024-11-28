@@ -21,483 +21,192 @@ class Color implements ColorInterface
 ```
 
 The `Color` class provides comprehensive functionality for:
-- Color creation and representation
-- Color space conversions
+- Color creation and representation in RGB format
+- Color space conversions (RGB, HSL, CMYK, LAB)
 - Color manipulation and adjustments
 - Color analysis and comparison
 
 ## Creating Colors
 
-<div class="method-doc">
-  <div class="method-header">
-    <h3>Constructor</h3>
-    <div class="method-signature">public function __construct(int $red, int $green, int $blue)</div>
-  </div>
-  <div class="method-content">
-    <div class="method-description">
-      Creates a new Color instance from RGB values.
-    </div>
-    <div class="parameters">
-      <h4>Parameters</h4>
-      <table>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-        <tr>
-          <td>$red</td>
-          <td>int</td>
-          <td>Red component (0-255)</td>
-        </tr>
-        <tr>
-          <td>$green</td>
-          <td>int</td>
-          <td>Green component (0-255)</td>
-        </tr>
-        <tr>
-          <td>$blue</td>
-          <td>int</td>
-          <td>Blue component (0-255)</td>
-        </tr>
-      </table>
-    </div>
-  </div>
-</div>
+### Constructor
 
-### Named Constructors
+```php
+public function __construct(int $red, int $green, int $blue)
+```
 
-<div class="method-grid">
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>fromHex</h3>
-      <div class="method-signature">public static function fromHex(string $hex): Color</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Creates a Color instance from a hexadecimal color string.
-      </div>
-      <div class="parameters">
-        <h4>Parameters</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>$hex</td>
-            <td>string</td>
-            <td>Hexadecimal color code (e.g., "#ff0000" or "ff0000")</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
+Creates a new Color instance from RGB values.
 
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>fromHsl</h3>
-      <div class="method-signature">public static function fromHsl(float $hue, float $saturation, float $lightness): Color</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Creates a Color instance from HSL values.
-      </div>
-      <div class="parameters">
-        <h4>Parameters</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>$hue</td>
-            <td>float</td>
-            <td>Hue component (0-360)</td>
-          </tr>
-          <tr>
-            <td>$saturation</td>
-            <td>float</td>
-            <td>Saturation component (0-100)</td>
-          </tr>
-          <tr>
-            <td>$lightness</td>
-            <td>float</td>
-            <td>Lightness component (0-100)</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+**Parameters:**
+- `$red` (int): Red component (0-255)
+- `$green` (int): Green component (0-255)
+- `$blue` (int): Blue component (0-255)
+
+### Static Factory Methods
+
+```php
+public static function fromHex(string $hex): self
+public static function fromRgb(array $rgb): self
+public static function fromHsl(float $hue, float $saturation, float $lightness): self
+public static function fromCmyk(float $cyan, float $magenta, float $yellow, float $key): self
+public static function fromLab(float $lightness, float $a, float $b): self
+```
 
 ## Color Space Conversions
 
-<div class="method-grid">
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>toHex</h3>
-      <div class="method-signature">public function toHex(): string</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Converts the color to hexadecimal format.
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>Hexadecimal color code (e.g., "#ff0000")</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>toRgb</h3>
-      <div class="method-signature">public function toRgb(): array</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Gets the RGB components of the color.
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>Array with 'r', 'g', 'b' keys containing values 0-255</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>toHsl</h3>
-      <div class="method-signature">public function toHsl(): array</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Converts the color to HSL format.
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>Array with 'h' (0-360), 's' (0-100), 'l' (0-100) components</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>toCmyk</h3>
-      <div class="method-signature">public function toCmyk(): array</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Converts the color to CMYK format.
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>Array with 'c', 'm', 'y', 'k' keys containing values 0-100</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>toLab</h3>
-      <div class="method-signature">public function toLab(): array</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Converts the color to LAB color space.
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>Array with 'l', 'a', 'b' components</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-## Color Manipulation
-
-<div class="method-grid">
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>lighten</h3>
-      <div class="method-signature">public function lighten(float $amount): Color</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Creates a lighter version of the color.
-      </div>
-      <div class="parameters">
-        <h4>Parameters</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>$amount</td>
-            <td>float</td>
-            <td>Amount to lighten (0-1)</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>darken</h3>
-      <div class="method-signature">public function darken(float $amount): Color</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Creates a darker version of the color.
-      </div>
-      <div class="parameters">
-        <h4>Parameters</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>$amount</td>
-            <td>float</td>
-            <td>Amount to darken (0-1)</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>saturate</h3>
-      <div class="method-signature">public function saturate(float $amount): Color</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Increases the saturation of the color.
-      </div>
-      <div class="parameters">
-        <h4>Parameters</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>$amount</td>
-            <td>float</td>
-            <td>Amount to increase saturation (0-1)</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>desaturate</h3>
-      <div class="method-signature">public function desaturate(float $amount): Color</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Decreases the saturation of the color.
-      </div>
-      <div class="parameters">
-        <h4>Parameters</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>$amount</td>
-            <td>float</td>
-            <td>Amount to decrease saturation (0-1)</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>rotate</h3>
-      <div class="method-signature">public function rotate(float $degrees): Color</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Rotates the hue of the color.
-      </div>
-      <div class="parameters">
-        <h4>Parameters</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>$degrees</td>
-            <td>float</td>
-            <td>Degrees to rotate the hue (-360 to 360)</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+```php
+public function toHex(): string
+public function toRgb(): array
+public function toHsl(): array
+public function toHsv(): array
+public function toCmyk(): array
+public function toLab(): array
+```
 
 ## Color Analysis
 
-<div class="method-grid">
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>getBrightness</h3>
-      <div class="method-signature">public function getBrightness(): float</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Gets the perceived brightness of the color.
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>Brightness value between 0 and 255</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>getLuminance</h3>
-      <div class="method-signature">public function getLuminance(): float</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Gets the relative luminance of the color.
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>Luminance value between 0 and 1</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>getContrastRatio</h3>
-      <div class="method-signature">public function getContrastRatio(ColorInterface $color): float</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Calculates the contrast ratio between this color and another color.
-      </div>
-      <div class="parameters">
-        <h4>Parameters</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>$color</td>
-            <td>ColorInterface</td>
-            <td>Color to compare against</td>
-          </tr>
-        </table>
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>Contrast ratio between 1 and 21</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>isLight</h3>
-      <div class="method-signature">public function isLight(): bool</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Determines if the color is considered light.
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>True if the color is light, false otherwise</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>isDark</h3>
-      <div class="method-signature">public function isDark(): bool</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Determines if the color is considered dark.
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>True if the color is dark, false otherwise</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-## Examples
-
-### Basic Color Creation and Manipulation
-
 ```php
-use Farzai\ColorPalette\Color;
-
-// Create a color
-$color = new Color(37, 99, 235);  // Blue
-echo $color->toHex();             // "#2563eb"
-
-// Manipulate the color
-$lighter = $color->lighten(0.2);
-$darker = $color->darken(0.2);
-$rotated = $color->rotate(180);   // Complementary color
+public function getBrightness(): float
+public function isLight(): bool
+public function isDark(): bool
+public function getContrastRatio(ColorInterface $color): float
+public function getLuminance(): float
 ```
 
-### Color Space Conversions
+## Color Manipulation
 
 ```php
-// Convert between color spaces
-$rgb = $color->toRgb();   // ['r' => 37, 'g' => 99, 'b' => 235]
-$hsl = $color->toHsl();   // ['h' => 220, 's' => 84, 'l' => 53]
-$cmyk = $color->toCmyk(); // ['c' => 84, 'm' => 58, 'y' => 0, 'k' => 8]
-$lab = $color->toLab();   // ['l' => 45, 'a' => 8, 'b' => -65]
+public function lighten(float $amount): self
+public function darken(float $amount): self
+public function saturate(float $amount): self
+public function desaturate(float $amount): self
+public function rotate(float $degrees): self
+public function withLightness(float $lightness): self
 ```
 
-### Color Analysis
+## Detailed Method Documentation
 
+### Color Space Conversion Methods
+
+#### toHex()
+Converts the color to hexadecimal format.
 ```php
-// Analyze color properties
-$brightness = $color->getBrightness();
-$luminance = $color->getLuminance();
+$color = new Color(255, 0, 0);
+echo $color->toHex(); // "#ff0000"
+```
 
-// Check color characteristics
-if ($color->isLight()) {
-    echo "This is a light color";
-}
+#### toRgb()
+Returns an array with RGB values.
+```php
+$color = new Color(255, 0, 0);
+$rgb = $color->toRgb(); // ['r' => 255, 'g' => 0, 'b' => 0]
+```
 
-// Calculate contrast ratio
-$white = new Color(255, 255, 255);
-$contrastRatio = $color->getContrastRatio($white);
-$isAccessible = $contrastRatio >= 4.5; // WCAG AA standard
+#### toHsl()
+Returns an array with HSL values.
+```php
+$color = new Color(255, 0, 0);
+$hsl = $color->toHsl(); // ['h' => 0, 's' => 100, 'l' => 50]
+```
+
+#### toHsv()
+Returns an array with HSV values.
+```php
+$color = new Color(255, 0, 0);
+$hsv = $color->toHsv(); // ['h' => 0, 's' => 100, 'v' => 100]
+```
+
+#### toCmyk()
+Returns an array with CMYK values (0-100 for each component).
+```php
+$color = new Color(255, 0, 0);
+$cmyk = $color->toCmyk(); // ['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0]
+```
+
+#### toLab()
+Returns an array with LAB color space values.
+```php
+$color = new Color(255, 0, 0);
+$lab = $color->toLab(); // ['l' => 53, 'a' => 80, 'b' => 67]
+```
+
+### Static Creation Methods
+
+#### fromCmyk()
+Creates a new color from CMYK values.
+```php
+$color = Color::fromCmyk(0, 100, 100, 0); // Red color
+```
+
+#### fromLab()
+Creates a new color from LAB color space values.
+```php
+$color = Color::fromLab(53, 80, 67); // Approximately red color
+```
+
+### Color Analysis Methods
+
+#### getBrightness()
+Returns the perceived brightness of the color (0-255).
+
+#### isLight()
+Returns true if the color is considered light (brightness > 128).
+
+#### isDark()
+Returns true if the color is considered dark (brightness <= 128).
+
+#### getContrastRatio()
+Calculates the contrast ratio between this color and another color according to WCAG standards.
+```php
+$color1 = new Color(255, 255, 255);
+$color2 = new Color(0, 0, 0);
+echo $color1->getContrastRatio($color2); // 21
+```
+
+#### getLuminance()
+Returns the relative luminance of the color according to WCAG standards.
+
+### Color Manipulation Methods
+
+#### lighten(float $amount)
+Creates a lighter version of the color.
+```php
+$color = new Color(255, 0, 0);
+$lighter = $color->lighten(0.2); // 20% lighter
+```
+
+#### darken(float $amount)
+Creates a darker version of the color.
+```php
+$color = new Color(255, 0, 0);
+$darker = $color->darken(0.2); // 20% darker
+```
+
+#### saturate(float $amount)
+Increases the saturation of the color.
+```php
+$color = new Color(255, 0, 0);
+$saturated = $color->saturate(0.2); // 20% more saturated
+```
+
+#### desaturate(float $amount)
+Decreases the saturation of the color.
+```php
+$color = new Color(255, 0, 0);
+$desaturated = $color->desaturate(0.2); // 20% less saturated
+```
+
+#### rotate(float $degrees)
+Rotates the hue of the color by the specified degrees.
+```php
+$color = new Color(255, 0, 0);
+$rotated = $color->rotate(180); // Complementary color
+```
+
+#### withLightness(float $lightness)
+Creates a new color with the specified lightness value (0-1).
+```php
+$color = new Color(255, 0, 0);
+$newColor = $color->withLightness(0.8); // 80% lightness
 ```
 
 ## See Also

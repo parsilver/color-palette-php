@@ -17,16 +17,14 @@
 
 ---
 
-This section covers the color space conversions and manipulations available in the library.
+This section covers the color space conversions available in the library.
 
 ## Supported Color Spaces
 
 The library supports the following color spaces:
-- RGB (Red, Green, Blue)
-- HSL (Hue, Saturation, Lightness)
-- HSV (Hue, Saturation, Value)
-- CMYK (Cyan, Magenta, Yellow, Key/Black)
-- LAB (CIELAB Color Space)
+- RGB (Red, Green, Blue) - Integer values from 0 to 255
+- HSL (Hue: 0-360°, Saturation: 0-100%, Lightness: 0-100%)
+- Hex (6-digit hexadecimal color notation, e.g., #FF0000)
 
 ## Color Space Conversion
 
@@ -35,34 +33,52 @@ The library supports the following color spaces:
 ```php
 use Farzai\ColorPalette\Color;
 
-$color = Color::fromRgb(255, 0, 0);
+// Create from direct RGB values (0-255)
+$color = new Color(255, 0, 0);
 
-// Convert to different spaces
-$hsl = $color->toHsl();  // [0, 100, 50]
-$hsv = $color->toHsv();  // [0, 100, 100]
-$cmyk = $color->toCmyk(); // [0, 100, 100, 0]
-$lab = $color->toLab();  // [53.24, 80.09, 67.20]
+// Create from RGB array (supports both named and numeric keys)
+$color = Color::fromRgb(['r' => 255, 'g' => 0, 'b' => 0]);
+// or
+$color = Color::fromRgb([255, 0, 0]);
+// Missing values default to 0
+$color = Color::fromRgb(['r' => 255]); // g and b will be 0
+
+// Convert to HSL
+$hsl = $color->toHsl();  // ['h' => 0, 's' => 100, 'l' => 50]
+
+// Convert to Hex
+$hex = $color->toHex();  // '#ff0000'
 ```
 
 ### HSL Conversions
 
 ```php
-// Create from HSL
+// Create from HSL values
+// hue: 0-360 (degrees)
+// saturation: 0-100 (percentage)
+// lightness: 0-100 (percentage)
 $color = Color::fromHsl(0, 100, 50);
 
-// Convert to RGB
-$rgb = $color->toRgb();  // [255, 0, 0]
+// Convert to RGB (HSL values are normalized internally)
+$rgb = $color->toRgb();  // ['r' => 255, 'g' => 0, 'b' => 0]
+
+// Convert to Hex
+$hex = $color->toHex();  // '#ff0000'
 ```
 
-### HSV Conversions
+### Hex Conversions
 
 ```php
-// Create from HSV
-$color = Color::fromHsv(0, 100, 100);
+// Create from Hex (must be exactly 6 hex digits)
+$color = Color::fromHex('#ff0000');  // Leading # is optional
+// or
+$color = Color::fromHex('ff0000');
 
-// Convert to other spaces
-$rgb = $color->toRgb();  // [255, 0, 0]
-$hsl = $color->toHsl();  // [0, 100, 50]
+// Convert to RGB
+$rgb = $color->toRgb();  // ['r' => 255, 'g' => 0, 'b' => 0]
+
+// Convert to HSL
+$hsl = $color->toHsl();  // ['h' => 0, 's' => 100, 'l' => 50]
 ```
 
 ## Working with Color Components
@@ -70,68 +86,43 @@ $hsl = $color->toHsl();  // [0, 100, 50]
 ### Accessing Components
 
 ```php
-$color = Color::fromRgb(255, 0, 0);
+$color = new Color(255, 0, 0);
 
-// RGB components
-$red = $color->getRed();    // 255
+// RGB components (integers 0-255)
+$red = $color->getRed();     // 255
 $green = $color->getGreen(); // 0
 $blue = $color->getBlue();   // 0
 
-// HSL components
-$hue = $color->getHue();        // 0
-$saturation = $color->getSaturation(); // 100
-$lightness = $color->getLightness();   // 50
-```
-
-### Modifying Components
-
-```php
-$color = Color::fromRgb(255, 0, 0);
-
-// Modify individual components
-$color = $color->withRed(128);
-$color = $color->withHue(180);
-$color = $color->withSaturation(50);
-```
-
-## Color Space Utilities
-
-### Gamma Correction
-
-```php
-$color = Color::fromRgb(255, 0, 0);
-
-// Apply gamma correction
-$corrected = $color->applyGamma(2.2);
-```
-
-### Color Space Interpolation
-
-```php
-$color1 = Color::fromRgb(255, 0, 0);
-$color2 = Color::fromRgb(0, 0, 255);
-
-// Interpolate in RGB space
-$mixed = $color1->interpolateRgb($color2, 0.5);
-
-// Interpolate in HSL space
-$mixed = $color1->interpolateHsl($color2, 0.5);
+// Get HSL values through conversion
+$hsl = $color->toHsl();
+$hue = $hsl['h'];        // 0 (0-360 degrees)
+$saturation = $hsl['s']; // 100 (0-100 percentage)
+$lightness = $hsl['l'];  // 50 (0-100 percentage)
 ```
 
 ## Error Handling
 
 ```php
 try {
-    // Invalid RGB values
-    $color = Color::fromRgb(300, 0, 0);
+    // Each RGB component must be between 0 and 255
+    $color = new Color(300, 0, 0);
 } catch (\InvalidArgumentException $e) {
-    // Handle invalid color space values
+    // "Invalid red color component. Must be between 0 and 255"
 }
 
 try {
-    // Invalid HSL values
+    // Hex format must be exactly 6 hex digits
+    $color = Color::fromHex('invalid');
+} catch (\InvalidArgumentException $e) {
+    // "Invalid hex color format"
+}
+
+try {
+    // HSL values are normalized internally
+    // hue is wrapped to 0-360
+    // saturation and lightness are clamped to 0-100
     $color = Color::fromHsl(400, 150, 200);
 } catch (\InvalidArgumentException $e) {
-    // Handle invalid color space values
+    // Handle invalid HSL values
 }
 ``` 

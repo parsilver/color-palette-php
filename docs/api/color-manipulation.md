@@ -1,128 +1,119 @@
-# Color Manipulation
-
-## Navigation
-
-- [Home](../README.md)
-- [Getting Started](../getting-started.md)
-- [Core Concepts](../core-concepts.md)
-- [Examples](../examples/README.md)
-
-### API Documentation
-- [API Home](./README.md)
-- [Color Manipulation](./color-manipulation.md)
-- [Palette Generation](./palette-generation.md)
-- [Color Schemes](./color-schemes.md)
-- [Color Spaces](./color-spaces.md)
-- [Utilities](./utilities.md)
-
+---
+layout: default
+title: Color Manipulation - Color Palette PHP
+description: Documentation for color manipulation features in Color Palette PHP
+keywords: color manipulation, color transformation, color spaces, php color library
 ---
 
-This section covers all color manipulation methods available in the library.
+# Color Manipulation
 
-## Color Creation
+Color Palette PHP provides color manipulation capabilities through the `Color` class.
 
-### Creating a Color
+## Basic Color Operations
+
+### Creating Colors
 
 ```php
 use Farzai\ColorPalette\Color;
 
-// Create from hex
-$color = Color::fromHex('#ff0000');
+// Create from RGB values (0-255)
+$color = new Color(37, 99, 235);
 
-// Create from RGB
-$color = Color::fromRgb(255, 0, 0);
+// Create from hex string (6 hex digits with optional #)
+$color = Color::fromHex('#2563eb');
 
-// Create from HSL
-$color = Color::fromHsl(0, 100, 50);
+// Create from HSL values (hue: 0-360, saturation/lightness: 0-100)
+$color = Color::fromHsl(220, 84, 53);
+
+// Create from RGB array (supports both named and numeric keys)
+$color = Color::fromRgb(['r' => 37, 'g' => 99, 'b' => 235]);
+// or
+$color = Color::fromRgb([37, 99, 235]);
+// Missing values default to 0
+$color = Color::fromRgb(['r' => 37]); // g and b will be 0
 ```
 
-## Color Modification
-
-### Lighten and Darken
+### Color Space Conversions
 
 ```php
-$color = Color::fromHex('#ff0000');
+$color = new Color(37, 99, 235);
 
-// Lighten by 20%
-$lighter = $color->lighten(20);
-
-// Darken by 20%
-$darker = $color->darken(20);
+// Convert to different formats
+$hex = $color->toHex();           // '#2563eb'
+$rgb = $color->toRgb();           // ['r' => 37, 'g' => 99, 'b' => 235]
+$hsl = $color->toHsl();           // ['h' => 220, 's' => 84, 'l' => 53]
 ```
 
-### Saturate and Desaturate
+## Color Transformations
+
+### Lightness Adjustments
 
 ```php
-// Increase saturation by 20%
-$saturated = $color->saturate(20);
+$color = new Color(37, 99, 235);
 
-// Decrease saturation by 20%
-$desaturated = $color->desaturate(20);
+// Lighten or darken (amount is a float between 0 and 1)
+$lighter = $color->lighten(0.2);    // Increase lightness by 20% (capped at 100%)
+$darker = $color->darken(0.2);      // Decrease lightness by 20% (capped at 0%)
 ```
 
-### Adjusting Opacity
+### Saturation Adjustments
 
 ```php
-// Set opacity to 50%
-$transparent = $color->opacity(0.5);
+// Adjust saturation (amount is a float between 0 and 1)
+$saturated = $color->saturate(0.1);     // Increase saturation by 10% (capped at 100%)
 ```
 
-## Color Information
+## Color Analysis
 
-### Getting Color Values
+### Brightness and Contrast
 
 ```php
-$color = Color::fromHex('#ff0000');
+// Get brightness value using formula: (299R + 587G + 114B) / 1000
+$brightness = $color->getBrightness();   // Returns float between 0 and 255
 
-// Get hex value
-$hex = $color->toHex(); // Returns '#ff0000'
+// Check if color is light or dark (threshold is 128)
+$isLight = $color->isLight();    // true if brightness > 128
+$isDark = $color->isDark();      // true if brightness <= 128
 
-// Get RGB values
-$rgb = $color->toRgb(); // Returns [255, 0, 0]
-
-// Get HSL values
-$hsl = $color->toHsl(); // Returns [0, 100, 50]
+// Get contrast ratio with another color (WCAG standard)
+$otherColor = new Color(255, 255, 255);
+$contrastRatio = $color->getContrastRatio($otherColor);  // Returns ratio between 1 and 21
 ```
 
 ### Color Properties
 
 ```php
-// Check if color is light
-$isLight = $color->isLight();
+// Get individual RGB components (0-255)
+$red = $color->getRed();      // 0-255
+$green = $color->getGreen();  // 0-255
+$blue = $color->getBlue();    // 0-255
 
-// Check if color is dark
-$isDark = $color->isDark();
-
-// Get brightness value
-$brightness = $color->getBrightness();
-```
-
-## Color Comparison
-
-### Contrast Ratio
-
-```php
-$color1 = Color::fromHex('#ffffff');
-$color2 = Color::fromHex('#000000');
-
-$contrastRatio = $color1->getContrastRatio($color2);
-```
-
-### Color Distance
-
-```php
-// Get color distance (Delta E)
-$distance = $color1->getDistance($color2);
+// Get relative luminance (WCAG standard)
+$luminance = $color->getLuminance();  // Returns float between 0 and 1
 ```
 
 ## Error Handling
 
-All color manipulation methods will throw `InvalidArgumentException` when provided with invalid input:
-
 ```php
+use InvalidArgumentException;
+
 try {
-    $color = Color::fromHex('invalid');
-} catch (\InvalidArgumentException $e) {
-    // Handle invalid color format
+    // Each RGB component must be between 0 and 255
+    $color = new Color(300, 0, 0);
+} catch (InvalidArgumentException $e) {
+    // "Invalid red color component. Must be between 0 and 255"
 }
-``` 
+
+try {
+    // Hex format must be exactly 6 hex digits
+    $color = Color::fromHex('invalid');
+} catch (InvalidArgumentException $e) {
+    // "Invalid hex color format"
+}
+```
+
+## See Also
+
+- [Color Spaces](color-spaces.html)
+- [Palette Generation](palette-generation.html)
+- [Theme Generation](theme.html) 

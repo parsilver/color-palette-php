@@ -115,17 +115,28 @@ use Farzai\ColorPalette\Color;
 $color = new Color(37, 99, 235);
 
 // Color transformations
-$lighter = $color->lighten(0.2);    // Lighten by 20%
-$darker = $color->darken(0.2);      // Darken by 20%
-$saturated = $color->saturate(0.1); // Increase saturation by 10%
-$rotated = $color->rotate(180);     // Rotate hue by 180 degrees
+$lighter = $color->lighten(0.2);        // Lighten by 20%
+$darker = $color->darken(0.2);          // Darken by 20%
+$withLight = $color->withLightness(0.5); // Set specific lightness
+$saturated = $color->saturate(0.1);     // Increase saturation by 10%
+$desaturated = $color->desaturate(0.1); // Decrease saturation by 10%
+$rotated = $color->rotate(180);         // Rotate hue by 180 degrees
 
 // Color format conversions
 $hex = $color->toHex();           // #2563eb
 $rgb = $color->toRgb();           // ['r' => 37, 'g' => 99, 'b' => 235]
 $hsl = $color->toHsl();           // ['h' => 220, 's' => 84, 'l' => 53]
+$hsv = $color->toHsv();           // ['h' => 220, 's' => 84, 'v' => 92]
 $cmyk = $color->toCmyk();         // ['c' => 84, 'm' => 58, 'y' => 0, 'k' => 8]
 $lab = $color->toLab();           // ['l' => 45, 'a' => 8, 'b' => -65]
+
+// Create colors from different formats
+$fromHex = Color::fromHex('#2563eb');
+$fromRgb = Color::fromRgb(['r' => 37, 'g' => 99, 'b' => 235]);
+$fromHsl = Color::fromHsl(220, 84, 53);
+$fromHsv = Color::fromHsv(220, 0.84, 0.92);
+$fromCmyk = Color::fromCmyk(84, 58, 0, 8);
+$fromLab = Color::fromLab(45, 8, -65);
 ```
 
 ## Configuration

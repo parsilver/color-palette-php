@@ -89,13 +89,28 @@ $color = new Color(37, 99, 235);
 // Lightness adjustments
 $lighter = $color->lighten(0.2);    // Increase lightness by 20%
 $darker = $color->darken(0.2);      // Decrease lightness by 20%
+$withLightness = $color->withLightness(0.5); // Set specific lightness value
 
 // Saturation adjustments
-$saturated = $color->saturate(0.1); // Increase saturation by 10%
+$saturated = $color->saturate(0.1);     // Increase saturation by 10%
 $desaturated = $color->desaturate(0.1); // Decrease saturation by 10%
 
 // Hue adjustments
 $rotated = $color->rotate(180);     // Rotate hue by 180 degrees
+
+// Color space conversions
+$hsv = $color->toHsv();            // Convert to HSV
+$newColor = Color::fromHsv(180, 0.5, 0.8); // Create from HSV
+
+// Color analysis
+$brightness = $color->getBrightness();
+$luminance = $color->getLuminance();
+$isLight = $color->isLight();
+$isDark = $color->isDark();
+
+// Contrast calculations
+$otherColor = new Color(255, 255, 255);
+$contrastRatio = $color->getContrastRatio($otherColor);
 ```
 
 ### Color Mixing
@@ -244,6 +259,42 @@ try {
     log_error('Color processing failed: ' . $e->getMessage());
 }
 ```
+
+## Factory Pattern Implementation
+
+Color Palette PHP uses the Factory pattern to provide a flexible and maintainable way to create objects. This pattern is particularly useful for:
+
+1. **Image Loading**
+   ```php
+   use Farzai\ColorPalette\ImageLoaderFactory;
+   
+   $factory = new ImageLoaderFactory();
+   $loader = $factory->make([
+       'max_size' => 1024,
+       'allowed_types' => ['jpg', 'png']
+   ]);
+   
+   $image = $loader->load('path/to/image.jpg');
+   ```
+
+2. **Color Extraction**
+   ```php
+   use Farzai\ColorPalette\ColorExtractorFactory;
+   
+   $factory = new ColorExtractorFactory();
+   
+   // Choose backend based on needs
+   $gdExtractor = $factory->make('gd');
+   $imagickExtractor = $factory->make('imagick');
+   ```
+
+The factory pattern provides several benefits:
+- Encapsulation of object creation logic
+- Easy configuration management
+- Runtime backend selection
+- Simplified testing through dependency injection
+
+For more details, see the [Factory Classes Documentation](api/factories.html).
 
 ## Further Reading
 

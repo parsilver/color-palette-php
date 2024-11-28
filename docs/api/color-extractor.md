@@ -16,271 +16,161 @@ namespace Farzai\ColorPalette;
 
 abstract class AbstractColorExtractor implements ColorExtractorInterface
 {
-    // ...
+    protected const SAMPLE_SIZE = 50;
+    protected const MIN_SATURATION = 0.05;
+    protected const MIN_BRIGHTNESS = 0.05;
 }
 
 class GdColorExtractor extends AbstractColorExtractor
 {
-    // ...
+    // GD implementation
 }
 
 class ImagickColorExtractor extends AbstractColorExtractor
 {
-    // ...
+    // ImageMagick implementation
 }
 ```
 
 The color extractor system provides:
 - Multiple backend support (GD and ImageMagick)
-- Configurable color extraction
-- Color filtering and clustering
-- Efficient color sampling
+- Efficient color sampling with configurable sample size
+- Color filtering based on saturation and brightness
+- Color clustering for finding dominant colors
+- Fallback behavior with default grayscale palette
 
 ## Factory Usage
 
-<div class="method-doc">
-  <div class="method-header">
-    <h3>Creating an Extractor</h3>
-    <div class="method-signature">ColorExtractorFactory::make(string $driver = 'gd', array $config = []): AbstractColorExtractor</div>
-  </div>
-  <div class="method-content">
-    <div class="method-description">
-      Creates a color extractor instance using the specified backend.
-    </div>
-    <div class="parameters">
-      <h4>Parameters</h4>
-      <table>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-        <tr>
-          <td>$driver</td>
-          <td>string</td>
-          <td>'gd' or 'imagick'</td>
-        </tr>
-        <tr>
-          <td>$config</td>
-          <td>array</td>
-          <td>Optional configuration settings</td>
-        </tr>
-      </table>
-    </div>
-  </div>
-</div>
+```php
+use Farzai\ColorPalette\ColorExtractorFactory;
 
-## Color Extraction Methods
+// Create factory
+$factory = new ColorExtractorFactory();
 
-<div class="method-grid">
-  <div class="method-doc">
-    <div class="method-header">
-      <h3>extract</h3>
-      <div class="method-signature">public function extract(ImageInterface $image, int $count = 5): ColorPaletteInterface</div>
-    </div>
-    <div class="method-content">
-      <div class="method-description">
-        Extracts dominant colors from an image.
-      </div>
-      <div class="parameters">
-        <h4>Parameters</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-          <tr>
-            <td>$image</td>
-            <td>ImageInterface</td>
-            <td>Image to analyze</td>
-          </tr>
-          <tr>
-            <td>$count</td>
-            <td>int</td>
-            <td>Number of colors to extract (default: 5)</td>
-          </tr>
-        </table>
-      </div>
-      <div class="return-value">
-        <h4>Returns</h4>
-        <p>ColorPalette containing the extracted colors</p>
-      </div>
-    </div>
-  </div>
-</div>
+// Create extractor with GD backend (default)
+$extractor = $factory->make();
 
-## Configuration Options
+// Create extractor with ImageMagick backend
+$extractor = $factory->make('imagick');
+```
 
-The color extractor can be configured with the following options:
+## Color Extraction
 
-<div class="config-options">
-  <table>
-    <tr>
-      <th>Option</th>
-      <th>Type</th>
-      <th>Default</th>
-      <th>Description</th>
-    </tr>
-    <tr>
-      <td>sample_size</td>
-      <td>int</td>
-      <td>50</td>
-      <td>Number of pixels to sample in each dimension</td>
-    </tr>
-    <tr>
-      <td>min_saturation</td>
-      <td>float</td>
-      <td>0.05</td>
-      <td>Minimum color saturation (0-1)</td>
-    </tr>
-    <tr>
-      <td>min_brightness</td>
-      <td>float</td>
-      <td>0.05</td>
-      <td>Minimum color brightness (0-1)</td>
-    </tr>
-  </table>
-</div>
+### extract()
+
+```php
+public function extract(ImageInterface $image, int $count = 5): ColorPaletteInterface
+```
+
+Extracts dominant colors from an image.
+
+**Parameters:**
+- `$image` (ImageInterface): The image to extract colors from
+- `$count` (int): Number of colors to extract (default: 5)
+
+**Returns:**
+- `ColorPaletteInterface`: A color palette containing the dominant colors
+
+**Throws:**
+- `InvalidArgumentException`: If count is less than 1
+
+### Implementation Details
+
+#### Sampling Algorithm
+The extractor uses a sampling algorithm to efficiently process large images:
+- Sample size is set to 50x50 pixels (configurable via `SAMPLE_SIZE` constant)
+- For GD: Samples pixels at regular intervals
+- For ImageMagick: Uses image histogram for color analysis
+
+#### Color Filtering
+Colors are filtered based on:
+- Minimum saturation: 0.05 (5%)
+- Minimum brightness: 0.05 (5%)
+- Pure black and white are excluded by default
+
+#### Color Clustering
+Similar colors are clustered together to find truly dominant colors:
+- Colors are grouped by similarity in RGB space
+- Each cluster is represented by its average color
+- Number of clusters equals requested color count
+
+#### Error Handling
+If color extraction fails, a default grayscale palette is returned:
+- White (255, 255, 255)
+- Light gray (200, 200, 200)
+- Medium gray (150, 150, 150)
+- Dark gray (100, 100, 100)
+- Very dark gray (50, 50, 50)
 
 ## Backend-Specific Features
 
 ### GD Backend
 
-<div class="backend-features">
-  <div class="feature">
-    <h3>Advantages</h3>
-    <ul>
-      <li>Faster processing for basic operations</li>
-      <li>Lower memory usage</li>
-      <li>Available in most PHP installations</li>
-    </ul>
-  </div>
+```php
+use Farzai\ColorPalette\GdColorExtractor;
+use Farzai\ColorPalette\Images\GdImage;
 
-  <div class="feature">
-    <h3>Supported Formats</h3>
-    <ul>
-      <li>JPEG</li>
-      <li>PNG</li>
-      <li>GIF</li>
-      <li>BMP</li>
-      <li>WEBP</li>
-    </ul>
-  </div>
-</div>
+$extractor = new GdColorExtractor();
+$image = new GdImage($gdResource);
+$palette = $extractor->extract($image);
+```
+
+- Requires GD extension
+- Uses direct pixel sampling
+- Memory efficient for large images
+- Supports all GD-compatible image formats
 
 ### ImageMagick Backend
 
-<div class="backend-features">
-  <div class="feature">
-    <h3>Advantages</h3>
-    <ul>
-      <li>More accurate color sampling</li>
-      <li>Support for more image formats</li>
-      <li>Advanced image processing capabilities</li>
-    </ul>
-  </div>
+```php
+use Farzai\ColorPalette\ImagickColorExtractor;
+use Farzai\ColorPalette\Images\ImagickImage;
 
-  <div class="feature">
-    <h3>Additional Formats</h3>
-    <ul>
-      <li>TIFF</li>
-      <li>PSD</li>
-      <li>SVG</li>
-      <li>EPS</li>
-      <li>And many more</li>
-    </ul>
-  </div>
-</div>
+$extractor = new ImagickColorExtractor();
+$image = new ImagickImage($imagickInstance);
+$palette = $extractor->extract($image);
+```
+
+- Requires ImageMagick extension
+- Uses histogram analysis
+- Better color accuracy
+- Supports wide range of image formats
 
 ## Examples
 
-### Basic Color Extraction
+### Basic Usage
 
 ```php
-use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
+use Farzai\ColorPalette\ImageLoaderFactory;
 
-// Create image instance
-$imageFactory = new ImageFactory();
-$image = $imageFactory->createFromPath('path/to/image.jpg');
-
-// Create extractor with default settings
+// Create factories
 $extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->make('gd');
+$imageFactory = new ImageLoaderFactory();
+
+// Load image and create extractor
+$image = $imageFactory->make()->load('path/to/image.jpg');
+$extractor = $extractorFactory->make();
 
 // Extract 5 dominant colors
 $palette = $extractor->extract($image, 5);
 
-// Access extracted colors
-foreach ($palette->getColors() as $color) {
-    echo $color->toHex() . "\n";
-}
-```
-
-### Custom Configuration
-
-```php
-// Create extractor with custom settings
-$extractor = $extractorFactory->make('gd', [
-    'sample_size' => 100,        // More accurate but slower
-    'min_saturation' => 0.1,     // Ignore very unsaturated colors
-    'min_brightness' => 0.1      // Ignore very dark colors
-]);
-
-// Extract colors with custom configuration
-$palette = $extractor->extract($image, 8);
-```
-
-### Using ImageMagick Backend
-
-```php
-// Create ImageMagick extractor
-$extractor = $extractorFactory->make('imagick');
-
-// Extract colors from high-resolution image
-$image = $imageFactory->createFromPath('path/to/large-image.tiff');
-$palette = $extractor->extract($image, 10);
+// Get colors as hex values
+$colors = $palette->toArray();
 ```
 
 ### Error Handling
 
 ```php
-use Farzai\ColorPalette\Exceptions\ImageException;
-use Farzai\ColorPalette\Exceptions\ExtractorException;
-
 try {
-    $image = $imageFactory->createFromPath('path/to/image.jpg');
+    $palette = $extractor->extract($image, 5);
+} catch (\InvalidArgumentException $e) {
+    // Handle invalid count
+} catch (\Throwable $e) {
+    // Will return default grayscale palette
     $palette = $extractor->extract($image);
-} catch (ImageException $e) {
-    // Handle image loading errors
-    echo "Failed to load image: " . $e->getMessage();
-} catch (ExtractorException $e) {
-    // Handle color extraction errors
-    echo "Failed to extract colors: " . $e->getMessage();
 }
 ```
-
-## Best Practices
-
-1. **Backend Selection**
-   - Use GD for basic web images and better performance
-   - Use ImageMagick for professional graphics and advanced formats
-
-2. **Performance Optimization**
-   - Adjust sample size based on image dimensions
-   - Implement caching for frequently analyzed images
-   - Process images in batches when possible
-
-3. **Color Quality**
-   - Use appropriate saturation and brightness thresholds
-   - Consider image type when configuring extraction
-   - Validate extracted colors for your use case
-
-4. **Error Handling**
-   - Always implement proper error handling
-   - Provide fallback colors when extraction fails
-   - Log extraction issues for debugging
 
 ## See Also
 
