@@ -329,6 +329,7 @@ class Color implements ColorInterface
 
         if ($s === 0) {
             $val = (int) round($v * 255);
+
             return new self($val, $val, $val);
         }
 
@@ -341,22 +342,34 @@ class Color implements ColorInterface
 
         switch ($i % 6) {
             case 0:
-                $r = $v; $g = $t; $b = $p;
+                $r = $v;
+                $g = $t;
+                $b = $p;
                 break;
             case 1:
-                $r = $q; $g = $v; $b = $p;
+                $r = $q;
+                $g = $v;
+                $b = $p;
                 break;
             case 2:
-                $r = $p; $g = $v; $b = $t;
+                $r = $p;
+                $g = $v;
+                $b = $t;
                 break;
             case 3:
-                $r = $p; $g = $q; $b = $v;
+                $r = $p;
+                $g = $q;
+                $b = $v;
                 break;
             case 4:
-                $r = $t; $g = $p; $b = $v;
+                $r = $t;
+                $g = $p;
+                $b = $v;
                 break;
             case 5:
-                $r = $v; $g = $p; $b = $q;
+                $r = $v;
+                $g = $p;
+                $b = $q;
                 break;
             default:
                 $r = $g = $b = 0;
@@ -376,13 +389,13 @@ class Color implements ColorInterface
         $b = $this->blue / 255;
 
         $k = 1 - max($r, $g, $b);
-        
+
         if ($k === 1) {
             return [
                 'c' => 0,
                 'm' => 0,
                 'y' => 0,
-                'k' => 100
+                'k' => 100,
             ];
         }
 
@@ -394,16 +407,16 @@ class Color implements ColorInterface
             'c' => (int) round($c * 100),
             'm' => (int) round($m * 100),
             'y' => (int) round($y * 100),
-            'k' => (int) round($k * 100)
+            'k' => (int) round($k * 100),
         ];
     }
 
     public static function fromCmyk(float $cyan, float $magenta, float $yellow, float $key): self
     {
         // Validate CMYK values
-        if ($cyan < 0 || $cyan > 100 || 
-            $magenta < 0 || $magenta > 100 || 
-            $yellow < 0 || $yellow > 100 || 
+        if ($cyan < 0 || $cyan > 100 ||
+            $magenta < 0 || $magenta > 100 ||
+            $yellow < 0 || $yellow > 100 ||
             $key < 0 || $key > 100) {
             throw new InvalidArgumentException('CMYK values must be between 0 and 100');
         }
@@ -446,14 +459,14 @@ class Color implements ColorInterface
         $y = $y / 1.00000;
         $z = $z / 1.08883;
 
-        $x = ($x > 0.008856) ? pow($x, 1/3) : (903.3 * $x + 16) / 116;
-        $y = ($y > 0.008856) ? pow($y, 1/3) : (903.3 * $y + 16) / 116;
-        $z = ($z > 0.008856) ? pow($z, 1/3) : (903.3 * $z + 16) / 116;
+        $x = ($x > 0.008856) ? pow($x, 1 / 3) : (903.3 * $x + 16) / 116;
+        $y = ($y > 0.008856) ? pow($y, 1 / 3) : (903.3 * $y + 16) / 116;
+        $z = ($z > 0.008856) ? pow($z, 1 / 3) : (903.3 * $z + 16) / 116;
 
         return [
             'l' => (int) round((116 * $y) - 16),
             'a' => (int) round(500 * ($x - $y)),
-            'b' => (int) round(200 * ($y - $z))
+            'b' => (int) round(200 * ($y - $z)),
         ];
     }
 
@@ -480,9 +493,9 @@ class Color implements ColorInterface
         $y3 = pow($y, 3);
         $z3 = pow($z, 3);
 
-        $x = ($x3 > 0.008856) ? $x3 : ($x - 16/116) / 7.787037;
-        $y = ($y3 > 0.008856) ? $y3 : ($y - 16/116) / 7.787037;
-        $z = ($z3 > 0.008856) ? $z3 : ($z - 16/116) / 7.787037;
+        $x = ($x3 > 0.008856) ? $x3 : ($x - 16 / 116) / 7.787037;
+        $y = ($y3 > 0.008856) ? $y3 : ($y - 16 / 116) / 7.787037;
+        $z = ($z3 > 0.008856) ? $z3 : ($z - 16 / 116) / 7.787037;
 
         // Scale XYZ values using D65 illuminant
         $x = $x * 0.95047;
@@ -495,9 +508,9 @@ class Color implements ColorInterface
         $b = $x * 0.05564343095911469 - $y * 0.2040259135167538 + $z * 1.0572251882231791;
 
         // Convert linear RGB to sRGB
-        $r = ($r > 0.0031308) ? (1.055 * pow($r, 1/2.4) - 0.055) : 12.92 * $r;
-        $g = ($g > 0.0031308) ? (1.055 * pow($g, 1/2.4) - 0.055) : 12.92 * $g;
-        $b = ($b > 0.0031308) ? (1.055 * pow($b, 1/2.4) - 0.055) : 12.92 * $b;
+        $r = ($r > 0.0031308) ? (1.055 * pow($r, 1 / 2.4) - 0.055) : 12.92 * $r;
+        $g = ($g > 0.0031308) ? (1.055 * pow($g, 1 / 2.4) - 0.055) : 12.92 * $g;
+        $b = ($b > 0.0031308) ? (1.055 * pow($b, 1 / 2.4) - 0.055) : 12.92 * $b;
 
         // Clip values and convert to 8-bit integers
         return new self(
