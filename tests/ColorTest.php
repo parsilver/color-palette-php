@@ -324,21 +324,21 @@ test('CMYK conversion is reversible', function () {
 
 test('it throws exception for invalid HSV values', function () {
     // Test invalid hue
-    expect(fn() => Color::fromHsv(360, 100, 100))
+    expect(fn () => Color::fromHsv(360, 100, 100))
         ->toThrow(InvalidArgumentException::class, 'Hue must be between 0 and 360');
-    expect(fn() => Color::fromHsv(-1, 100, 100))
+    expect(fn () => Color::fromHsv(-1, 100, 100))
         ->toThrow(InvalidArgumentException::class, 'Hue must be between 0 and 360');
 
     // Test invalid saturation
-    expect(fn() => Color::fromHsv(0, 101, 100))
+    expect(fn () => Color::fromHsv(0, 101, 100))
         ->toThrow(InvalidArgumentException::class, 'Saturation must be between 0 and 100');
-    expect(fn() => Color::fromHsv(0, -1, 100))
+    expect(fn () => Color::fromHsv(0, -1, 100))
         ->toThrow(InvalidArgumentException::class, 'Saturation must be between 0 and 100');
 
     // Test invalid value
-    expect(fn() => Color::fromHsv(0, 100, 101))
+    expect(fn () => Color::fromHsv(0, 100, 101))
         ->toThrow(InvalidArgumentException::class, 'Value must be between 0 and 100');
-    expect(fn() => Color::fromHsv(0, 100, -1))
+    expect(fn () => Color::fromHsv(0, 100, -1))
         ->toThrow(InvalidArgumentException::class, 'Value must be between 0 and 100');
 });
 
@@ -413,21 +413,21 @@ test('it can create color from LAB', function () {
 
 test('it throws exception for invalid LAB values', function () {
     // Test invalid lightness
-    expect(fn() => Color::fromLab(-1, 0, 0))
+    expect(fn () => Color::fromLab(-1, 0, 0))
         ->toThrow(InvalidArgumentException::class, 'Lightness must be between 0 and 100');
-    expect(fn() => Color::fromLab(101, 0, 0))
+    expect(fn () => Color::fromLab(101, 0, 0))
         ->toThrow(InvalidArgumentException::class, 'Lightness must be between 0 and 100');
 
     // Test invalid a value
-    expect(fn() => Color::fromLab(50, -129, 0))
+    expect(fn () => Color::fromLab(50, -129, 0))
         ->toThrow(InvalidArgumentException::class, 'A value must be between -128 and 127');
-    expect(fn() => Color::fromLab(50, 128, 0))
+    expect(fn () => Color::fromLab(50, 128, 0))
         ->toThrow(InvalidArgumentException::class, 'A value must be between -128 and 127');
 
     // Test invalid b value
-    expect(fn() => Color::fromLab(50, 0, -129))
+    expect(fn () => Color::fromLab(50, 0, -129))
         ->toThrow(InvalidArgumentException::class, 'B value must be between -128 and 127');
-    expect(fn() => Color::fromLab(50, 0, 128))
+    expect(fn () => Color::fromLab(50, 0, 128))
         ->toThrow(InvalidArgumentException::class, 'B value must be between -128 and 127');
 });
 
