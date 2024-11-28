@@ -1,3 +1,8 @@
+---
+layout: default
+title: Getting Started
+---
+
 # Getting Started with Color Palette PHP
 
 This guide will help you get started with Color Palette PHP, a powerful library for extracting and manipulating color palettes from images.
@@ -122,8 +127,15 @@ try {
 
 ## Next Steps
 
-Now that you're familiar with the basics, you can:
+Now that you're familiar with the basics, here's what you can explore next:
 
-1. Learn about [Core Concepts](core-concepts.md)
-2. Explore the [Examples](examples/README.md)
-3. Read the [API Reference](api/README.md) 
+1. [Core Concepts](core-concepts) - Learn about color spaces, manipulation, and advanced features
+2. [Examples](examples) - See practical examples and use cases
+3. [API Reference](api) - Browse the complete API documentation
+4. [Color Playground](playground) - Experiment with color manipulations in real-time
+
+## Need Help?
+
+- Check out our [GitHub repository](https://github.com/parsilver/color-palette-php) for the latest updates
+- [Open an issue](https://github.com/parsilver/color-palette-php/issues) if you find a bug or have a feature request
+- Read our [Contributing Guide](https://github.com/parsilver/color-palette-php/blob/main/CONTRIBUTING.md) if you'd like to contribute 

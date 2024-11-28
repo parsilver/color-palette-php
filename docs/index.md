@@ -88,18 +88,25 @@ $surfaceColors = $palette->getSuggestedSurfaceColors();
 
 Explore our comprehensive documentation to learn more about Color Palette PHP:
 
-- [Getting Started](getting-started) - Installation and basic setup
+- [Getting Started](getting-started) - Quick installation and basic setup guide
 - [Core Concepts](core-concepts) - Understanding color spaces and manipulation
-- [API Reference](api/) - Detailed API documentation
-- [Examples](examples/) - Code examples and use cases
+- [API Reference](api) - Complete API documentation with examples
+- [Examples](examples) - Real-world examples and use cases
 - [Color Playground](playground) - Interactive color manipulation demo
 
 ## 🛠 Requirements
 
 - PHP 8.1 or higher
 - GD extension or ImageMagick extension
-- Composer
+- Composer for dependency management
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](https://github.com/parsilver/color-palette-php/blob/main/CONTRIBUTING.md) for details on how to contribute to this project. 
+We welcome contributions! Please see our [Contributing Guide](https://github.com/parsilver/color-palette-php/blob/main/CONTRIBUTING.md) for details on how to contribute to this project.
+
+## 📦 Resources
+
+- [GitHub Repository](https://github.com/parsilver/color-palette-php)
+- [Issue Tracker](https://github.com/parsilver/color-palette-php/issues)
+- [Packagist Page](https://packagist.org/packages/farzai/color-palette)
+- [Release Notes](https://github.com/parsilver/color-palette-php/releases) 
