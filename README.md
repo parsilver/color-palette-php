@@ -39,6 +39,20 @@ You can install the package via composer:
 composer require farzai/color-palette
 ```
 
+## Quick Start
+
+```php
+use Farzai\ColorPalette\ImageFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
+
+$image = ImageFactory::createFromPath('path/to/image.jpg');
+$extractor = (new ColorExtractorFactory())->make('gd');
+$palette = $extractor->extract($image, 5);
+
+// Get colors as hex array
+$hexColors = $palette->toArray(); // ['#ff5733', '#33ff57', ...]
+```
+
 ## Basic Usage
 
 ```php
@@ -67,9 +81,121 @@ $surfaceColors = $palette->getSuggestedSurfaceColors();
 // Available keys: 'surface', 'background', 'accent', 'surface_variant'
 ```
 
-## Documentation
+## Advanced Usage
 
-For detailed documentation, please visit our [Documentation Site](https://parsilver.github.io/color-palette-php/).
+### Color Format Conversions
+
+The library supports multiple color format conversions:
+
+```php
+use Farzai\ColorPalette\Color;
+
+// Create colors from different formats
+$colorFromHex = Color::fromHex('#ff5733');
+$colorFromRgb = Color::fromRgb(['r' => 255, 'g' => 87, 'b' => 51]);
+$colorFromHsl = Color::fromHsl(9, 100, 60); // Hue, Saturation, Lightness
+$colorFromHsv = Color::fromHsv(9, 80, 100); // Hue, Saturation, Value
+$colorFromCmyk = Color::fromCmyk(0, 66, 80, 0); // Cyan, Magenta, Yellow, Key
+$colorFromLab = Color::fromLab(62, 52, 51); // Lightness, A, B
+
+// Convert to different formats
+$hex = $colorFromRgb->toHex(); // '#ff5733'
+$rgb = $colorFromHex->toRgb(); // ['r' => 255, 'g' => 87, 'b' => 51]
+$hsl = $colorFromHex->toHsl(); // ['h' => 9, 's' => 100, 'l' => 60]
+$hsv = $colorFromHex->toHsv(); // ['h' => 9, 's' => 80, 'v' => 100]
+$cmyk = $colorFromHex->toCmyk(); // ['c' => 0, 'm' => 66, 'y' => 80, 'k' => 0]
+$lab = $colorFromHex->toLab(); // ['l' => 62, 'a' => 52, 'b' => 51]
+```
+
+### Contrast Ratio Calculations
+
+Check color contrast for accessibility compliance (WCAG guidelines):
+
+```php
+use Farzai\ColorPalette\Color;
+
+$backgroundColor = Color::fromHex('#ffffff');
+$textColor = Color::fromHex('#000000');
+
+// Get contrast ratio
+$contrastRatio = $backgroundColor->getContrastRatio($textColor); // 21.0
+
+// Check WCAG compliance
+// AA Normal Text: 4.5:1
+// AA Large Text: 3:1
+// AAA Normal Text: 7:1
+// AAA Large Text: 4.5:1
+
+if ($contrastRatio >= 4.5) {
+    echo "Passes WCAG AA for normal text";
+}
+
+// Get luminance values for calculations
+$luminance = $backgroundColor->getLuminance(); // 1.0
+```
+
+### Color Manipulation
+
+Modify colors programmatically:
+
+```php
+use Farzai\ColorPalette\Color;
+
+$color = Color::fromHex('#3498db');
+
+// Lighten and darken (0.0 to 1.0)
+$lighter = $color->lighten(0.2); // Lighten by 20%
+$darker = $color->darken(0.2);   // Darken by 20%
+
+// Saturate and desaturate (0.0 to 1.0)
+$saturated = $color->saturate(0.3);   // Increase saturation by 30%
+$desaturated = $color->desaturate(0.3); // Decrease saturation by 30%
+
+// Rotate hue (degrees)
+$rotated = $color->rotate(180); // Rotate hue by 180 degrees
+
+// Set specific lightness (0.0 to 1.0)
+$withLightness = $color->withLightness(0.5); // Set lightness to 50%
+
+// Check brightness
+$brightness = $color->getBrightness(); // 0-255
+$isLight = $color->isLight(); // true if brightness > 128
+$isDark = $color->isDark();   // true if brightness <= 128
+```
+
+### Theme Generation
+
+Generate complete color themes from images:
+
+```php
+use Farzai\ColorPalette\ImageFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
+
+$image = ImageFactory::createFromPath('path/to/image.jpg');
+$extractor = (new ColorExtractorFactory())->make('gd');
+$palette = $extractor->extract($image, 8); // Extract 8 colors for better theme variety
+
+// Get suggested surface colors (sorted by brightness)
+$surfaceColors = $palette->getSuggestedSurfaceColors();
+
+// Available theme colors:
+$surface = $surfaceColors['surface'];           // Lightest color - main surface
+$background = $surfaceColors['background'];     // Second lightest - backgrounds
+$accent = $surfaceColors['accent'];             // Accent color with good contrast
+$surfaceVariant = $surfaceColors['surface_variant']; // Variant of surface color
+
+// Use in your theme
+echo "Primary Background: " . $surface->toHex() . "\n";
+echo "Secondary Background: " . $background->toHex() . "\n";
+echo "Accent Color: " . $accent->toHex() . "\n";
+
+// Get appropriate text colors for each surface
+$surfaceText = $palette->getSuggestedTextColor($surface); // Black or white
+$accentText = $palette->getSuggestedTextColor($accent);
+
+echo "Text on Surface: " . $surfaceText->toHex() . "\n";
+echo "Text on Accent: " . $accentText->toHex() . "\n";
+```
 
 ## Testing
 
