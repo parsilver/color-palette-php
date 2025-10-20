@@ -14,7 +14,6 @@ class ThemeGenerator implements ThemeGeneratorInterface
     /**
      * Generate a theme from a color palette
      *
-     * @param  ColorPaletteInterface  $palette
      * @param  array<string>  $colorNames  Optional color names for theme colors
      *
      * @throws InvalidArgumentException
