@@ -131,11 +131,11 @@ $lab = $color->toLab();           // ['l' => 45, 'a' => 8, 'b' => -65]
 
 // Create colors from different formats
 $fromHex = Color::fromHex('#2563eb');
-$fromRgb = Color::fromRgb(['r' => 37, 'g' => 99, 'b' => 235]);
-$fromHsl = Color::fromHsl(220, 84, 53);
-$fromHsv = Color::fromHsv(220, 84, 92); // Note: saturation and value are 0-100
-$fromCmyk = Color::fromCmyk(84, 58, 0, 8);
-$fromLab = Color::fromLab(45, 8, -65);
+$fromRgb = Color::fromRgb(['r' => 37, 'g' => 99, 'b' => 235]); // r,g,b: 0-255
+$fromHsl = Color::fromHsl(220, 84, 53); // hue: 0-360, saturation: 0-100, lightness: 0-100
+$fromHsv = Color::fromHsv(220, 84, 92); // hue: 0-360, saturation: 0-100, value: 0-100
+$fromCmyk = Color::fromCmyk(84, 58, 0, 8); // cyan, magenta, yellow, key: 0-100
+$fromLab = Color::fromLab(45, 8, -65); // lightness: 0-100, a: -128 to 127, b: -128 to 127
 ```
 
 ## Configuration

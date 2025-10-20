@@ -100,7 +100,7 @@ $rotated = $color->rotate(180);     // Rotate hue by 180 degrees
 
 // Color space conversions
 $hsv = $color->toHsv();            // Convert to HSV
-$newColor = Color::fromHsv(180, 0.5, 0.8); // Create from HSV
+$newColor = Color::fromHsv(180, 50, 80); // Create from HSV (H: 0-360, S: 0-100, V: 0-100)
 
 // Color analysis
 $brightness = $color->getBrightness();
