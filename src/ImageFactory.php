@@ -36,7 +36,11 @@ class ImageFactory
             throw new InvalidArgumentException("Failed to read image file: {$path}");
         }
 
-        $image = @imagecreatefromstring($imageData);
+        // Suppress all errors and warnings from imagecreatefromstring
+        set_error_handler(function () {});
+        $image = imagecreatefromstring($imageData);
+        restore_error_handler();
+
         if ($image === false) {
             throw new InvalidArgumentException("Failed to create GD image from file: {$path}. The file may not be a valid image.");
         }

@@ -15,6 +15,17 @@ test('it creates GD extractor when GD is available', function () {
     expect($extractor)->toBeInstanceOf(GdColorExtractor::class);
 });
 
+test('it creates GD extractor with explicit driver name', function () {
+    if (! extension_loaded('gd')) {
+        $this->markTestSkipped('GD extension is not available.');
+    }
+
+    $factory = new ColorExtractorFactory;
+    $extractor = $factory->make('gd');
+
+    expect($extractor)->toBeInstanceOf(GdColorExtractor::class);
+});
+
 test('it creates Imagick extractor when Imagick is available', function () {
     if (! extension_loaded('imagick')) {
         $this->markTestSkipped('Imagick extension is not available.');
@@ -30,5 +41,16 @@ test('it throws exception for invalid driver', function () {
     $factory = new ColorExtractorFactory;
 
     expect(fn () => $factory->make('invalid'))
-        ->toThrow(InvalidArgumentException::class);
+        ->toThrow(InvalidArgumentException::class, 'Unsupported driver: invalid');
+});
+
+test('it throws exception for unsupported drivers', function () {
+    $factory = new ColorExtractorFactory;
+
+    $unsupportedDrivers = ['webp', 'svg', 'unknown', 'null', ''];
+
+    foreach ($unsupportedDrivers as $driver) {
+        expect(fn () => $factory->make($driver))
+            ->toThrow(InvalidArgumentException::class);
+    }
 });
