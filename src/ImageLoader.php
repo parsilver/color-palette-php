@@ -105,7 +105,11 @@ class ImageLoader
             return 'gd';
         }
 
-        throw new \RuntimeException('No supported image processing extension found. Please install GD or Imagick.');
+        throw new \RuntimeException(
+            'No supported image processing extension found. '.
+            'Please install either GD (recommended) or Imagick extension. '.
+            'For installation instructions, visit: https://www.php.net/manual/en/book.image.php'
+        );
     }
 
     public function __destruct()

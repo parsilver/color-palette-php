@@ -55,3 +55,92 @@ test('it can convert theme to array', function () {
         'secondary' => '#00ff00',
     ]);
 });
+
+describe('Theme Convenience Methods', function () {
+    test('it can get primary color', function () {
+        $theme = Theme::fromColors([
+            'primary' => new Color(255, 0, 0),
+            'secondary' => new Color(0, 255, 0),
+        ]);
+
+        expect($theme->getPrimaryColor()->toHex())->toBe('#ff0000');
+    });
+
+    test('it can get secondary color', function () {
+        $theme = Theme::fromColors([
+            'primary' => new Color(255, 0, 0),
+            'secondary' => new Color(0, 255, 0),
+        ]);
+
+        expect($theme->getSecondaryColor()->toHex())->toBe('#00ff00');
+    });
+
+    test('it can get accent color', function () {
+        $theme = Theme::fromColors([
+            'accent' => new Color(0, 0, 255),
+        ]);
+
+        expect($theme->getAccentColor()->toHex())->toBe('#0000ff');
+    });
+
+    test('it can get background color', function () {
+        $theme = Theme::fromColors([
+            'background' => new Color(240, 240, 240),
+        ]);
+
+        expect($theme->getBackgroundColor()->toHex())->toBe('#f0f0f0');
+    });
+
+    test('it can get surface color', function () {
+        $theme = Theme::fromColors([
+            'surface' => new Color(255, 255, 255),
+        ]);
+
+        expect($theme->getSurfaceColor()->toHex())->toBe('#ffffff');
+    });
+
+    test('it throws exception when getting primary color without primary key', function () {
+        $theme = Theme::fromColors([
+            'secondary' => new Color(0, 255, 0),
+        ]);
+
+        expect(fn () => $theme->getPrimaryColor())
+            ->toThrow(InvalidArgumentException::class, "Color 'primary' not found in theme");
+    });
+
+    test('it throws exception when getting secondary color without secondary key', function () {
+        $theme = Theme::fromColors([
+            'primary' => new Color(255, 0, 0),
+        ]);
+
+        expect(fn () => $theme->getSecondaryColor())
+            ->toThrow(InvalidArgumentException::class, "Color 'secondary' not found in theme");
+    });
+
+    test('it throws exception when getting accent color without accent key', function () {
+        $theme = Theme::fromColors([
+            'primary' => new Color(255, 0, 0),
+        ]);
+
+        expect(fn () => $theme->getAccentColor())
+            ->toThrow(InvalidArgumentException::class, "Color 'accent' not found in theme");
+    });
+
+    test('it throws exception when getting background color without background key', function () {
+        $theme = Theme::fromColors([
+            'primary' => new Color(255, 0, 0),
+        ]);
+
+        expect(fn () => $theme->getBackgroundColor())
+            ->toThrow(InvalidArgumentException::class, "Color 'background' not found in theme");
+    });
+
+    test('it throws exception when getting surface color without surface key', function () {
+        $theme = Theme::fromColors([
+            'primary' => new Color(255, 0, 0),
+        ]);
+
+        expect(fn () => $theme->getSurfaceColor())
+            ->toThrow(InvalidArgumentException::class, "Color 'surface' not found in theme");
+    });
+});
