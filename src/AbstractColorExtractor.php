@@ -328,16 +328,16 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
 
         // Initialize HSB values
         $h = 0;
-        $s = ($max === 0) ? 0 : ($delta / $max); // Saturation
+        $s = ($max == 0) ? 0 : ($delta / $max); // Saturation
         $v = $max; // Brightness
 
-        // Calculate hue only if delta is not zero
-        if ($delta !== 0) {
-            if ($max === $r) {
+        // Calculate hue only if delta is not zero (use epsilon for float comparison)
+        if ($delta > 0.000001) {
+            if ($max == $r) {
                 $h = 60 * (($g - $b) / $delta + ($g < $b ? 6 : 0));
-            } elseif ($max === $g) {
+            } elseif ($max == $g) {
                 $h = 60 * (($b - $r) / $delta + 2);
-            } elseif ($max === $b) {
+            } elseif ($max == $b) {
                 $h = 60 * (($r - $g) / $delta + 4);
             }
         }
