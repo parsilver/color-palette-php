@@ -41,6 +41,17 @@ class ImageLoader
         }
     }
 
+    public function supports(string $source): bool
+    {
+        // Check if source is a valid URL
+        if (filter_var($source, FILTER_VALIDATE_URL)) {
+            return true;
+        }
+
+        // Check if source is an existing file path
+        return file_exists($source);
+    }
+
     private function loadFromPath(string $path): ImageInterface
     {
         if (! file_exists($path)) {

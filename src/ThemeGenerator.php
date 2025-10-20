@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
+use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
+use Farzai\ColorPalette\Contracts\ThemeGeneratorInterface;
+use Farzai\ColorPalette\Contracts\ThemeInterface;
 use InvalidArgumentException;
 
-class ThemeGenerator
+class ThemeGenerator implements ThemeGeneratorInterface
 {
     /**
      * Generate a theme from a color palette
      *
-     * @param  array<string>  $colorNames
+     * @param  ColorPaletteInterface  $palette
+     * @param  array<string>  $colorNames  Optional color names for theme colors
      *
      * @throws InvalidArgumentException
      */
-    public function generate(ColorPalette $palette, array $colorNames = []): Theme
+    public function generate(ColorPaletteInterface $palette, array $colorNames = []): ThemeInterface
     {
         $colors = $palette->getColors();
 

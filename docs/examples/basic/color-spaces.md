@@ -1,224 +1,59 @@
-# Working with Color Spaces
+# Color Spaces
 
-## Navigation
+> **⚠️ DOCUMENTATION UPDATE IN PROGRESS**
+>
+> This page is currently being updated to reflect the actual API. Many methods documented here do not exist in the current implementation.
+>
+> For accurate information, please refer to:
+> - [Getting Started Guide](../../getting-started.md)
+> - [Core Concepts](../../core-concepts.md)
+> - [Color Manipulation Examples](./color-manipulation.md)
 
-- [Home](../../README.md)
-- [Getting Started](../../getting-started.md)
-- [Core Concepts](../../core-concepts.md)
-- [API Documentation](../../api/README.md)
+## Available Color Space Conversions
 
-### Examples
-- [Examples Home](../README.md)
-- [Basic Examples](../basic/README.md)
-- [Advanced Examples](../advanced/README.md)
-- [Applications](../applications/README.md)
-- [Integration](../integration/README.md)
+The Color class supports the following color space conversions:
 
----
-
-## Color Space Basics
-
-### Understanding Color Spaces
+### Supported Color Spaces
 
 ```php
 use Farzai\ColorPalette\Color;
 
-// Create a color in different spaces
-$rgbColor = Color::fromRgb(255, 0, 0);        // RGB
-$hslColor = Color::fromHsl(0, 100, 50);       // HSL
-$hsvColor = Color::fromHsv(0, 100, 100);      // HSV
-$cmykColor = Color::fromCmyk(0, 100, 100, 0); // CMYK
-$labColor = Color::fromLab(53.24, 80.09, 67.20); // LAB
+$color = new Color(37, 99, 235); // Create from RGB
+
+// Convert to different color spaces
+$hex = $color->toHex();   // Hexadecimal: '#2563eb'
+$rgb = $color->toRgb();   // RGB: ['r' => 37, 'g' => 99, 'b' => 235]
+$hsl = $color->toHsl();   // HSL: ['h' => 220, 's' => 84, 'l' => 53]
+$hsv = $color->toHsv();   // HSV: ['h' => 220, 's' => 84, 'v' => 92]
+$cmyk = $color->toCmyk(); // CMYK: ['c' => 84, 'm' => 58, 'y' => 0, 'k' => 8]
+$lab = $color->toLab();   // LAB: ['l' => 45, 'a' => 8, 'b' => -65]
 ```
 
-### Converting Between Spaces
+### Creating Colors from Different Spaces
 
 ```php
-$color = Color::fromHex('#ff0000');
+// From Hex
+$color = Color::fromHex('#2563eb');
 
-// Convert to different formats
-$rgb = $color->toRgb();   // [255, 0, 0]
-$hsl = $color->toHsl();   // [0, 100, 50]
-$hsv = $color->toHsv();   // [0, 100, 100]
-$cmyk = $color->toCmyk(); // [0, 100, 100, 0]
-$lab = $color->toLab();   // [53.24, 80.09, 67.20]
+// From RGB (array format)
+$color = Color::fromRgb([37, 99, 235]);
+$color = Color::fromRgb(['r' => 37, 'g' => 99, 'b' => 235]);
+
+// From HSL (hue 0-360, saturation 0-100, lightness 0-100)
+$color = Color::fromHsl(220, 84, 53);
+
+// From HSV (hue 0-360, saturation 0-100, value 0-100)
+$color = Color::fromHsv(220, 84, 92);
+
+// From CMYK (all values 0-100)
+$color = Color::fromCmyk(84, 58, 0, 8);
+
+// From LAB (lightness 0-100, a/b -128 to 127)
+$color = Color::fromLab(45, 8, -65);
 ```
 
-## Working with RGB Space
+## Color Manipulation
 
-### RGB Components
-
-```php
-$color = Color::fromRgb(255, 0, 0);
-
-// Access components
-$red = $color->getRed();     // 255
-$green = $color->getGreen(); // 0
-$blue = $color->getBlue();   // 0
-
-// Modify components
-$newColor = $color
-    ->withRed(128)    // Modify red
-    ->withGreen(50)   // Modify green
-    ->withBlue(50);   // Modify blue
-```
-
-### RGB Color Mixing
-
-```php
-$red = Color::fromRgb(255, 0, 0);
-$blue = Color::fromRgb(0, 0, 255);
-
-// Mix in RGB space
-$purple = $red->mixRgb($blue, 0.5); // Equal mix
-$redPurple = $red->mixRgb($blue, 0.25); // 25% blue
-```
-
-## Working with HSL Space
-
-### HSL Components
-
-```php
-$color = Color::fromHsl(0, 100, 50);
-
-// Access components
-$hue = $color->getHue();               // 0
-$saturation = $color->getSaturation(); // 100
-$lightness = $color->getLightness();   // 50
-
-// Modify components
-$newColor = $color
-    ->withHue(180)         // Cyan
-    ->withSaturation(75)   // Less saturated
-    ->withLightness(75);   // Lighter
-```
-
-### HSL Color Adjustments
-
-```php
-$color = Color::fromHsl(0, 100, 50);
-
-// Rotate hue
-$complementary = $color->rotateHue(180);
-$triadic1 = $color->rotateHue(120);
-$triadic2 = $color->rotateHue(240);
-
-// Adjust saturation and lightness
-$muted = $color->adjustSaturation(-20);
-$brighter = $color->adjustLightness(20);
-```
-
-## Working with HSV Space
-
-### HSV Components
-
-```php
-$color = Color::fromHsv(0, 100, 100);
-
-// Access components
-$hue = $color->getHueHsv();        // 0
-$saturation = $color->getSaturationHsv(); // 100
-$value = $color->getValue();       // 100
-
-// Create variations
-$darker = $color->withValue(80);
-$desaturated = $color->withSaturationHsv(50);
-```
-
-## Working with CMYK Space
-
-### CMYK Components
-
-```php
-$color = Color::fromCmyk(0, 100, 100, 0);
-
-// Access components
-$cyan = $color->getCyan();     // 0
-$magenta = $color->getMagenta(); // 100
-$yellow = $color->getYellow();   // 100
-$key = $color->getKey();       // 0
-
-// Create variations
-$newColor = $color
-    ->withCyan(20)
-    ->withMagenta(80)
-    ->withYellow(80)
-    ->withKey(10);
-```
-
-## Working with LAB Space
-
-### LAB Components
-
-```php
-$color = Color::fromLab(53.24, 80.09, 67.20);
-
-// Access components
-$lightness = $color->getLightness(); // 53.24
-$a = $color->getA();                // 80.09
-$b = $color->getB();                // 67.20
-
-// Create variations
-$newColor = $color
-    ->withLightness(60)
-    ->withA(70)
-    ->withB(60);
-```
-
-## Color Space Utilities
-
-### Gamma Correction
-
-```php
-$color = Color::fromRgb(255, 0, 0);
-
-// Apply gamma correction
-$corrected = $color->applyGamma(2.2);
-```
-
-### Color Space Interpolation
-
-```php
-$color1 = Color::fromRgb(255, 0, 0);
-$color2 = Color::fromRgb(0, 0, 255);
-
-// Interpolate in different spaces
-$rgbMix = $color1->interpolateRgb($color2, 0.5);
-$hslMix = $color1->interpolateHsl($color2, 0.5);
-$labMix = $color1->interpolateLab($color2, 0.5);
-```
-
-## Best Practices
-
-1. **Choose the Right Color Space**
-   - Use RGB for screen display
-   - Use CMYK for print
-   - Use HSL for intuitive color adjustments
-   - Use LAB for perceptual color operations
-
-2. **Color Space Conversion**
-   - Be aware of gamut limitations
-   - Handle rounding errors appropriately
-   - Cache converted values when doing multiple operations
-
-3. **Performance Optimization**
-   ```php
-   // Cache converted values
-   $color = Color::fromHex('#ff0000');
-   $hsl = $color->toHsl(); // Cache this if using multiple times
-   
-   // Batch conversions
-   $colors = array_map(function($hex) {
-       return Color::fromHex($hex)->toHsl();
-   }, $hexColors);
-   ```
-
-4. **Error Handling**
-   ```php
-   try {
-       // Handle out-of-gamut colors
-       $color = Color::fromRgb(300, 0, 0);
-   } catch (\InvalidArgumentException $e) {
-       // Handle invalid color values
-   }
-   ``` 
+For information on color manipulation methods, see:
+- [Color Manipulation Examples](./color-manipulation.md)
+- [Core Concepts - Color Manipulation](../../core-concepts.md#color-manipulation)

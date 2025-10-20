@@ -1,212 +1,114 @@
-# Working with Color Palettes
+# Color Palettes
 
-## Navigation
+> **⚠️ DOCUMENTATION UPDATE IN PROGRESS**
+>
+> This page is currently being updated to reflect the actual API. Many methods and classes documented here do not exist in the current implementation.
+>
+> For accurate information, please refer to:
+> - [Getting Started Guide](../../getting-started.md)
+> - [Core Concepts](../../core-concepts.md)
+> - [Color Extraction Examples](./color-extraction.md)
+> - [Theme Generation Examples](./theme-generation.md)
 
-- [Home](../../README.md)
-- [Getting Started](../../getting-started.md)
-- [Core Concepts](../../core-concepts.md)
-- [API Documentation](../../api/README.md)
+## Working with Color Palettes
 
-### Examples
-- [Examples Home](../README.md)
-- [Basic Examples](../basic/README.md)
-- [Advanced Examples](../advanced/README.md)
-- [Applications](../applications/README.md)
-- [Integration](../integration/README.md)
-
----
-
-## Creating Palettes
-
-### Manual Palette Creation
+### Extracting Palettes from Images
 
 ```php
-use Farzai\ColorPalette\Palette;
-use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\ImageFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
 
-// Create an empty palette
-$palette = new Palette();
+// Load image
+$image = ImageFactory::createFromPath('image.jpg');
 
-// Add individual colors
-$palette->add(Color::fromHex('#2196f3')); // Blue
-$palette->add(Color::fromHex('#f44336')); // Red
-$palette->add(Color::fromHex('#4caf50')); // Green
+// Extract colors
+$extractorFactory = new ColorExtractorFactory();
+$extractor = $extractorFactory->make('gd');
 
-// Create from array of hex colors
-$palette = Palette::fromHexColors([
-    '#2196f3',
-    '#f44336',
-    '#4caf50'
-]);
-```
+// Extract palette (returns ColorPalette instance)
+$palette = $extractor->extract($image, 5);
 
-### Generating Palettes
-
-```php
-// Create from a base color
-$baseColor = Color::fromHex('#2196f3');
-
-// Generate complementary palette
-$complementary = Palette::fromColor($baseColor)
-    ->complementary()
-    ->generate();
-
-// Generate analogous palette
-$analogous = Palette::fromColor($baseColor)
-    ->analogous()
-    ->generate();
-
-// Generate triadic palette
-$triadic = Palette::fromColor($baseColor)
-    ->triadic()
-    ->generate();
-```
-
-## Working with Palettes
-
-### Accessing Colors
-
-```php
 // Get all colors
 $colors = $palette->getColors();
 
-// Get color by index
-$firstColor = $palette->getColor(0);
-
-// Get color count
-$count = $palette->count();
-
-// Check if palette contains a color
-$contains = $palette->contains(Color::fromHex('#2196f3'));
+foreach ($colors as $color) {
+    echo $color->toHex() . "\n";
+}
 ```
 
-### Modifying Palettes
+### Getting Surface Colors
 
 ```php
-// Add a new color
-$palette->add(Color::fromHex('#9c27b0'));
+// Get suggested surface colors for UI
+$surfaceColors = $palette->getSuggestedSurfaceColors();
 
-// Remove a color
-$palette->remove(Color::fromHex('#2196f3'));
-
-// Clear all colors
-$palette->clear();
-
-// Replace all colors
-$palette->setColors([
-    Color::fromHex('#2196f3'),
-    Color::fromHex('#f44336')
-]);
+// Available keys: 'surface', 'background', 'accent', 'surface_variant'
+foreach ($surfaceColors as $type => $color) {
+    echo "$type: " . $color->toHex() . "\n";
+}
 ```
 
-## Palette Operations
+### Generating Color Schemes
 
-### Sorting Colors
+For generating color schemes and harmonies, use the `PaletteGenerator` class:
 
 ```php
-// Sort by hue
-$sortedByHue = $palette->sortByHue();
+use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\PaletteGenerator;
 
-// Sort by brightness
-$sortedByBrightness = $palette->sortByBrightness();
+$baseColor = new Color(37, 99, 235);
+$generator = new PaletteGenerator($baseColor);
 
-// Sort by saturation
-$sortedBySaturation = $palette->sortBySaturation();
+// Generate different color schemes
+$monochromatic = $generator->monochromatic(5);
+$complementary = $generator->complementary();
+$analogous = $generator->analogous();
+$triadic = $generator->triadic();
+$tetradic = $generator->tetradic();
+$splitComplementary = $generator->splitComplementary();
 
-// Custom sorting
-$sortedCustom = $palette->sort(function($a, $b) {
-    return $a->getRed() - $b->getRed();
-});
+// Generate shades and tints
+$shades = $generator->shades(5);
+$tints = $generator->tints(5);
+
+// Generate style-based palettes
+$pastel = $generator->pastel();
+$vibrant = $generator->vibrant();
+
+// Generate complete website theme
+$websiteTheme = $generator->websiteTheme();
 ```
 
-### Filtering Colors
+## Complete Example
 
 ```php
-// Get light colors only
-$lightColors = $palette->filter(function($color) {
-    return $color->isLight();
-});
+use Farzai\ColorPalette\ImageFactory;
+use Farzai\ColorPalette\ColorExtractorFactory;
 
-// Get dark colors only
-$darkColors = $palette->filter(function($color) {
-    return $color->isDark();
-});
+// Extract colors from image
+$image = ImageFactory::createFromPath('photo.jpg');
+$extractorFactory = new ColorExtractorFactory();
+$extractor = $extractorFactory->make('gd');
+$palette = $extractor->extract($image, 5);
 
-// Get saturated colors
-$saturatedColors = $palette->filter(function($color) {
-    return $color->getSaturation() > 50;
-});
+// Display extracted colors
+echo "Extracted Colors:\n";
+foreach ($palette->getColors() as $index => $color) {
+    echo ($index + 1) . ". " . $color->toHex() . "\n";
+}
+
+// Get suggested surface colors
+echo "\nSuggested Surface Colors:\n";
+$surfaceColors = $palette->getSuggestedSurfaceColors();
+foreach ($surfaceColors as $type => $color) {
+    echo "$type: " . $color->toHex() . "\n";
+
+    // Get suggested text color for this surface
+    $textColor = $palette->getSuggestedTextColor($color);
+    echo "  Text: " . $textColor->toHex() . "\n";
+}
 ```
 
-## Palette Analysis
-
-### Basic Analysis
-
-```php
-// Get average color
-$average = $palette->getAverageColor();
-
-// Get dominant color
-$dominant = $palette->getDominantColor();
-
-// Get palette contrast
-$contrast = $palette->getContrast();
-
-// Check if monochromatic
-$isMonochromatic = $palette->isMonochromatic();
-```
-
-### Color Distribution
-
-```php
-// Get color distribution
-$distribution = $palette->getDistribution();
-
-// Get color weights
-$weights = $palette->getColorWeights();
-
-// Get color variance
-$variance = $palette->getColorVariance();
-```
-
-## Best Practices
-
-1. **Palette Size**
-   - Keep palettes between 3-7 colors for most use cases
-   - Use monochromatic palettes for subtle variations
-   - Include both light and dark colors for contrast
-
-2. **Color Selection**
-   - Start with a base color that represents your brand
-   - Include neutral colors for balance
-   - Consider accessibility when selecting colors
-
-3. **Performance**
-   ```php
-   // Cache generated palettes
-   $palette = Cache::remember('brand-palette', function() {
-       return Palette::fromColor($brandColor)
-           ->complementary()
-           ->generate();
-   });
-   ```
-
-4. **Error Handling**
-   ```php
-   try {
-       $palette = Palette::fromHexColors($userInputColors);
-   } catch (\InvalidArgumentException $e) {
-       // Handle invalid color inputs
-   }
-   ```
-
-5. **Palette Export**
-   ```php
-   // Export as CSS variables
-   $css = $palette->toCssVariables([
-       'prefix' => '--brand-color-'
-   ]);
-
-   // Export as JSON
-   $json = $palette->toJson();
-   ``` 
+For more examples, see:
+- [Color Extraction Examples](./color-extraction.md)
+- [Theme Generation Examples](./theme-generation.md)

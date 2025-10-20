@@ -26,18 +26,18 @@ use Farzai\ColorPalette\Color;
 // Create a red color
 $red = Color::fromHex('#ff0000');
 
-// Create with alpha channel
-$transparentRed = Color::fromHex('#ff0000aa');
+// Without hash symbol is also supported
+$red = Color::fromHex('ff0000');
 ```
 
 ### From RGB Values
 
 ```php
-// Create using RGB values
-$blue = Color::fromRgb(0, 0, 255);
+// Create using RGB values (array format)
+$blue = Color::fromRgb([0, 0, 255]);
 
-// Create with alpha
-$transparentBlue = Color::fromRgba(0, 0, 255, 0.5);
+// Or with associative array
+$blue = Color::fromRgb(['r' => 0, 'g' => 0, 'b' => 255]);
 ```
 
 ## Basic Manipulations
@@ -47,26 +47,29 @@ $transparentBlue = Color::fromRgba(0, 0, 255, 0.5);
 ```php
 $color = Color::fromHex('#2196f3');
 
-// Create lighter variations
-$lighter = $color->lighten(20);  // 20% lighter
-$evenLighter = $color->lighten(40);  // 40% lighter
+// Create lighter variations (0.0-1.0, where 0.2 = 20%)
+$lighter = $color->lighten(0.2);  // 20% lighter
+$evenLighter = $color->lighten(0.4);  // 40% lighter
 
 // Create darker variations
-$darker = $color->darken(20);  // 20% darker
-$evenDarker = $color->darken(40);  // 40% darker
+$darker = $color->darken(0.2);  // 20% darker
+$evenDarker = $color->darken(0.4);  // 40% darker
+
+// Set absolute lightness (0.0-1.0)
+$specificLight = $color->withLightness(0.7);  // Set to 70% lightness
 ```
 
 ### Saturation Adjustments
 
 ```php
-// Increase saturation
-$moreSaturated = $color->saturate(20);
+// Increase saturation (0.0-1.0, where 0.2 = 20%)
+$moreSaturated = $color->saturate(0.2);
 
 // Decrease saturation
-$lessSaturated = $color->desaturate(20);
+$lessSaturated = $color->desaturate(0.2);
 
 // Complete desaturation (grayscale)
-$grayscale = $color->desaturate(100);
+$grayscale = $color->desaturate(1.0);
 ```
 
 ## Color Information
@@ -78,8 +81,11 @@ $color = Color::fromHex('#2196f3');
 
 // Get different formats
 $hex = $color->toHex();  // '#2196f3'
-$rgb = $color->toRgb();  // [33, 150, 243]
-$hsl = $color->toHsl();  // [207, 90, 54]
+$rgb = $color->toRgb();  // ['r' => 33, 'g' => 150, 'b' => 243]
+$hsl = $color->toHsl();  // ['h' => 207, 's' => 90, 'l' => 54]
+$hsv = $color->toHsv();  // ['h' => 207, 's' => 86, 'v' => 95]
+$cmyk = $color->toCmyk(); // ['c' => 86, 'm' => 38, 'y' => 0, 'k' => 5]
+$lab = $color->toLab();   // ['l' => 55, 'a' => -5, 'b' => -45]
 
 // Get individual components
 $red = $color->getRed();      // 33
@@ -100,30 +106,29 @@ $brightness = $color->getBrightness();  // 150
 
 ## Working with Multiple Colors
 
-### Color Mixing
-
-```php
-$red = Color::fromHex('#ff0000');
-$blue = Color::fromHex('#0000ff');
-
-// Mix colors with equal weight
-$purple = $red->mix($blue);
-
-// Mix with custom weight
-$redPurple = $red->mix($blue, 0.25);  // 25% blue, 75% red
-```
-
 ### Color Comparison
 
 ```php
 $color1 = Color::fromHex('#ffffff');
 $color2 = Color::fromHex('#000000');
 
-// Get contrast ratio
-$contrast = $color1->getContrastRatio($color2);  // 21
+// Get WCAG contrast ratio (1-21)
+$contrast = $color1->getContrastRatio($color2);  // ~21 for black/white
 
-// Check if colors are similar
-$distance = $color1->getDistance($color2);  // Color difference
+// Check if contrast meets accessibility standards
+$isReadable = $contrast >= 4.5;  // WCAG AA standard for normal text
+$isHighlyReadable = $contrast >= 7.0;  // WCAG AAA standard
+```
+
+### Hue Rotation
+
+```php
+$color = Color::fromHex('#2196f3');
+
+// Rotate hue by degrees
+$complementary = $color->rotate(180);  // Complementary color
+$analogous1 = $color->rotate(30);      // Analogous color
+$analogous2 = $color->rotate(-30);     // Analogous color (opposite direction)
 ```
 
 ## Error Handling
@@ -137,8 +142,8 @@ try {
 }
 
 try {
-    // Invalid RGB values
-    $color = Color::fromRgb(300, 0, 0);  // RGB values must be 0-255
+    // Invalid RGB values (must be 0-255)
+    $color = Color::fromRgb([300, 0, 0]);
 } catch (\InvalidArgumentException $e) {
     echo "Invalid RGB values: " . $e->getMessage();
 }

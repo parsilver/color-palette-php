@@ -44,19 +44,16 @@ composer require farzai/color-palette
 ```php
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
-use Farzai\ColorPalette\ColorPalette;
 
-// Create an image instance
-$imageFactory = new ImageFactory();
-$image = $imageFactory->createFromPath('path/to/image.jpg');
+// Load an image (static method)
+$image = ImageFactory::createFromPath('path/to/image.jpg');
 
 // Create a color extractor
 $extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->create('gd'); // or 'imagick'
+$extractor = $extractorFactory->make('gd'); // or 'imagick'
 
-// Extract colors to create a palette
-$colors = $extractor->extract($image);
-$palette = new ColorPalette($colors);
+// Extract colors (returns a ColorPalette instance)
+$palette = $extractor->extract($image, 5); // Extract 5 dominant colors
 
 // Get all colors
 $colors = $palette->getColors();

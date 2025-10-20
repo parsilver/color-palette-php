@@ -11,21 +11,19 @@ require 'vendor/autoload.php';
 
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
-use Farzai\ColorPalette\ColorPalette;
 use Farzai\ColorPalette\ThemeGenerator;
 
 // Path to your image
 $imagePath = __DIR__ . '/example-image.jpg';
 
-// Create image and extract colors
-$imageFactory = new ImageFactory();
-$image = $imageFactory->createFromPath($imagePath);
+// Load image and extract colors
+$image = ImageFactory::createFromPath($imagePath);
 
 $extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->create('gd');
+$extractor = $extractorFactory->make('gd');
 
-$colors = $extractor->extract($image);
-$palette = new ColorPalette($colors);
+// Extract colors (returns ColorPalette instance)
+$palette = $extractor->extract($image, 5);
 
 // Generate theme
 $generator = new ThemeGenerator();
@@ -33,9 +31,9 @@ $theme = $generator->generate($palette);
 
 // Access theme colors
 echo "Theme Colors:\n";
-echo sprintf("Primary: %s\n", $theme->getPrimary()->toHex());
-echo sprintf("Secondary: %s\n", $theme->getSecondary()->toHex());
-echo sprintf("Accent: %s\n", $theme->getAccent()->toHex());
+echo sprintf("Primary: %s\n", $theme->getPrimaryColor()->toHex());
+echo sprintf("Secondary: %s\n", $theme->getSecondaryColor()->toHex());
+echo sprintf("Accent: %s\n", $theme->getAccentColor()->toHex());
 ```
 
 ## Advanced Usage
@@ -44,9 +42,9 @@ echo sprintf("Accent: %s\n", $theme->getAccent()->toHex());
 
 ```php
 // Get theme colors
-$primary = $theme->getPrimary();
-$secondary = $theme->getSecondary();
-$accent = $theme->getAccent();
+$primary = $theme->getPrimaryColor();
+$secondary = $theme->getSecondaryColor();
+$accent = $theme->getAccentColor();
 
 // Check if colors are light or dark
 echo sprintf(
@@ -70,9 +68,9 @@ echo sprintf("On Accent: %s\n", $textOnAccent->toHex());
 ```php
 function generateWebColorScheme($theme, $palette): array
 {
-    $primary = $theme->getPrimary();
-    $secondary = $theme->getSecondary();
-    $accent = $theme->getAccent();
+    $primary = $theme->getPrimaryColor();
+    $secondary = $theme->getSecondaryColor();
+    $accent = $theme->getAccentColor();
     
     return [
         'colors' => [
@@ -111,7 +109,6 @@ require 'vendor/autoload.php';
 
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
-use Farzai\ColorPalette\ColorPalette;
 use Farzai\ColorPalette\ThemeGenerator;
 use Farzai\ColorPalette\Exceptions\ImageLoadException;
 use Farzai\ColorPalette\Exceptions\ImageException;
@@ -120,14 +117,12 @@ function generateThemeFromImage(string $imagePath, string $cssOutputPath): void
 {
     try {
         // Initialize components
-        $imageFactory = new ImageFactory();
         $extractorFactory = new ColorExtractorFactory();
-        $image = $imageFactory->createFromPath($imagePath);
-        $extractor = $extractorFactory->create('gd');
-        
-        // Generate palette and theme
-        $colors = $extractor->extract($image);
-        $palette = new ColorPalette($colors);
+        $image = ImageFactory::createFromPath($imagePath);
+        $extractor = $extractorFactory->make('gd');
+
+        // Generate palette and theme (extract returns ColorPalette)
+        $palette = $extractor->extract($image, 5);
         $generator = new ThemeGenerator();
         $theme = $generator->generate($palette);
         
@@ -146,9 +141,9 @@ function generateThemeFromImage(string $imagePath, string $cssOutputPath): void
         
         // Output theme information
         echo "Theme generated successfully!\n\n";
-        echo "Primary Color: " . $theme->getPrimary()->toHex() . "\n";
-        echo "Secondary Color: " . $theme->getSecondary()->toHex() . "\n";
-        echo "Accent Color: " . $theme->getAccent()->toHex() . "\n";
+        echo "Primary Color: " . $theme->getPrimaryColor()->toHex() . "\n";
+        echo "Secondary Color: " . $theme->getSecondaryColor()->toHex() . "\n";
+        echo "Accent Color: " . $theme->getAccentColor()->toHex() . "\n";
         echo "\nCSS variables have been saved to: " . $cssOutputPath . "\n";
         
     } catch (ImageLoadException $e) {
