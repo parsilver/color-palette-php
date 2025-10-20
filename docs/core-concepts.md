@@ -113,7 +113,7 @@ $otherColor = new Color(255, 255, 255);
 $contrastRatio = $color->getContrastRatio($otherColor);
 ```
 
-### Color Mixing
+### Color Analysis and Comparison
 
 ```php
 use Farzai\ColorPalette\Color;
@@ -121,9 +121,12 @@ use Farzai\ColorPalette\Color;
 $color1 = new Color(37, 99, 235);  // Blue
 $color2 = new Color(239, 68, 68);  // Red
 
-// Mix colors with different weights
-$mixed = $color1->mix($color2, 0.5);  // 50-50 mix
-$biased = $color1->mix($color2, 0.7); // 70% of color1, 30% of color2
+// Analyze color properties
+$brightness1 = $color1->getBrightness(); // 0-255
+$brightness2 = $color2->getBrightness();
+
+// Check contrast between colors
+$contrastRatio = $color1->getContrastRatio($color2);
 ```
 
 ### Color Analysis
@@ -162,19 +165,14 @@ Color Palette PHP uses advanced algorithms to extract dominant colors from image
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
 
-// Load image
-$imageFactory = new ImageFactory();
-$image = $imageFactory->createFromPath('image.jpg');
+// Load image (static method)
+$image = ImageFactory::createFromPath('image.jpg');
 
-// Configure extractor
+// Create extractor
 $extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->make('gd', [
-    'sample_size' => 50,
-    'min_saturation' => 0.05,
-    'min_brightness' => 0.05
-]);
+$extractor = $extractorFactory->make('gd'); // or 'imagick'
 
-// Extract colors
+// Extract colors (deterministic - same image always produces same results)
 $palette = $extractor->extract($image, 5);
 ```
 
@@ -262,39 +260,38 @@ try {
 
 ## Factory Pattern Implementation
 
-Color Palette PHP uses the Factory pattern to provide a flexible and maintainable way to create objects. This pattern is particularly useful for:
+Color Palette PHP uses the Factory pattern to provide a flexible and maintainable way to create objects.
 
-1. **Image Loading**
-   ```php
-   use Farzai\ColorPalette\ImageLoaderFactory;
-   
-   $factory = new ImageLoaderFactory();
-   $loader = $factory->make([
-       'max_size' => 1024,
-       'allowed_types' => ['jpg', 'png']
-   ]);
-   
-   $image = $loader->load('path/to/image.jpg');
-   ```
+### Image Loading
 
-2. **Color Extraction**
-   ```php
-   use Farzai\ColorPalette\ColorExtractorFactory;
-   
-   $factory = new ColorExtractorFactory();
-   
-   // Choose backend based on needs
-   $gdExtractor = $factory->make('gd');
-   $imagickExtractor = $factory->make('imagick');
-   ```
+```php
+use Farzai\ColorPalette\ImageFactory;
 
-The factory pattern provides several benefits:
-- Encapsulation of object creation logic
-- Easy configuration management
-- Runtime backend selection
-- Simplified testing through dependency injection
+// Static factory method for creating images
+$image = ImageFactory::createFromPath('path/to/image.jpg'); // Uses GD by default
+$image = ImageFactory::createFromPath('path/to/image.jpg', 'imagick'); // Use ImageMagick
+```
 
-For more details, see the [Factory Classes Documentation](api/factories.html).
+### Color Extraction
+
+```php
+use Farzai\ColorPalette\ColorExtractorFactory;
+
+$factory = new ColorExtractorFactory();
+
+// Choose backend based on your needs
+$gdExtractor = $factory->make('gd');       // GD backend (default)
+$imagickExtractor = $factory->make('imagick'); // ImageMagick backend
+```
+
+### Benefits of Factory Pattern
+
+- **Encapsulation**: Object creation logic is centralized
+- **Backend Selection**: Switch between GD and ImageMagick at runtime
+- **Extension Points**: Easy to add new backends
+- **Testability**: Simplified dependency injection for testing
+
+For more details, see the [API Documentation](api/).
 
 ## Further Reading
 

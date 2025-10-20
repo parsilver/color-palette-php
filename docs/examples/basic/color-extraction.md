@@ -11,24 +11,19 @@ require 'vendor/autoload.php';
 
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
-use Farzai\ColorPalette\ColorPalette;
 
 // Path to your image
 $imagePath = __DIR__ . '/example-image.jpg';
 
-// Create an image instance
-$imageFactory = new ImageFactory();
-$image = $imageFactory->createFromPath($imagePath);
+// Load image (static method)
+$image = ImageFactory::createFromPath($imagePath);
 
 // Create a color extractor (using GD backend)
 $extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->create('gd');
+$extractor = $extractorFactory->make('gd');
 
-// Extract colors
-$colors = $extractor->extract($image);
-
-// Create a palette
-$palette = new ColorPalette($colors);
+// Extract colors (returns ColorPalette instance)
+$palette = $extractor->extract($image, 5);
 
 // Display the colors
 foreach ($palette->getColors() as $color) {
@@ -48,7 +43,7 @@ foreach ($palette->getColors() as $color) {
 
 ```php
 // Use ImageMagick instead of GD
-$extractor = $extractorFactory->create('imagick');
+$extractor = $extractorFactory->make('imagick');
 ```
 
 ### Error Handling
@@ -58,9 +53,8 @@ use Farzai\ColorPalette\Exceptions\ImageLoadException;
 use Farzai\ColorPalette\Exceptions\ImageException;
 
 try {
-    $image = $imageFactory->createFromPath($imagePath);
-    $colors = $extractor->extract($image);
-    $palette = new ColorPalette($colors);
+    $image = ImageFactory::createFromPath($imagePath);
+    $palette = $extractor->extract($image, 5);
 } catch (ImageLoadException $e) {
     echo "Failed to load image: " . $e->getMessage() . "\n";
     exit(1);
@@ -103,24 +97,21 @@ require 'vendor/autoload.php';
 
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
-use Farzai\ColorPalette\ColorPalette;
 use Farzai\ColorPalette\Exceptions\ImageLoadException;
 use Farzai\ColorPalette\Exceptions\ImageException;
 
 function analyzeImage(string $imagePath): void
 {
     try {
-        // Initialize factories
-        $imageFactory = new ImageFactory();
+        // Initialize factory
         $extractorFactory = new ColorExtractorFactory();
-        
+
         // Load image and create extractor
-        $image = $imageFactory->createFromPath($imagePath);
-        $extractor = $extractorFactory->create('gd');
-        
-        // Extract colors and create palette
-        $colors = $extractor->extract($image);
-        $palette = new ColorPalette($colors);
+        $image = ImageFactory::createFromPath($imagePath);
+        $extractor = $extractorFactory->make('gd');
+
+        // Extract colors (returns ColorPalette instance)
+        $palette = $extractor->extract($image, 5);
         
         // Display extracted colors
         echo "Extracted Colors:\n";

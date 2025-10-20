@@ -70,9 +70,8 @@ $color = Color::fromHsl(220, 84, 53);
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
 
-// Load image
-$imageFactory = new ImageFactory();
-$image = $imageFactory->createFromPath('image.jpg');
+// Load image (static method)
+$image = ImageFactory::createFromPath('image.jpg');
 
 // Extract colors
 $extractorFactory = new ColorExtractorFactory();

@@ -66,9 +66,8 @@ Here's a simple example of extracting dominant colors from an image:
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\ColorExtractorFactory;
 
-// Create image instance
-$imageFactory = new ImageFactory();
-$image = $imageFactory->createFromPath('path/to/image.jpg');
+// Load image (static method)
+$image = ImageFactory::createFromPath('path/to/image.jpg');
 
 // Create color extractor
 $extractorFactory = new ColorExtractorFactory();
@@ -134,33 +133,12 @@ $lab = $color->toLab();           // ['l' => 45, 'a' => 8, 'b' => -65]
 $fromHex = Color::fromHex('#2563eb');
 $fromRgb = Color::fromRgb(['r' => 37, 'g' => 99, 'b' => 235]);
 $fromHsl = Color::fromHsl(220, 84, 53);
-$fromHsv = Color::fromHsv(220, 0.84, 0.92);
+$fromHsv = Color::fromHsv(220, 84, 92); // Note: saturation and value are 0-100
 $fromCmyk = Color::fromCmyk(84, 58, 0, 8);
 $fromLab = Color::fromLab(45, 8, -65);
 ```
 
 ## Configuration
-
-### Customizing Color Extraction
-
-You can customize the color extraction process:
-
-```php
-use Farzai\ColorPalette\ColorExtractorFactory;
-use Farzai\ColorPalette\Config;
-
-// Create a custom configuration
-$config = new Config([
-    'sample_size' => 50,           // Number of pixels to sample
-    'min_saturation' => 0.05,      // Minimum color saturation (0-1)
-    'min_brightness' => 0.05,      // Minimum color brightness (0-1)
-    'max_colors' => 10,            // Maximum number of colors to extract
-]);
-
-// Create extractor with custom config
-$extractorFactory = new ColorExtractorFactory();
-$extractor = $extractorFactory->make('gd', $config);
-```
 
 ### Backend Selection
 
