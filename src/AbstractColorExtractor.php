@@ -20,6 +20,12 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     protected const MIN_BRIGHTNESS = 0.05; // Reduced from 0.15
 
     /**
+     * Seed for deterministic random number generation
+     * Using a fixed seed ensures idempotent color extraction
+     */
+    protected int $seed = 42;
+
+    /**
      * {@inheritdoc}
      */
     public function extract(ImageInterface $image, int $count = 5): ColorPaletteInterface
@@ -198,11 +204,13 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             $centroids = $newCentroids;
         }
 
-        return $centroids;
+        // Sort colors deterministically for consistent ordering across runs
+        return $this->sortColors($centroids);
     }
 
     /**
      * Initialize k-means centroids using k-means++ algorithm
+     * Uses seeded random number generation for deterministic results
      *
      * @param  array<array{r: int, g: int, b: int, count: int}>  $colors
      * @return array<array{r: int, g: int, b: int}>
@@ -211,8 +219,12 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     {
         $centroids = [];
 
-        // Choose first centroid randomly
-        $firstIndex = array_rand($colors);
+        // Seed the random number generator for deterministic results
+        mt_srand($this->seed);
+
+        // Choose first centroid using seeded random
+        $colorKeys = array_keys($colors);
+        $firstIndex = $colorKeys[mt_rand(0, count($colorKeys) - 1)];
         $centroids[] = [
             'r' => $colors[$firstIndex]['r'],
             'g' => $colors[$firstIndex]['g'],
@@ -231,9 +243,9 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
                 $distances[] = $minDistance;
             }
 
-            // Choose next centroid with probability proportional to distance
+            // Choose next centroid with probability proportional to distance (seeded)
             $sum = array_sum($distances);
-            $target = mt_rand() / mt_getrandmax() * $sum;
+            $target = (mt_rand() / mt_getrandmax()) * $sum;
             $currentSum = 0;
             foreach ($colors as $index => $color) {
                 $currentSum += $distances[$index];
@@ -264,6 +276,38 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             pow($color1['g'] - $color2['g'], 2) +
             pow($color1['b'] - $color2['b'], 2)
         );
+    }
+
+    /**
+     * Sort colors deterministically for consistent ordering
+     * Colors are sorted by brightness (luminance) in descending order
+     *
+     * @param  array<array{r: int, g: int, b: int}>  $colors
+     * @return array<array{r: int, g: int, b: int}>
+     */
+    protected function sortColors(array $colors): array
+    {
+        usort($colors, function ($a, $b) {
+            // Calculate perceived brightness using standard luminance formula
+            // This provides consistent ordering based on how bright humans perceive colors
+            $luminanceA = 0.299 * $a['r'] + 0.587 * $a['g'] + 0.114 * $a['b'];
+            $luminanceB = 0.299 * $b['r'] + 0.587 * $b['g'] + 0.114 * $b['b'];
+
+            // Sort by luminance descending (brightest first)
+            $diff = $luminanceB - $luminanceA;
+
+            // If luminance is nearly identical, use hue as secondary sort
+            if (abs($diff) < 0.01) {
+                $hsbA = $this->rgbToHsb($a['r'], $a['g'], $a['b']);
+                $hsbB = $this->rgbToHsb($b['r'], $b['g'], $b['b']);
+
+                return $hsbA['h'] <=> $hsbB['h'];
+            }
+
+            return $diff <=> 0;
+        });
+
+        return $colors;
     }
 
     /**

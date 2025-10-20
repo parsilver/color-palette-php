@@ -23,6 +23,7 @@ A powerful PHP library for extracting color palettes from images and generating 
 - 📏 Color contrast ratio calculations
 - 🎭 Automatic text color suggestions for optimal readability
 - 🔍 Smart surface color recommendations based on color brightness
+- ✅ Deterministic color extraction - same image always produces same results
 
 ## Requirements
 
