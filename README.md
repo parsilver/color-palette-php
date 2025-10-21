@@ -9,10 +9,6 @@ A powerful PHP library for extracting color palettes from images and generating 
 
 ![Color Palette Example](example/output.png)
 
-## Documentation
-
-📚 **[View Full Documentation](https://parsilver.github.io/color-palette-php/)**
-
 ## Features
 
 - 🎨 Extract dominant colors from images using advanced color quantization
