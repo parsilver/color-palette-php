@@ -1,0 +1,86 @@
+// Custom styles for Color Palette PHP documentation
+// This file is automatically included by just-the-docs theme
+
+// Custom CSS variables
+:root {
+  --primary-color: #2563eb;
+  --secondary-color: #3b82f6;
+  --border-color: #e5e7eb;
+  --hover-color: #dbeafe;
+}
+
+// Documentation sections grid
+.doc-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.doc-section {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  p {
+    margin: 0;
+    color: #6b7280;
+  }
+}
+
+// Color examples
+.color-example {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.color-swatch {
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .doc-sections {
+    grid-template-columns: 1fr;
+  }
+
+  .color-example {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
