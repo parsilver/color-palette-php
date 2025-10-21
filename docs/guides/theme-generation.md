@@ -1,6 +1,8 @@
 ---
 layout: default
-title: Theme Generation Guide - Color Palette PHP
+title: Theme Generation
+parent: Guides
+nav_order: 5
 description: Learn how to generate harmonious color themes and schemes using color theory principles
 keywords: theme generation, color schemes, palette generator, color harmony, complementary, analogous, triadic
 ---

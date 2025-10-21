@@ -1,9 +1,10 @@
 ---
-title: Troubleshooting Guide
+layout: default
+title: Troubleshooting
+parent: Resources
+nav_order: 2
 description: Solutions for common issues and debugging techniques
-category: Resources
-order: 2
-tags: [troubleshooting, errors, debugging, solutions]
+keywords: troubleshooting, errors, debugging, solutions
 ---
 
 # Troubleshooting Guide

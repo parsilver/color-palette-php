@@ -1,6 +1,8 @@
 ---
 layout: default
-title: Advanced Techniques - Color Palette PHP
+title: Advanced Techniques
+parent: Guides
+nav_order: 6
 description: Advanced optimization techniques, performance tips, and extending Color Palette PHP functionality
 keywords: advanced techniques, optimization, performance, caching, batch processing, custom extensions
 ---

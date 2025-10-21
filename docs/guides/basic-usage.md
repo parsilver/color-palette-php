@@ -1,6 +1,8 @@
 ---
 layout: default
-title: Basic Usage Guide - Color Palette PHP
+title: Basic Usage
+parent: Guides
+nav_order: 2
 description: Learn the fundamental operations and common workflows for using Color Palette PHP
 keywords: basic usage, color creation, color conversion, getting started, examples
 ---

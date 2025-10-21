@@ -1,9 +1,10 @@
 ---
+layout: default
 title: Changelog
+parent: Resources
+nav_order: 4
 description: Version history and release notes for Color Palette PHP
-category: Resources
-order: 4
-tags: [changelog, releases, versions, history]
+keywords: changelog, releases, versions, history
 ---
 
 # Changelog

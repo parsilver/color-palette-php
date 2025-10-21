@@ -1,6 +1,8 @@
 ---
 layout: default
-title: Installation Guide - Color Palette PHP
+title: Installation
+parent: Guides
+nav_order: 1
 description: Complete installation guide for Color Palette PHP across different environments and platforms
 keywords: installation, setup, composer, php extensions, gd, imagick, requirements
 ---

@@ -1,9 +1,10 @@
 ---
 layout: default
-title: Understanding Color Spaces
+title: Color Spaces
+parent: Concepts
+nav_order: 1
 description: Deep dive into RGB, HSL, HSV, CMYK, and LAB color spaces - their mathematical foundations, use cases, and conversions
 keywords: color spaces, RGB, HSL, HSV, CMYK, LAB, color theory, color conversion
-permalink: /concepts/color-spaces/
 ---
 
 # Understanding Color Spaces

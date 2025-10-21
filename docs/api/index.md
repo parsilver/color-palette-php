@@ -1,6 +1,8 @@
 ---
 layout: default
-title: API Reference - Color Palette PHP
+title: API Reference
+nav_order: 6
+has_children: true
 description: Complete API documentation for Color Palette PHP library, including color manipulation, extraction, and theme generation
 keywords: php color palette api, color manipulation api, color extraction api, theme generation api
 ---

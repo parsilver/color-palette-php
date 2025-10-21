@@ -1,6 +1,7 @@
 ---
 layout: default
-title: Color Palette PHP - Image Color Extraction and Manipulation Library
+title: Home
+nav_order: 1
 description: A powerful PHP library for extracting color palettes from images, generating color themes, and manipulating colors in multiple color spaces
 keywords: php color palette, image color extraction, color manipulation, color themes
 ---

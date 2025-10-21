@@ -1,9 +1,10 @@
 ---
 layout: default
-title: Color Theory Fundamentals
+title: Color Theory
+parent: Concepts
+nav_order: 2
 description: Understanding color relationships, harmonies, and principles for creating effective color schemes
 keywords: color theory, color harmony, complementary colors, analogous colors, color wheel, design principles
-permalink: /concepts/color-theory/
 ---
 
 # Color Theory Fundamentals

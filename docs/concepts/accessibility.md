@@ -1,9 +1,10 @@
 ---
 layout: default
-title: Color Accessibility
+title: Accessibility
+parent: Concepts
+nav_order: 3
 description: WCAG guidelines, contrast ratios, color blindness considerations, and creating inclusive color designs
 keywords: accessibility, WCAG, contrast ratio, color blindness, inclusive design, a11y
-permalink: /concepts/accessibility/
 ---
 
 # Color Accessibility

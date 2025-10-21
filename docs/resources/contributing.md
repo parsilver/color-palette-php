@@ -1,9 +1,10 @@
 ---
-title: Contributing Guidelines
+layout: default
+title: Contributing
+parent: Resources
+nav_order: 5
 description: How to contribute to Color Palette PHP
-category: Resources
-order: 5
-tags: [contributing, development, guidelines, community]
+keywords: contributing, development, guidelines, community
 ---
 
 # Contributing Guidelines

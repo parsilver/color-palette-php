@@ -1,9 +1,10 @@
 ---
-title: Frequently Asked Questions
+layout: default
+title: FAQ
+parent: Resources
+nav_order: 1
 description: Common questions and answers about Color Palette PHP
-category: Resources
-order: 1
-tags: [faq, questions, help, support]
+keywords: faq, questions, help, support
 ---
 
 # Frequently Asked Questions (FAQ)

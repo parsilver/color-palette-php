@@ -1,6 +1,8 @@
 ---
 layout: default
-title: Color Manipulation Guide - Color Palette PHP
+title: Color Manipulation
+parent: Guides
+nav_order: 4
 description: Master color manipulation techniques including lightening, darkening, saturation, hue rotation, and more
 keywords: color manipulation, lighten, darken, saturate, desaturate, hue rotation, color adjustment
 ---

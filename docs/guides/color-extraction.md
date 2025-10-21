@@ -1,6 +1,8 @@
 ---
 layout: default
-title: Color Extraction Guide - Color Palette PHP
+title: Color Extraction
+parent: Guides
+nav_order: 3
 description: Complete guide to extracting dominant colors from images using Color Palette PHP
 keywords: color extraction, image analysis, dominant colors, palette generation, gd, imagick
 ---

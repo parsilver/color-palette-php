@@ -1,9 +1,10 @@
 ---
 layout: default
-title: Performance Optimization
+title: Performance
+parent: Concepts
+nav_order: 4
 description: Strategies for optimizing color processing, caching, memory management, and best practices for high-performance color manipulation
 keywords: performance, optimization, caching, memory management, benchmarking, best practices
-permalink: /concepts/performance/
 ---
 
 # Performance Optimization

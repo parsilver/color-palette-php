@@ -1,6 +1,7 @@
 ---
 layout: default
-title: Quick Start - Color Palette PHP in 5 Minutes
+title: Quick Start
+nav_order: 2
 description: Get started with Color Palette PHP in under 5 minutes. Copy-paste examples for color extraction, theme generation, and color manipulation.
 keywords: php color palette quick start, 5 minute guide, color extraction tutorial, php color themes
 ---

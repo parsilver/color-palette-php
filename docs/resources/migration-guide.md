@@ -1,9 +1,10 @@
 ---
+layout: default
 title: Migration Guide
+parent: Resources
+nav_order: 3
 description: Guide for upgrading between versions of Color Palette PHP
-category: Resources
-order: 3
-tags: [migration, upgrade, breaking-changes, deprecations]
+keywords: migration, upgrade, breaking-changes, deprecations
 ---
 
 # Migration Guide
