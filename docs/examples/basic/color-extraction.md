@@ -1,3 +1,13 @@
+---
+layout: default
+title: Color Extraction
+description: Learn how to extract dominant colors from images using GD and Imagick backends
+parent: Examples
+grand_parent: Home
+nav_order: 1
+keywords: color extraction, dominant colors, image color analysis
+---
+
 # Basic Color Extraction
 
 This example demonstrates how to extract colors from an image using the Color Palette library.

@@ -1,3 +1,13 @@
+---
+layout: default
+title: Working with Palettes
+description: Extract color palettes from images and work with surface colors and color schemes
+parent: Examples
+grand_parent: Home
+nav_order: 5
+keywords: color palettes, palette generation, surface colors, color schemes
+---
+
 # Color Palettes
 
 > **⚠️ DOCUMENTATION UPDATE IN PROGRESS**
@@ -5,8 +15,8 @@
 > This page is currently being updated to reflect the actual API. Many methods and classes documented here do not exist in the current implementation.
 >
 > For accurate information, please refer to:
-> - [Getting Started Guide](../../getting-started.md)
-> - [Core Concepts](../../core-concepts.md)
+> - [Quick Start Guide](../../quick-start.md)
+> - [Color Spaces](../../concepts/color-spaces.md)
 > - [Color Extraction Examples](./color-extraction.md)
 > - [Theme Generation Examples](./theme-generation.md)
 

@@ -83,6 +83,6 @@ $loader = $factory->make();
 
 ## See Also
 
-- [Color Extractor Documentation](color-extractor.html)
-- [Image Loader Documentation](image-loader.html)
-- [Configuration Guide](../getting-started.html#configuration) 
+- [Color Extractor Documentation](color-extractor.md)
+- [Image Loader Documentation](image-loader.md)
+- [Installation Guide](../../guides/installation.md) 

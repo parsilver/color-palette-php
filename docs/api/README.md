@@ -13,34 +13,34 @@ Welcome to the Color Palette PHP API documentation. This comprehensive guide cov
   <div class="api-section">
     <h2>🎨 Core Components</h2>
     <ul>
-      <li><a href="color">Color</a> - Core color representation and manipulation</li>
-      <li><a href="color-palette">ColorPalette</a> - Collection of colors with analysis tools</li>
-      <li><a href="theme">Theme</a> - Theme generation and management</li>
+      <li><a href="reference/color">Color</a> - Core color representation and manipulation</li>
+      <li><a href="reference/color-palette">ColorPalette</a> - Collection of colors with analysis tools</li>
+      <li><a href="reference/theme">Theme</a> - Theme generation and management</li>
     </ul>
   </div>
 
   <div class="api-section">
     <h2>🖼️ Image Processing</h2>
     <ul>
-      <li><a href="image-loader">ImageLoader</a> - Image loading and processing</li>
-      <li><a href="color-extractor">ColorExtractor</a> - Color extraction from images</li>
+      <li><a href="reference/image-loader">ImageLoader</a> - Image loading and processing</li>
+      <li><a href="reference/color-extractor">ColorExtractor</a> - Color extraction from images</li>
     </ul>
   </div>
 
   <div class="api-section">
     <h2>🔧 Color Operations</h2>
     <ul>
-      <li><a href="color-manipulation">Color Manipulation</a> - Adjusting colors</li>
-      <li><a href="color-spaces">Color Spaces</a> - Working with different color spaces</li>
-      <li><a href="color-schemes">Color Schemes</a> - Generating color combinations</li>
+      <li><a href="reference/color-manipulation">Color Manipulation</a> - Adjusting colors</li>
+      <li><a href="reference/color-spaces">Color Spaces</a> - Working with different color spaces</li>
+      <li><a href="reference/color-schemes">Color Schemes</a> - Generating color combinations</li>
     </ul>
   </div>
 
   <div class="api-section">
     <h2>🎯 Advanced Features</h2>
     <ul>
-      <li><a href="palette-generation">Palette Generation</a> - Creating color palettes</li>
-      <li><a href="utilities">Utilities</a> - Helper functions and tools</li>
+      <li><a href="reference/palette-generation">Palette Generation</a> - Creating color palettes</li>
+      <li><a href="reference/utilities">Utilities</a> - Helper functions and tools</li>
     </ul>
   </div>
 </div>
@@ -101,25 +101,25 @@ $websiteTheme = $generator->websiteTheme();
   <div class="class-card">
     <h3>Color</h3>
     <p>Core class for color representation and manipulation.</p>
-    <a href="color" class="api-link">View Documentation →</a>
+    <a href="reference/color" class="api-link">View Documentation →</a>
   </div>
 
   <div class="class-card">
     <h3>ColorPalette</h3>
     <p>Manages collections of colors with analysis tools.</p>
-    <a href="color-palette" class="api-link">View Documentation →</a>
+    <a href="reference/color-palette" class="api-link">View Documentation →</a>
   </div>
 
   <div class="class-card">
     <h3>Theme</h3>
     <p>Handles theme generation and management.</p>
-    <a href="theme" class="api-link">View Documentation →</a>
+    <a href="reference/theme" class="api-link">View Documentation →</a>
   </div>
 
   <div class="class-card">
     <h3>ColorExtractor</h3>
     <p>Extracts dominant colors from images.</p>
-    <a href="color-extractor" class="api-link">View Documentation →</a>
+    <a href="reference/color-extractor" class="api-link">View Documentation →</a>
   </div>
 </div>
 
@@ -194,9 +194,20 @@ try {
    - Implement caching where appropriate
    - Batch color operations when possible
 
+## Recipes
+
+Common patterns and copy-paste solutions:
+
+- [Extracting Dominant Colors](recipes/extracting-dominant-colors) - Extract and analyze colors from images
+- [Creating Color Schemes](recipes/creating-color-schemes) - Generate harmonious color schemes
+- [Checking Accessibility](recipes/checking-accessibility) - Ensure WCAG compliance
+- [Color Format Conversions](recipes/color-format-conversions) - Convert between HEX, RGB, HSL, HSV, CMYK
+- [Performance Optimization](recipes/performance-optimization) - Optimize for production
+
 ## See Also
 
-- [Getting Started Guide](../getting-started)
-- [Core Concepts](../core-concepts)
+- [Quick Start Guide](../quick-start)
+- [Installation Guide](../guides/installation)
+- [Core Concepts](../concepts/color-spaces)
 - [Examples](../examples/)
-- [Color Playground](../playground)
+- [GitHub Repository](https://github.com/parsilver/color-palette-php)

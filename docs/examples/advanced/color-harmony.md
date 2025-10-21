@@ -1,20 +1,14 @@
-# Color Harmony
-
-## Navigation
-
-- [Home](../../README.md)
-- [Getting Started](../../getting-started.md)
-- [Core Concepts](../../core-concepts.md)
-- [API Documentation](../../api/README.md)
-
-### Examples
-- [Examples Home](../README.md)
-- [Basic Examples](../basic/README.md)
-- [Advanced Examples](../advanced/README.md)
-- [Applications](../applications/README.md)
-- [Integration](../integration/README.md)
-
 ---
+layout: default
+title: Color Harmony
+description: Create harmonious color schemes using complementary, analogous, and custom harmony rules
+parent: Examples
+grand_parent: Home
+nav_order: 6
+keywords: color harmony, complementary colors, analogous colors, color theory
+---
+
+# Color Harmony
 
 ## Traditional Color Harmonies
 

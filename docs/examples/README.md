@@ -1,3 +1,13 @@
+---
+layout: default
+title: Examples - Color Palette PHP
+description: Comprehensive examples demonstrating color extraction, theme generation, color manipulation, and advanced color schemes
+parent: Home
+nav_order: 3
+has_children: true
+keywords: php color palette examples, color extraction examples, theme generation tutorial
+---
+
 # Color Palette Examples
 
 This directory contains various examples demonstrating how to use the Color Palette PHP library.

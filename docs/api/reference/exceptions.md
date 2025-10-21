@@ -117,6 +117,6 @@ try {
 
 ## See Also
 
-- [Getting Started Guide](../getting-started.html)
-- [Color Manipulation](color-manipulation.html)
-- [Image Loading](image-loader.html) 
+- [Quick Start Guide](../../quick-start.md)
+- [Color Manipulation](color-manipulation.md)
+- [Image Loading](image-loader.md) 

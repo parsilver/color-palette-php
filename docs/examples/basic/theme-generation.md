@@ -1,3 +1,13 @@
+---
+layout: default
+title: Theme Generation
+description: Generate complete color themes from images with surface colors and text suggestions
+parent: Examples
+grand_parent: Home
+nav_order: 3
+keywords: theme generation, color themes, css themes, web color schemes
+---
+
 # Theme Generation
 
 This example demonstrates how to generate color themes from images using the Color Palette library.

@@ -1,21 +1,14 @@
-# Utilities
-
-## Navigation
-
-- [Home](../README.md)
-- [Getting Started](../getting-started.md)
-- [Core Concepts](../core-concepts.md)
-- [Examples](../examples/README.md)
-
-### API Documentation
-- [API Home](./README.md)
-- [Color Manipulation](./color-manipulation.md)
-- [Palette Generation](./palette-generation.md)
-- [Color Schemes](./color-schemes.md)
-- [Color Spaces](./color-spaces.md)
-- [Utilities](./utilities.md)
-
 ---
+layout: default
+title: Utilities
+description: Helper functions for color validation, formatting, math calculations, and accessibility checking
+parent: API Reference
+grand_parent: Home
+nav_order: 4
+keywords: color utilities, color validation, wcag compliance, color math
+---
+
+# Utilities
 
 This section covers utility functions and helper methods available in the library.
 

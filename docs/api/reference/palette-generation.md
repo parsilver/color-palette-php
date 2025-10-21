@@ -1,3 +1,13 @@
+---
+layout: default
+title: Palette Generation
+description: Generate color palettes and schemes using complementary, analogous, triadic, and monochromatic patterns
+parent: API Reference
+grand_parent: Home
+nav_order: 2
+keywords: palette generation, color schemes, complementary colors, triadic colors
+---
+
 # Palette Generation
 
 The library provides two main ways to generate color palettes:

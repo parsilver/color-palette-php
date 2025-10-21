@@ -1,20 +1,14 @@
-# Basic Color Manipulation Examples
-
-## Navigation
-
-- [Home](../../README.md)
-- [Getting Started](../../getting-started.md)
-- [Core Concepts](../../core-concepts.md)
-- [API Documentation](../../api/README.md)
-
-### Examples
-- [Examples Home](../README.md)
-- [Basic Examples](../basic/README.md)
-- [Advanced Examples](../advanced/README.md)
-- [Applications](../applications/README.md)
-- [Integration](../integration/README.md)
-
 ---
+layout: default
+title: Color Manipulation
+description: Master color manipulation techniques including lightening, darkening, saturation, and hue rotation
+parent: Examples
+grand_parent: Home
+nav_order: 4
+keywords: color manipulation, lighten darken, color saturation, hue rotation
+---
+
+# Basic Color Manipulation Examples
 
 ## Creating Colors
 

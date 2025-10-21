@@ -80,34 +80,107 @@ $surfaceColors = $palette->getSuggestedSurfaceColors();
 
 ## 📚 Documentation
 
-Our comprehensive documentation covers everything you need:
+Explore our comprehensive documentation with clear pathways to help you get started and master the library:
 
 <div class="doc-sections">
   <div class="doc-section">
-    <h3><a href="getting-started">🏁 Getting Started</a></h3>
-    <p>Quick installation and basic setup guide to get you up and running.</p>
+    <h3><a href="quick-start">⚡ Quick Start</a></h3>
+    <p>Get up and running in under 5 minutes with copy-paste ready examples.</p>
+    <ul class="doc-links">
+      <li><a href="quick-start#installation">Installation</a></li>
+      <li><a href="quick-start#extract-colors">Extract Colors</a></li>
+      <li><a href="quick-start#generate-themes">Generate Themes</a></li>
+      <li><a href="quick-start#troubleshooting">Troubleshooting</a></li>
+    </ul>
   </div>
-  
+
   <div class="doc-section">
-    <h3><a href="core-concepts">🎯 Core Concepts</a></h3>
-    <p>Deep dive into color spaces, manipulation, and best practices.</p>
+    <h3><a href="guides/installation">📦 Installation Guide</a></h3>
+    <p>Comprehensive installation instructions for all environments and platforms.</p>
+    <ul class="doc-links">
+      <li><a href="guides/installation#system-requirements">System Requirements</a></li>
+      <li><a href="guides/installation#installation-methods">Installation Methods</a></li>
+      <li><a href="guides/installation#backend-setup">Backend Setup (GD/Imagick)</a></li>
+      <li><a href="guides/installation#platform-specific-installation">Platform-Specific Setup</a></li>
+    </ul>
   </div>
-  
+
+  <div class="doc-section">
+    <h3><a href="concepts/color-spaces">🎯 Core Concepts</a></h3>
+    <p>Deep dive into color theory, spaces, and advanced manipulation techniques.</p>
+    <ul class="doc-links">
+      <li><a href="concepts/color-spaces">Color Spaces</a> - RGB, HSL, HSV, CMYK, LAB</li>
+      <li><a href="concepts/color-theory">Color Harmony & Theory</a> - Design principles</li>
+      <li><a href="concepts/accessibility">Accessibility</a> - WCAG compliance</li>
+      <li><a href="concepts/performance">Performance Optimization</a> - Best practices</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h3><a href="examples/">💡 Examples & Tutorials</a></h3>
+    <p>Searchable catalog of real-world examples organized by complexity and use case.</p>
+    <ul class="doc-links">
+      <li><a href="examples/#basic">Basic Examples</a> - Color extraction, conversions, manipulation</li>
+      <li><a href="examples/#advanced">Advanced Examples</a> - Custom implementations, integrations</li>
+      <li><a href="examples/#integration">Integration Examples</a> - Web apps, APIs, frameworks</li>
+    </ul>
+  </div>
+
   <div class="doc-section">
     <h3><a href="api/">📖 API Reference</a></h3>
-    <p>Complete API documentation with detailed examples and use cases.</p>
-  </div>
-  
-  <div class="doc-section">
-    <h3><a href="examples/">💡 Examples</a></h3>
-    <p>Real-world examples and code snippets for common scenarios.</p>
-  </div>
-  
-  <div class="doc-section">
-    <h3><a href="playground">🎮 Color Playground</a></h3>
-    <p>Interactive demo to experiment with color manipulation features.</p>
+    <p>Complete API documentation with method signatures, parameters, and return types.</p>
+    <ul class="doc-links">
+      <li><a href="api/reference/color">Color Class</a> - Core color operations</li>
+      <li><a href="api/reference/color-palette">ColorPalette</a> - Palette management</li>
+      <li><a href="api/reference/palette-generation">PaletteGenerator</a> - Theme generation</li>
+      <li><a href="api/reference/color-extractor">Color Extractors</a> - GD & Imagick</li>
+    </ul>
   </div>
 </div>
+
+## 🎯 Popular Use Cases
+
+<div class="use-cases">
+  <div class="use-case">
+    <h4>🎨 Extract Colors from Images</h4>
+    <p>Generate color palettes from uploaded images for design systems</p>
+    <a href="examples/basic/color-extraction">View Example →</a>
+  </div>
+
+  <div class="use-case">
+    <h4>🌈 Generate Color Themes</h4>
+    <p>Create harmonious color schemes for websites and applications</p>
+    <a href="examples/basic/theme-generation">View Example →</a>
+  </div>
+
+  <div class="use-case">
+    <h4>🔄 Color Space Conversions</h4>
+    <p>Convert between RGB, HSL, HSV, CMYK, and LAB color spaces</p>
+    <a href="examples/basic/color-spaces">View Example →</a>
+  </div>
+
+  <div class="use-case">
+    <h4>⚙️ Custom Color Schemes</h4>
+    <p>Build advanced custom color schemes with full control</p>
+    <a href="examples/advanced/custom-schemes">View Example →</a>
+  </div>
+</div>
+
+## 🆕 Recent Updates
+
+<div class="recent-updates">
+  <div class="update-item">
+    <strong>v2.1.0</strong> - Enhanced color harmony algorithms and improved LAB color space support
+  </div>
+  <div class="update-item">
+    <strong>v2.0.0</strong> - Major release with new theme generation features and performance improvements
+  </div>
+  <div class="update-item">
+    <strong>v1.5.0</strong> - Added CMYK and LAB color space conversions
+  </div>
+</div>
+
+<p><a href="https://github.com/parsilver/color-palette-php/releases">View All Releases →</a></p>
 
 ## 🛠 Requirements
 

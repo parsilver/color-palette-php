@@ -1,20 +1,14 @@
-# Advanced Color Schemes
-
-## Navigation
-
-- [Home](../../README.md)
-- [Getting Started](../../getting-started.md)
-- [Core Concepts](../../core-concepts.md)
-- [API Documentation](../../api/README.md)
-
-### Examples
-- [Examples Home](../README.md)
-- [Basic Examples](../basic/README.md)
-- [Advanced Examples](../advanced/README.md)
-- [Applications](../applications/README.md)
-- [Integration](../integration/README.md)
-
 ---
+layout: default
+title: Custom Color Schemes
+description: Build advanced custom color schemes with angle-based generation and golden ratio algorithms
+parent: Examples
+grand_parent: Home
+nav_order: 7
+keywords: custom color schemes, golden ratio, color algorithms, advanced palettes
+---
+
+# Advanced Color Schemes
 
 ## Custom Color Schemes
 

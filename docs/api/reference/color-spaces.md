@@ -1,21 +1,14 @@
-# Color Spaces
-
-## Navigation
-
-- [Home](../README.md)
-- [Getting Started](../getting-started.md)
-- [Core Concepts](../core-concepts.md)
-- [Examples](../examples/README.md)
-
-### API Documentation
-- [API Home](./README.md)
-- [Color Manipulation](./color-manipulation.md)
-- [Palette Generation](./palette-generation.md)
-- [Color Schemes](./color-schemes.md)
-- [Color Spaces](./color-spaces.md)
-- [Utilities](./utilities.md)
-
 ---
+layout: default
+title: Color Spaces API
+description: Complete API reference for RGB, HSL, and Hex color space conversions and component access
+parent: API Reference
+grand_parent: Home
+nav_order: 3
+keywords: color spaces, rgb hsl conversion, hex colors, color components
+---
+
+# Color Spaces
 
 This section covers the color space conversions available in the library.
 

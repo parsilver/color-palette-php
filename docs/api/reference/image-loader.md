@@ -1,3 +1,13 @@
+---
+layout: default
+title: ImageLoader
+description: API reference for loading images from files, URLs, and binary data with GD and Imagick support
+parent: API Reference
+grand_parent: Home
+nav_order: 1
+keywords: image loader, image processing, gd imagick
+---
+
 # ImageLoader Class API Reference
 
 The `ImageLoader` class is responsible for loading and preparing images for color extraction. It supports multiple image formats and sources.

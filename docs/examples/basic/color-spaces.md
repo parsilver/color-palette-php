@@ -1,3 +1,13 @@
+---
+layout: default
+title: Color Space Conversions
+description: Convert between RGB, HSL, HSV, CMYK, and LAB color spaces with practical examples
+parent: Examples
+grand_parent: Home
+nav_order: 2
+keywords: color space conversion, rgb to hsl, color format conversion
+---
+
 # Color Spaces
 
 > **⚠️ DOCUMENTATION UPDATE IN PROGRESS**
@@ -5,8 +15,8 @@
 > This page is currently being updated to reflect the actual API. Many methods documented here do not exist in the current implementation.
 >
 > For accurate information, please refer to:
-> - [Getting Started Guide](../../getting-started.md)
-> - [Core Concepts](../../core-concepts.md)
+> - [Quick Start Guide](../../quick-start.md)
+> - [Color Spaces Concepts](../../concepts/color-spaces.md)
 > - [Color Manipulation Examples](./color-manipulation.md)
 
 ## Available Color Space Conversions
@@ -56,4 +66,4 @@ $color = Color::fromLab(45, 8, -65);
 
 For information on color manipulation methods, see:
 - [Color Manipulation Examples](./color-manipulation.md)
-- [Core Concepts - Color Manipulation](../../core-concepts.md#color-manipulation)
+- [Color Theory Concepts](../../concepts/color-theory.md)
