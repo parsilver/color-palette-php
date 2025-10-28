@@ -1,9 +1,9 @@
 <?php
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__.'/../../vendor/autoload.php';
 
-use Farzai\ColorPalette\ColorPalette;
 use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\ColorPalette;
 
 // Enable CORS for local development
 header('Access-Control-Allow-Origin: *');
@@ -45,7 +45,7 @@ try {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'error' => $e->getMessage(),
     ]);
 }
 
@@ -56,7 +56,7 @@ function getUploadErrorMessage($errorCode)
 {
     switch ($errorCode) {
         case UPLOAD_ERR_INI_SIZE:
-            return 'File is too large. Maximum size allowed: ' . ini_get('upload_max_filesize');
+            return 'File is too large. Maximum size allowed: '.ini_get('upload_max_filesize');
         case UPLOAD_ERR_FORM_SIZE:
             return 'File exceeds the maximum size specified in the form';
         case UPLOAD_ERR_PARTIAL:
@@ -79,7 +79,7 @@ function getUploadErrorMessage($errorCode)
  */
 function handleExtract()
 {
-    $count = (int)($_POST['count'] ?? 5);
+    $count = (int) ($_POST['count'] ?? 5);
     $count = max(3, min(15, $count)); // Limit between 3 and 15
 
     $imagePath = null;
@@ -87,7 +87,7 @@ function handleExtract()
 
     try {
         // Check if it's a URL (from picsum.photos)
-        if (!empty($_POST['url'])) {
+        if (! empty($_POST['url'])) {
             $url = $_POST['url'];
 
             // Download the image to a temporary file
@@ -121,7 +121,7 @@ function handleExtract()
             $mimeType = finfo_file($finfo, $file['tmp_name']);
             finfo_close($finfo);
 
-            if (!in_array($mimeType, $allowedTypes)) {
+            if (! in_array($mimeType, $allowedTypes)) {
                 throw new Exception('Invalid file type. Allowed: JPEG, PNG, GIF, WebP');
             }
 
@@ -142,7 +142,7 @@ function handleExtract()
                 'hsl' => $color->toHsl(),
                 'brightness' => $color->getBrightness(),
                 'isLight' => $color->isLight(),
-                'isDark' => $color->isDark()
+                'isDark' => $color->isDark(),
             ];
         }
 
@@ -152,7 +152,7 @@ function handleExtract()
         foreach ($theme as $key => $color) {
             $themeColors[$key] = [
                 'hex' => $color->toHex(),
-                'rgb' => $color->toRgb()
+                'rgb' => $color->toRgb(),
             ];
         }
 
@@ -160,7 +160,7 @@ function handleExtract()
             'success' => true,
             'colors' => $colors,
             'theme' => $themeColors,
-            'count' => count($colors)
+            'count' => count($colors),
         ]);
 
     } finally {
@@ -180,7 +180,7 @@ function handleGenerate()
 
     $baseColor = $input['color'] ?? '';
     $scheme = $input['scheme'] ?? 'monochromatic';
-    $count = (int)($input['count'] ?? 5);
+    $count = (int) ($input['count'] ?? 5);
 
     if (empty($baseColor)) {
         throw new Exception('Base color is required');
@@ -206,14 +206,14 @@ function handleGenerate()
             'rgb' => $paletteColor->toRgb(),
             'hsl' => $paletteColor->toHsl(),
             'brightness' => $paletteColor->getBrightness(),
-            'isLight' => $paletteColor->isLight()
+            'isLight' => $paletteColor->isLight(),
         ];
     }
 
     echo json_encode([
         'success' => true,
         'scheme' => $scheme,
-        'colors' => $colors
+        'colors' => $colors,
     ]);
 }
 
@@ -226,7 +226,7 @@ function handleManipulate()
 
     $baseColor = $input['color'] ?? '';
     $operation = $input['operation'] ?? '';
-    $amount = (float)($input['amount'] ?? 0);
+    $amount = (float) ($input['amount'] ?? 0);
 
     if (empty($baseColor)) {
         throw new Exception('Base color is required');
@@ -270,15 +270,15 @@ function handleManipulate()
         'original' => [
             'hex' => $color->toHex(),
             'rgb' => $color->toRgb(),
-            'hsl' => $color->toHsl()
+            'hsl' => $color->toHsl(),
         ],
         'result' => [
             'hex' => $result->toHex(),
             'rgb' => $result->toRgb(),
             'hsl' => $result->toHsl(),
             'brightness' => $result->getBrightness(),
-            'isLight' => $result->isLight()
-        ]
+            'isLight' => $result->isLight(),
+        ],
     ]);
 }
 
@@ -322,26 +322,26 @@ function handleContrast()
         'background' => [
             'hex' => $bgColor->toHex(),
             'luminance' => round($bgColor->getLuminance(), 3),
-            'isLight' => $bgColor->isLight()
+            'isLight' => $bgColor->isLight(),
         ],
         'text' => [
             'hex' => $txtColor->toHex(),
             'luminance' => round($txtColor->getLuminance(), 3),
-            'isLight' => $txtColor->isLight()
+            'isLight' => $txtColor->isLight(),
         ],
         'wcag' => [
             'aa' => [
                 'normal' => $wcagAA,
-                'large' => $wcagAALarge
+                'large' => $wcagAALarge,
             ],
             'aaa' => [
                 'normal' => $wcagAAA,
-                'large' => $wcagAAALarge
-            ]
+                'large' => $wcagAAALarge,
+            ],
         ],
         'suggestedTextColor' => [
             'hex' => $suggestedTextColor->toHex(),
-            'rgb' => $suggestedTextColor->toRgb()
-        ]
+            'rgb' => $suggestedTextColor->toRgb(),
+        ],
     ]);
 }
