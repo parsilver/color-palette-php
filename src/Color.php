@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
+use Farzai\ColorPalette\Constants\AccessibilityConstants;
+use Farzai\ColorPalette\Constants\ColorSpaceConstants;
+use Farzai\ColorPalette\Constants\ValidationConstants;
 use Farzai\ColorPalette\Contracts\ColorInterface;
 use InvalidArgumentException;
 
@@ -17,9 +20,9 @@ class Color implements ColorInterface
 
     public function __construct(int $red, int $green, int $blue)
     {
-        $this->validateRed($red);
-        $this->validateGreen($green);
-        $this->validateBlue($blue);
+        $this->validateColorComponent($red, 'red');
+        $this->validateColorComponent($green, 'green');
+        $this->validateColorComponent($blue, 'blue');
 
         $this->red = $red;
         $this->green = $green;
@@ -41,24 +44,21 @@ class Color implements ColorInterface
         return $this->blue;
     }
 
-    private function validateRed(int $value): void
+    /**
+     * Validate a color component value
+     *
+     * @param  int  $value  The color component value to validate
+     * @param  string  $component  The name of the component (red, green, or blue)
+     *
+     * @throws InvalidArgumentException If the value is not in the valid range (0-255)
+     */
+    private function validateColorComponent(int $value, string $component): void
     {
-        if ($value < 0 || $value > 255) {
-            throw new InvalidArgumentException('Invalid red color component. Must be between 0 and 255');
-        }
-    }
-
-    private function validateGreen(int $value): void
-    {
-        if ($value < 0 || $value > 255) {
-            throw new InvalidArgumentException('Invalid green color component. Must be between 0 and 255');
-        }
-    }
-
-    private function validateBlue(int $value): void
-    {
-        if ($value < 0 || $value > 255) {
-            throw new InvalidArgumentException('Invalid blue color component. Must be between 0 and 255');
+        if ($value < ValidationConstants::MIN_RGB_VALUE || $value > ValidationConstants::MAX_RGB_VALUE) {
+            throw new InvalidArgumentException(
+                "Invalid {$component} color component. Must be between ".
+                ValidationConstants::MIN_RGB_VALUE.' and '.ValidationConstants::MAX_RGB_VALUE.", got {$value}"
+            );
         }
     }
 
@@ -69,20 +69,44 @@ class Color implements ColorInterface
             throw new InvalidArgumentException('Invalid hex color format');
         }
 
-        $red = hexdec(substr($hex, 0, 2));
-        $green = hexdec(substr($hex, 2, 2));
-        $blue = hexdec(substr($hex, 4, 2));
+        $red = (int) hexdec(substr($hex, 0, 2));
+        $green = (int) hexdec(substr($hex, 2, 2));
+        $blue = (int) hexdec(substr($hex, 4, 2));
 
         return new self($red, $green, $blue);
     }
 
+    /**
+     * Create a Color instance from an RGB array
+     *
+     * @param  array<string|int, int|float>  $rgb  Array with 'r', 'g', 'b' keys or numeric indices
+     *
+     * @throws InvalidArgumentException If array format is invalid
+     */
     public static function fromRgb(array $rgb): self
     {
-        $red = $rgb['r'] ?? $rgb[0] ?? 0;
-        $green = $rgb['g'] ?? $rgb[1] ?? 0;
-        $blue = $rgb['b'] ?? $rgb[2] ?? 0;
+        // Check for string keys (r, g, b)
+        if (isset($rgb['r'], $rgb['g'], $rgb['b'])) {
+            return new self(
+                (int) $rgb['r'],
+                (int) $rgb['g'],
+                (int) $rgb['b']
+            );
+        }
 
-        return new self($red, $green, $blue);
+        // Check for numeric keys (0, 1, 2)
+        if (isset($rgb[0], $rgb[1], $rgb[2])) {
+            return new self(
+                (int) $rgb[0],
+                (int) $rgb[1],
+                (int) $rgb[2]
+            );
+        }
+
+        throw new InvalidArgumentException(
+            'RGB array must have either string keys (r, g, b) or numeric keys (0, 1, 2). '.
+            'Got keys: '.implode(', ', array_keys($rgb))
+        );
     }
 
     public static function fromHsl(float $hue, float $saturation, float $lightness): self
@@ -92,7 +116,7 @@ class Color implements ColorInterface
         $s = $saturation / 100;
         $l = $lightness / 100;
 
-        if ($s === 0) {
+        if (abs($s) < 0.0001) {
             $r = $g = $b = (int) round($l * 255);
 
             return new self($r, $g, $b);
@@ -138,6 +162,11 @@ class Color implements ColorInterface
         return sprintf('#%02x%02x%02x', $this->red, $this->green, $this->blue);
     }
 
+    /**
+     * Convert color to RGB array
+     *
+     * @return array{r: int, g: int, b: int}
+     */
     public function toRgb(): array
     {
         return [
@@ -147,6 +176,11 @@ class Color implements ColorInterface
         ];
     }
 
+    /**
+     * Convert color to HSL array
+     *
+     * @return array{h: int, s: int, l: int}
+     */
     public function toHsl(): array
     {
         $r = $this->red / 255;
@@ -157,7 +191,7 @@ class Color implements ColorInterface
         $min = min($r, $g, $b);
         $h = $s = $l = ($max + $min) / 2;
 
-        if ($max === $min) {
+        if (abs($max - $min) < ValidationConstants::FLOAT_EPSILON) {
             $h = $s = 0;
         } else {
             $d = $max - $min;
@@ -190,12 +224,14 @@ class Color implements ColorInterface
 
     public function getBrightness(): float
     {
-        return (($this->red * 299) + ($this->green * 587) + ($this->blue * 114)) / 1000;
+        return (($this->red * AccessibilityConstants::BRIGHTNESS_RED_COEFFICIENT) +
+                ($this->green * AccessibilityConstants::BRIGHTNESS_GREEN_COEFFICIENT) +
+                ($this->blue * AccessibilityConstants::BRIGHTNESS_BLUE_COEFFICIENT)) / AccessibilityConstants::BRIGHTNESS_DIVISOR;
     }
 
     public function isLight(): bool
     {
-        return $this->getBrightness() > 128;
+        return $this->getBrightness() > AccessibilityConstants::BRIGHTNESS_THRESHOLD;
     }
 
     public function isDark(): bool
@@ -205,8 +241,8 @@ class Color implements ColorInterface
 
     public function getContrastRatio(ColorInterface $color): float
     {
-        $l1 = $this->getLuminance() + 0.05;
-        $l2 = $color->getLuminance() + 0.05;
+        $l1 = $this->getLuminance() + AccessibilityConstants::CONTRAST_LUMINANCE_OFFSET;
+        $l2 = $color->getLuminance() + AccessibilityConstants::CONTRAST_LUMINANCE_OFFSET;
 
         return $l1 > $l2 ? $l1 / $l2 : $l2 / $l1;
     }
@@ -215,14 +251,17 @@ class Color implements ColorInterface
     {
         $rgb = [$this->red, $this->green, $this->blue];
         $rgb = array_map(function ($value) {
-            $value = $value / 255;
+            $value = $value / ValidationConstants::MAX_RGB_VALUE;
 
-            return $value <= 0.03928
-                ? $value / 12.92
-                : pow(($value + 0.055) / 1.055, 2.4);
+            return $value <= AccessibilityConstants::LUMINANCE_GAMMA_THRESHOLD
+                ? $value / AccessibilityConstants::LUMINANCE_GAMMA_DIVISOR
+                : pow(($value + AccessibilityConstants::LUMINANCE_GAMMA_OFFSET) / AccessibilityConstants::LUMINANCE_GAMMA_MULTIPLIER,
+                    AccessibilityConstants::LUMINANCE_GAMMA_POWER);
         }, $rgb);
 
-        return $rgb[0] * 0.2126 + $rgb[1] * 0.7152 + $rgb[2] * 0.0722;
+        return $rgb[0] * AccessibilityConstants::LUMINANCE_RED_COEFFICIENT +
+               $rgb[1] * AccessibilityConstants::LUMINANCE_GREEN_COEFFICIENT +
+               $rgb[2] * AccessibilityConstants::LUMINANCE_BLUE_COEFFICIENT;
     }
 
     public function lighten(float $amount): self
@@ -272,6 +311,11 @@ class Color implements ColorInterface
         return self::fromHsl($hsl['h'], $hsl['s'], $lightness * 100);
     }
 
+    /**
+     * Convert color to HSV array
+     *
+     * @return array{h: int, s: int, v: int}
+     */
     public function toHsv(): array
     {
         $r = $this->red / 255;
@@ -282,9 +326,9 @@ class Color implements ColorInterface
         $min = min($r, $g, $b);
         $v = $max;
         $d = $max - $min;
-        $s = $max === 0 ? 0 : $d / $max;
+        $s = abs($max) < 0.0001 ? 0 : $d / $max;
 
-        if ($max === $min) {
+        if (abs($max - $min) < 0.0001) {
             $h = 0;
         } else {
             switch ($max) {
@@ -327,7 +371,7 @@ class Color implements ColorInterface
         $s = $saturation / 100;
         $v = $value / 100;
 
-        if ($s === 0) {
+        if (abs($s) < 0.0001) {
             $val = (int) round($v * 255);
 
             return new self($val, $val, $val);
@@ -382,6 +426,11 @@ class Color implements ColorInterface
         );
     }
 
+    /**
+     * Convert color to CMYK array
+     *
+     * @return array{c: int, m: int, y: int, k: int}
+     */
     public function toCmyk(): array
     {
         $r = $this->red / 255;
@@ -390,7 +439,7 @@ class Color implements ColorInterface
 
         $k = 1 - max($r, $g, $b);
 
-        if ($k === 1) {
+        if (abs($k - 1) < ValidationConstants::FLOAT_EPSILON) {
             return [
                 'c' => 0,
                 'm' => 0,
@@ -437,6 +486,11 @@ class Color implements ColorInterface
         );
     }
 
+    /**
+     * Convert color to LAB array
+     *
+     * @return array{l: int, a: int, b: int}
+     */
     public function toLab(): array
     {
         // First convert RGB to XYZ
@@ -445,26 +499,32 @@ class Color implements ColorInterface
         $b = $this->blue / 255;
 
         // Convert RGB to linear RGB (remove gamma correction)
-        $r = ($r > 0.04045) ? pow(($r + 0.055) / 1.055, 2.4) : $r / 12.92;
-        $g = ($g > 0.04045) ? pow(($g + 0.055) / 1.055, 2.4) : $g / 12.92;
-        $b = ($b > 0.04045) ? pow(($b + 0.055) / 1.055, 2.4) : $b / 12.92;
+        $r = ($r > ColorSpaceConstants::SRGB_GAMMA_THRESHOLD)
+            ? pow(($r + ColorSpaceConstants::SRGB_GAMMA_OFFSET) / ColorSpaceConstants::SRGB_GAMMA_MULTIPLIER, ColorSpaceConstants::SRGB_GAMMA_POWER)
+            : $r / ColorSpaceConstants::SRGB_GAMMA_LINEAR_DIVISOR;
+        $g = ($g > ColorSpaceConstants::SRGB_GAMMA_THRESHOLD)
+            ? pow(($g + ColorSpaceConstants::SRGB_GAMMA_OFFSET) / ColorSpaceConstants::SRGB_GAMMA_MULTIPLIER, ColorSpaceConstants::SRGB_GAMMA_POWER)
+            : $g / ColorSpaceConstants::SRGB_GAMMA_LINEAR_DIVISOR;
+        $b = ($b > ColorSpaceConstants::SRGB_GAMMA_THRESHOLD)
+            ? pow(($b + ColorSpaceConstants::SRGB_GAMMA_OFFSET) / ColorSpaceConstants::SRGB_GAMMA_MULTIPLIER, ColorSpaceConstants::SRGB_GAMMA_POWER)
+            : $b / ColorSpaceConstants::SRGB_GAMMA_LINEAR_DIVISOR;
 
         // Convert to XYZ using more accurate matrix
-        $x = $r * 0.4124564390896921 + $g * 0.357576077643909 + $b * 0.18043748326639894;
-        $y = $r * 0.21267285140562253 + $g * 0.715152155287818 + $b * 0.07217499330655958;
-        $z = $r * 0.019333895582329317 + $g * 0.119192025881303 + $b * 0.9503040785363677;
+        $x = $r * ColorSpaceConstants::RGB_TO_XYZ_RED_X + $g * ColorSpaceConstants::RGB_TO_XYZ_GREEN_X + $b * ColorSpaceConstants::RGB_TO_XYZ_BLUE_X;
+        $y = $r * ColorSpaceConstants::RGB_TO_XYZ_RED_Y + $g * ColorSpaceConstants::RGB_TO_XYZ_GREEN_Y + $b * ColorSpaceConstants::RGB_TO_XYZ_BLUE_Y;
+        $z = $r * ColorSpaceConstants::RGB_TO_XYZ_RED_Z + $g * ColorSpaceConstants::RGB_TO_XYZ_GREEN_Z + $b * ColorSpaceConstants::RGB_TO_XYZ_BLUE_Z;
 
         // Convert XYZ to Lab using D65 illuminant
-        $x = $x / 0.95047;
-        $y = $y / 1.00000;
-        $z = $z / 1.08883;
+        $x = $x / ColorSpaceConstants::D65_WHITE_X;
+        $y = $y / ColorSpaceConstants::D65_WHITE_Y;
+        $z = $z / ColorSpaceConstants::D65_WHITE_Z;
 
-        $x = ($x > 0.008856) ? pow($x, 1 / 3) : (903.3 * $x + 16) / 116;
-        $y = ($y > 0.008856) ? pow($y, 1 / 3) : (903.3 * $y + 16) / 116;
-        $z = ($z > 0.008856) ? pow($z, 1 / 3) : (903.3 * $z + 16) / 116;
+        $x = ($x > ColorSpaceConstants::LAB_EPSILON) ? pow($x, 1 / 3) : (ColorSpaceConstants::LAB_KAPPA * $x + ColorSpaceConstants::LAB_OFFSET) / ColorSpaceConstants::LAB_MULTIPLIER;
+        $y = ($y > ColorSpaceConstants::LAB_EPSILON) ? pow($y, 1 / 3) : (ColorSpaceConstants::LAB_KAPPA * $y + ColorSpaceConstants::LAB_OFFSET) / ColorSpaceConstants::LAB_MULTIPLIER;
+        $z = ($z > ColorSpaceConstants::LAB_EPSILON) ? pow($z, 1 / 3) : (ColorSpaceConstants::LAB_KAPPA * $z + ColorSpaceConstants::LAB_OFFSET) / ColorSpaceConstants::LAB_MULTIPLIER;
 
         return [
-            'l' => (int) round((116 * $y) - 16),
+            'l' => (int) round((ColorSpaceConstants::LAB_MULTIPLIER * $y) - ColorSpaceConstants::LAB_OFFSET),
             'a' => (int) round(500 * ($x - $y)),
             'b' => (int) round(200 * ($y - $z)),
         ];
@@ -473,18 +533,24 @@ class Color implements ColorInterface
     public static function fromLab(float $lightness, float $a, float $b): self
     {
         // Validate LAB values
-        if ($lightness < 0 || $lightness > 100) {
-            throw new InvalidArgumentException('Lightness must be between 0 and 100');
+        if ($lightness < ValidationConstants::LAB_L_MIN || $lightness > ValidationConstants::LAB_L_MAX) {
+            throw new InvalidArgumentException(
+                'Lightness must be between '.ValidationConstants::LAB_L_MIN.' and '.ValidationConstants::LAB_L_MAX
+            );
         }
-        if ($a < -128 || $a > 127) {
-            throw new InvalidArgumentException('A value must be between -128 and 127');
+        if ($a < ValidationConstants::LAB_A_MIN || $a > ValidationConstants::LAB_A_MAX) {
+            throw new InvalidArgumentException(
+                'A value must be between '.ValidationConstants::LAB_A_MIN.' and '.ValidationConstants::LAB_A_MAX
+            );
         }
-        if ($b < -128 || $b > 127) {
-            throw new InvalidArgumentException('B value must be between -128 and 127');
+        if ($b < ValidationConstants::LAB_B_MIN || $b > ValidationConstants::LAB_B_MAX) {
+            throw new InvalidArgumentException(
+                'B value must be between '.ValidationConstants::LAB_B_MIN.' and '.ValidationConstants::LAB_B_MAX
+            );
         }
 
         // Convert Lab to XYZ
-        $y = ($lightness + 16) / 116;
+        $y = ($lightness + ColorSpaceConstants::LAB_OFFSET) / ColorSpaceConstants::LAB_MULTIPLIER;
         $x = $a / 500 + $y;
         $z = $y - $b / 200;
 
@@ -493,30 +559,36 @@ class Color implements ColorInterface
         $y3 = pow($y, 3);
         $z3 = pow($z, 3);
 
-        $x = ($x3 > 0.008856) ? $x3 : ($x - 16 / 116) / 7.787037;
-        $y = ($y3 > 0.008856) ? $y3 : ($y - 16 / 116) / 7.787037;
-        $z = ($z3 > 0.008856) ? $z3 : ($z - 16 / 116) / 7.787037;
+        $x = ($x3 > ColorSpaceConstants::LAB_EPSILON) ? $x3 : ($x - ColorSpaceConstants::LAB_OFFSET / ColorSpaceConstants::LAB_MULTIPLIER) / ColorSpaceConstants::LAB_INVERSE_KAPPA;
+        $y = ($y3 > ColorSpaceConstants::LAB_EPSILON) ? $y3 : ($y - ColorSpaceConstants::LAB_OFFSET / ColorSpaceConstants::LAB_MULTIPLIER) / ColorSpaceConstants::LAB_INVERSE_KAPPA;
+        $z = ($z3 > ColorSpaceConstants::LAB_EPSILON) ? $z3 : ($z - ColorSpaceConstants::LAB_OFFSET / ColorSpaceConstants::LAB_MULTIPLIER) / ColorSpaceConstants::LAB_INVERSE_KAPPA;
 
         // Scale XYZ values using D65 illuminant
-        $x = $x * 0.95047;
-        $y = $y * 1.00000;
-        $z = $z * 1.08883;
+        $x = $x * ColorSpaceConstants::D65_WHITE_X;
+        $y = $y * ColorSpaceConstants::D65_WHITE_Y;
+        $z = $z * ColorSpaceConstants::D65_WHITE_Z;
 
         // Convert XYZ to RGB using more accurate matrix
-        $r = $x * 3.2404542361916533 - $y * 1.5371385127253989 - $z * 0.4985314095560161;
-        $g = -$x * 0.969266030505187 + $y * 1.8760108454795392 + $z * 0.04155601753034983;
-        $b = $x * 0.05564343095911469 - $y * 0.2040259135167538 + $z * 1.0572251882231791;
+        $r = $x * ColorSpaceConstants::XYZ_TO_RGB_X_RED + $y * ColorSpaceConstants::XYZ_TO_RGB_Y_RED + $z * ColorSpaceConstants::XYZ_TO_RGB_Z_RED;
+        $g = $x * ColorSpaceConstants::XYZ_TO_RGB_X_GREEN + $y * ColorSpaceConstants::XYZ_TO_RGB_Y_GREEN + $z * ColorSpaceConstants::XYZ_TO_RGB_Z_GREEN;
+        $b = $x * ColorSpaceConstants::XYZ_TO_RGB_X_BLUE + $y * ColorSpaceConstants::XYZ_TO_RGB_Y_BLUE + $z * ColorSpaceConstants::XYZ_TO_RGB_Z_BLUE;
 
         // Convert linear RGB to sRGB
-        $r = ($r > 0.0031308) ? (1.055 * pow($r, 1 / 2.4) - 0.055) : 12.92 * $r;
-        $g = ($g > 0.0031308) ? (1.055 * pow($g, 1 / 2.4) - 0.055) : 12.92 * $g;
-        $b = ($b > 0.0031308) ? (1.055 * pow($b, 1 / 2.4) - 0.055) : 12.92 * $b;
+        $r = ($r > ColorSpaceConstants::SRGB_INVERSE_GAMMA_THRESHOLD)
+            ? (ColorSpaceConstants::SRGB_GAMMA_MULTIPLIER * pow($r, 1 / ColorSpaceConstants::SRGB_GAMMA_POWER) - ColorSpaceConstants::SRGB_GAMMA_OFFSET)
+            : ColorSpaceConstants::SRGB_GAMMA_LINEAR_DIVISOR * $r;
+        $g = ($g > ColorSpaceConstants::SRGB_INVERSE_GAMMA_THRESHOLD)
+            ? (ColorSpaceConstants::SRGB_GAMMA_MULTIPLIER * pow($g, 1 / ColorSpaceConstants::SRGB_GAMMA_POWER) - ColorSpaceConstants::SRGB_GAMMA_OFFSET)
+            : ColorSpaceConstants::SRGB_GAMMA_LINEAR_DIVISOR * $g;
+        $b = ($b > ColorSpaceConstants::SRGB_INVERSE_GAMMA_THRESHOLD)
+            ? (ColorSpaceConstants::SRGB_GAMMA_MULTIPLIER * pow($b, 1 / ColorSpaceConstants::SRGB_GAMMA_POWER) - ColorSpaceConstants::SRGB_GAMMA_OFFSET)
+            : ColorSpaceConstants::SRGB_GAMMA_LINEAR_DIVISOR * $b;
 
         // Clip values and convert to 8-bit integers
         return new self(
-            (int) round(max(0, min(1, $r)) * 255),
-            (int) round(max(0, min(1, $g)) * 255),
-            (int) round(max(0, min(1, $b)) * 255)
+            (int) round(max(0, min(1, $r)) * ValidationConstants::MAX_RGB_VALUE),
+            (int) round(max(0, min(1, $g)) * ValidationConstants::MAX_RGB_VALUE),
+            (int) round(max(0, min(1, $b)) * ValidationConstants::MAX_RGB_VALUE)
         );
     }
 }

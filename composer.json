@@ -25,6 +25,7 @@
         "laravel/pint": "^1.0",
         "mockery/mockery": "^1.6",
         "pestphp/pest": "^2.20",
+        "phpstan/phpstan": "^2.0",
         "spatie/ray": "^1.28"
     },
     "autoload": {
@@ -40,7 +41,8 @@
     "scripts": {
         "test": "php -d memory_limit=512M vendor/bin/pest",
         "test-coverage": "vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint"
+        "format": "vendor/bin/pint",
+        "analyse": "php -d memory_limit=512M vendor/bin/phpstan analyse"
     },
     "config": {
         "sort-packages": true,

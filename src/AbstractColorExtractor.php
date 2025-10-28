@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
+use Farzai\ColorPalette\Constants\AccessibilityConstants;
 use Farzai\ColorPalette\Contracts\ColorExtractorInterface;
 use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 use Farzai\ColorPalette\Contracts\ImageInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Abstract base class for color extractors
@@ -25,8 +28,25 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
      */
     protected int $seed = 42;
 
+    protected LoggerInterface $logger;
+
+    public function __construct(?LoggerInterface $logger = null)
+    {
+        $this->logger = $logger ?? new NullLogger;
+    }
+
     /**
-     * {@inheritdoc}
+     * Extract dominant colors from an image
+     *
+     * Extracts the specified number of dominant colors from an image using k-means clustering.
+     * If extraction fails or no colors pass the filtering criteria, returns a fallback
+     * grayscale palette with the requested number of colors.
+     *
+     * @param  ImageInterface  $image  The image to extract colors from
+     * @param  int  $count  Number of colors to extract (default: 5, minimum: 1)
+     * @return ColorPaletteInterface A palette containing exactly $count colors
+     *
+     * @throws \InvalidArgumentException If count is less than 1
      */
     public function extract(ImageInterface $image, int $count = 5): ColorPaletteInterface
     {
@@ -44,13 +64,7 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
 
             // If no colors were extracted, return a default palette
             if (empty($colors)) {
-                return new ColorPalette([
-                    new Color(255, 255, 255), // White
-                    new Color(200, 200, 200), // Light gray
-                    new Color(150, 150, 150), // Medium gray
-                    new Color(100, 100, 100), // Dark gray
-                    new Color(50, 50, 50),    // Very dark gray
-                ]);
+                return $this->createDefaultGrayscalePalette($count);
             }
 
             // Cluster similar colors
@@ -66,18 +80,57 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
                 $dominantColors
             ));
         } catch (\Throwable $e) {
-            // Log the error (you should implement proper logging)
-            error_log('Error extracting colors: '.$e->getMessage());
+            // Log the error using PSR-3 logger
+            $this->logger->error('Error extracting colors from image', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             // Return a fallback palette
-            return new ColorPalette([
-                new Color(255, 255, 255), // White
-                new Color(200, 200, 200), // Light gray
-                new Color(150, 150, 150), // Medium gray
-                new Color(100, 100, 100), // Dark gray
-                new Color(50, 50, 50),    // Very dark gray
-            ]);
+            return $this->createDefaultGrayscalePalette($count);
         }
+    }
+
+    /**
+     * Create a default grayscale palette for fallback purposes
+     *
+     * Generates a palette of grayscale colors evenly distributed from white to dark gray.
+     * This method is called when color extraction fails or returns no usable colors.
+     *
+     * @param  int  $count  Number of colors to generate (must be >= 1)
+     * @return ColorPalette A palette containing the specified number of grayscale colors
+     *
+     * @throws \InvalidArgumentException If count is less than 1
+     */
+    private function createDefaultGrayscalePalette(int $count): ColorPalette
+    {
+        if ($count < 1) {
+            throw new \InvalidArgumentException('Count must be at least 1');
+        }
+
+        // Define the grayscale range: from white (255) to dark gray (30)
+        $maxValue = 255;
+        $minValue = 30;
+
+        $colors = [];
+
+        if ($count === 1) {
+            // For a single color, return a medium gray
+            $grayValue = (int) round(($maxValue + $minValue) / 2);
+            $colors[] = new Color($grayValue, $grayValue, $grayValue);
+        } else {
+            // For multiple colors, distribute evenly across the grayscale spectrum
+            $step = ($maxValue - $minValue) / ($count - 1);
+
+            for ($i = 0; $i < $count; $i++) {
+                $grayValue = (int) round($maxValue - ($step * $i));
+                // Ensure value stays within valid range
+                $grayValue = max($minValue, min($maxValue, $grayValue));
+                $colors[] = new Color($grayValue, $grayValue, $grayValue);
+            }
+        }
+
+        return new ColorPalette($colors);
     }
 
     /**
@@ -102,9 +155,9 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
 
         // Filter colors
         $filteredColors = array_filter($colors, function ($color) {
-            // Ensure RGB values are valid
-            if (! isset($color['r'], $color['g'], $color['b']) ||
-                ! is_numeric($color['r']) || ! is_numeric($color['g']) || ! is_numeric($color['b'])) {
+            // Check if color has required RGB keys
+            // @phpstan-ignore-next-line - Validation needed for defensive programming even if type suggests keys always exist
+            if (! is_array($color) || ! array_key_exists('r', $color) || ! array_key_exists('g', $color) || ! array_key_exists('b', $color)) {
                 return false;
             }
 
@@ -290,8 +343,14 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
         usort($colors, function ($a, $b) {
             // Calculate perceived brightness using standard luminance formula
             // This provides consistent ordering based on how bright humans perceive colors
-            $luminanceA = 0.299 * $a['r'] + 0.587 * $a['g'] + 0.114 * $a['b'];
-            $luminanceB = 0.299 * $b['r'] + 0.587 * $b['g'] + 0.114 * $b['b'];
+            $luminanceA = (AccessibilityConstants::BRIGHTNESS_RED_COEFFICIENT * $a['r'] +
+                          AccessibilityConstants::BRIGHTNESS_GREEN_COEFFICIENT * $a['g'] +
+                          AccessibilityConstants::BRIGHTNESS_BLUE_COEFFICIENT * $a['b']) /
+                          AccessibilityConstants::BRIGHTNESS_DIVISOR;
+            $luminanceB = (AccessibilityConstants::BRIGHTNESS_RED_COEFFICIENT * $b['r'] +
+                          AccessibilityConstants::BRIGHTNESS_GREEN_COEFFICIENT * $b['g'] +
+                          AccessibilityConstants::BRIGHTNESS_BLUE_COEFFICIENT * $b['b']) /
+                          AccessibilityConstants::BRIGHTNESS_DIVISOR;
 
             // Sort by luminance descending (brightest first)
             $diff = $luminanceB - $luminanceA;
@@ -317,38 +376,6 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
      */
     protected function rgbToHsb(int $r, int $g, int $b): array
     {
-        // Normalize RGB values to 0-1 range
-        $r = $r / 255;
-        $g = $g / 255;
-        $b = $b / 255;
-
-        $max = max($r, $g, $b);
-        $min = min($r, $g, $b);
-        $delta = $max - $min;
-
-        // Initialize HSB values
-        $h = 0;
-        $s = ($max == 0) ? 0 : ($delta / $max); // Saturation
-        $v = $max; // Brightness
-
-        // Calculate hue only if delta is not zero (use epsilon for float comparison)
-        if ($delta > 0.000001) {
-            if ($max == $r) {
-                $h = 60 * (($g - $b) / $delta + ($g < $b ? 6 : 0));
-            } elseif ($max == $g) {
-                $h = 60 * (($b - $r) / $delta + 2);
-            } elseif ($max == $b) {
-                $h = 60 * (($r - $g) / $delta + 4);
-            }
-        }
-
-        // Ensure hue is in the range [0, 360]
-        $h = max(0, min(360, $h));
-
-        return [
-            'h' => $h,
-            's' => $s,
-            'b' => $v,
-        ];
+        return ColorSpaceConverter::rgbToHsb($r, $g, $b);
     }
 }
