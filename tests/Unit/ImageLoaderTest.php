@@ -54,6 +54,11 @@ test('it can load image from url', function () {
         ->with('GET', 'https://example.com/image.jpg')
         ->andReturn($request);
 
+    // Support withHeader() method chaining
+    $request->shouldReceive('withHeader')
+        ->with('User-Agent', Mockery::any())
+        ->andReturnSelf();
+
     $httpClient->shouldReceive('sendRequest')
         ->with($request)
         ->andReturn($response);
@@ -61,11 +66,24 @@ test('it can load image from url', function () {
     $response->shouldReceive('getStatusCode')
         ->andReturn(200);
 
+    $response->shouldReceive('hasHeader')
+        ->with('Content-Length')
+        ->andReturn(false);
+
+    $response->shouldReceive('hasHeader')
+        ->with('Content-Type')
+        ->andReturn(false);
+
     $response->shouldReceive('getBody')
         ->andReturn($stream);
 
-    $stream->shouldReceive('getContents')
-        ->andReturn(file_get_contents(__DIR__.'/../../example/assets/sample.jpg'));
+    $imageContent = file_get_contents(__DIR__.'/../../example/assets/sample.jpg');
+    $stream->shouldReceive('eof')
+        ->andReturn(false, true);
+
+    $stream->shouldReceive('read')
+        ->with(8192)
+        ->andReturn($imageContent);
 
     $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
     $image = $loader->load('https://example.com/image.jpg');
@@ -101,7 +119,7 @@ test('it throws exception when loading invalid image url', function () {
 
     // URL validation catches unresolvable hostname before HTTP request
     expect(fn () => $loader->load('https://invalid-url/image.jpg'))
-        ->toThrow(InvalidImageException::class, 'Failed to resolve hostname');
+        ->toThrow(Farzai\ColorPalette\Exceptions\SsrfException::class, 'Failed to resolve hostname');
 });
 
 describe('ImageLoader supports() method', function () {
@@ -176,6 +194,10 @@ describe('ImageLoader HTTP error handling', function () {
             ->with('GET', 'https://example.com/error.jpg')
             ->andReturn($request);
 
+        $request->shouldReceive('withHeader')
+            ->with('User-Agent', Mockery::any())
+            ->andReturnSelf();
+
         $httpClient->shouldReceive('sendRequest')
             ->with($request)
             ->andReturn($response);
@@ -186,7 +208,7 @@ describe('ImageLoader HTTP error handling', function () {
         $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
 
         expect(fn () => $loader->load('https://example.com/error.jpg'))
-            ->toThrow(InvalidImageException::class, 'Failed to download image. Status code: 500');
+            ->toThrow(Farzai\ColorPalette\Exceptions\HttpException::class, 'HTTP status code: 500');
     });
 
     test('it throws exception for 403 forbidden', function () {
@@ -205,6 +227,10 @@ describe('ImageLoader HTTP error handling', function () {
             ->with('GET', 'https://example.com/forbidden.jpg')
             ->andReturn($request);
 
+        $request->shouldReceive('withHeader')
+            ->with('User-Agent', Mockery::any())
+            ->andReturnSelf();
+
         $httpClient->shouldReceive('sendRequest')
             ->with($request)
             ->andReturn($response);
@@ -215,7 +241,7 @@ describe('ImageLoader HTTP error handling', function () {
         $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
 
         expect(fn () => $loader->load('https://example.com/forbidden.jpg'))
-            ->toThrow(InvalidImageException::class, 'Failed to download image. Status code: 403');
+            ->toThrow(Farzai\ColorPalette\Exceptions\HttpException::class, 'HTTP status code: 403');
     });
 });
 
@@ -279,21 +305,26 @@ describe('ImageLoader edge cases', function () {
         }
     });
 
-    test('it wraps URL loading exceptions in InvalidImageException', function () {
+    test('it wraps URL loading exceptions in HttpException', function () {
         /** @var ClientInterface $httpClient */
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
         /** @var StreamFactoryInterface $streamFactory */
         $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+        /** @var RequestInterface $request */
+        $request = Mockery::mock(RequestInterface::class);
 
         $requestFactory->shouldReceive('createRequest')
+            ->andReturn($request);
+
+        $request->shouldReceive('withHeader')
             ->andThrow(new \Exception('Network error'));
 
         $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
 
         expect(fn () => $loader->load('https://example.com/image.jpg'))
-            ->toThrow(InvalidImageException::class, 'Failed to load image from URL');
+            ->toThrow(Farzai\ColorPalette\Exceptions\HttpException::class, 'Failed to load image from URL');
     });
 
     test('it cleans up temporary files on destruction', function () {
@@ -315,10 +346,15 @@ describe('ImageLoader edge cases', function () {
         $stream = Mockery::mock(StreamInterface::class);
 
         $requestFactory->shouldReceive('createRequest')->andReturn($request);
+        $request->shouldReceive('withHeader')->andReturnSelf();
         $httpClient->shouldReceive('sendRequest')->andReturn($response);
         $response->shouldReceive('getStatusCode')->andReturn(200);
+        $response->shouldReceive('hasHeader')->andReturn(false);
         $response->shouldReceive('getBody')->andReturn($stream);
-        $stream->shouldReceive('getContents')->andReturn(file_get_contents(__DIR__.'/../../example/assets/sample.jpg'));
+
+        $imageContent = file_get_contents(__DIR__.'/../../example/assets/sample.jpg');
+        $stream->shouldReceive('eof')->andReturn(false, true);
+        $stream->shouldReceive('read')->with(8192)->andReturn($imageContent);
 
         $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
         $loader->load('https://example.com/test.jpg');
