@@ -36,7 +36,17 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Extract dominant colors from an image
+     *
+     * Extracts the specified number of dominant colors from an image using k-means clustering.
+     * If extraction fails or no colors pass the filtering criteria, returns a fallback
+     * grayscale palette with the requested number of colors.
+     *
+     * @param  ImageInterface  $image  The image to extract colors from
+     * @param  int  $count  Number of colors to extract (default: 5, minimum: 1)
+     * @return ColorPaletteInterface A palette containing exactly $count colors
+     *
+     * @throws \InvalidArgumentException If count is less than 1
      */
     public function extract(ImageInterface $image, int $count = 5): ColorPaletteInterface
     {
@@ -54,7 +64,7 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
 
             // If no colors were extracted, return a default palette
             if (empty($colors)) {
-                return $this->createDefaultGrayscalePalette();
+                return $this->createDefaultGrayscalePalette($count);
             }
 
             // Cluster similar colors
@@ -77,22 +87,50 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             ]);
 
             // Return a fallback palette
-            return $this->createDefaultGrayscalePalette();
+            return $this->createDefaultGrayscalePalette($count);
         }
     }
 
     /**
      * Create a default grayscale palette for fallback purposes
+     *
+     * Generates a palette of grayscale colors evenly distributed from white to dark gray.
+     * This method is called when color extraction fails or returns no usable colors.
+     *
+     * @param  int  $count  Number of colors to generate (must be >= 1)
+     * @return ColorPalette A palette containing the specified number of grayscale colors
+     *
+     * @throws \InvalidArgumentException If count is less than 1
      */
-    private function createDefaultGrayscalePalette(): ColorPalette
+    private function createDefaultGrayscalePalette(int $count): ColorPalette
     {
-        return new ColorPalette([
-            new Color(255, 255, 255), // White
-            new Color(200, 200, 200), // Light gray
-            new Color(150, 150, 150), // Medium gray
-            new Color(100, 100, 100), // Dark gray
-            new Color(50, 50, 50),    // Very dark gray
-        ]);
+        if ($count < 1) {
+            throw new \InvalidArgumentException('Count must be at least 1');
+        }
+
+        // Define the grayscale range: from white (255) to dark gray (30)
+        $maxValue = 255;
+        $minValue = 30;
+
+        $colors = [];
+
+        if ($count === 1) {
+            // For a single color, return a medium gray
+            $grayValue = (int) round(($maxValue + $minValue) / 2);
+            $colors[] = new Color($grayValue, $grayValue, $grayValue);
+        } else {
+            // For multiple colors, distribute evenly across the grayscale spectrum
+            $step = ($maxValue - $minValue) / ($count - 1);
+
+            for ($i = 0; $i < $count; $i++) {
+                $grayValue = (int) round($maxValue - ($step * $i));
+                // Ensure value stays within valid range
+                $grayValue = max($minValue, min($maxValue, $grayValue));
+                $colors[] = new Color($grayValue, $grayValue, $grayValue);
+            }
+        }
+
+        return new ColorPalette($colors);
     }
 
     /**
