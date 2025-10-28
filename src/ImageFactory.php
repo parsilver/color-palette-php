@@ -15,6 +15,27 @@ class ImageFactory
 {
     public function __construct(private readonly ?ExtensionChecker $extensionChecker = null) {}
 
+    /**
+     * Static convenience method to create an image from a file path
+     *
+     * This is a shorthand for: (new ImageFactory())->createFromPath($path, $driver)
+     *
+     * @param  string  $path  Path to the image file
+     * @param  string  $driver  Image processing driver: 'gd' or 'imagick' (default: 'gd')
+     *
+     * @throws InvalidArgumentException If the file doesn't exist or driver is invalid
+     *
+     * @example
+     * ```php
+     * $image = ImageFactory::fromPath('photo.jpg');
+     * $image = ImageFactory::fromPath('photo.jpg', 'imagick');
+     * ```
+     */
+    public static function fromPath(string $path, string $driver = 'gd'): ImageInterface
+    {
+        return (new self)->createFromPath($path, $driver);
+    }
+
     public function createFromPath(string $path, string $driver = 'gd'): ImageInterface
     {
         return match ($driver) {

@@ -24,6 +24,57 @@ class ColorExtractorFactory
     }
 
     /**
+     * Create the default color extractor (GD)
+     *
+     * This is a convenience method equivalent to: (new ColorExtractorFactory())->make('gd')
+     *
+     *
+     * @example
+     * ```php
+     * $extractor = ColorExtractorFactory::default();
+     * $palette = $extractor->extract($image, 5);
+     * ```
+     */
+    public static function default(): AbstractColorExtractor
+    {
+        return (new self)->make('gd');
+    }
+
+    /**
+     * Create a GD color extractor
+     *
+     * This is a convenience method equivalent to: (new ColorExtractorFactory())->make('gd')
+     *
+     *
+     * @example
+     * ```php
+     * $extractor = ColorExtractorFactory::gd();
+     * $palette = $extractor->extract($image, 5);
+     * ```
+     */
+    public static function gd(): AbstractColorExtractor
+    {
+        return (new self)->make('gd');
+    }
+
+    /**
+     * Create an Imagick color extractor
+     *
+     * This is a convenience method equivalent to: (new ColorExtractorFactory())->make('imagick')
+     *
+     *
+     * @example
+     * ```php
+     * $extractor = ColorExtractorFactory::imagick();
+     * $palette = $extractor->extract($image, 5);
+     * ```
+     */
+    public static function imagick(): AbstractColorExtractor
+    {
+        return (new self)->make('imagick');
+    }
+
+    /**
      * Create a new color extractor instance
      *
      * @throws InvalidArgumentException If an unsupported driver is specified

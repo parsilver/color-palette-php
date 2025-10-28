@@ -160,3 +160,49 @@ describe('ImageFactory Edge Cases', function () {
         }
     });
 });
+
+describe('ImageFactory Static Factory Methods', function () {
+    test('it can create image using static fromPath method', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        $image = ImageFactory::fromPath($this->testImagePath);
+
+        expect($image)->toBeInstanceOf(GdImage::class);
+    });
+
+    test('it can specify driver in static fromPath method', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        $image = ImageFactory::fromPath($this->testImagePath, 'gd');
+
+        expect($image)->toBeInstanceOf(GdImage::class);
+    });
+
+    test('it creates imagick image with static method when specified', function () {
+        if (! extension_loaded('imagick')) {
+            $this->markTestSkipped('Imagick extension is not available.');
+        }
+
+        $image = ImageFactory::fromPath($this->testImagePath, 'imagick');
+
+        expect($image)->toBeInstanceOf(ImagickImage::class);
+    });
+
+    test('it throws exception for non-existent file with static method', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        expect(fn () => ImageFactory::fromPath('/non/existent/path.png'))
+            ->toThrow(InvalidArgumentException::class);
+    });
+
+    test('it throws exception for unsupported driver with static method', function () {
+        expect(fn () => ImageFactory::fromPath($this->testImagePath, 'invalid'))
+            ->toThrow(InvalidArgumentException::class, 'Unsupported driver');
+    });
+});
