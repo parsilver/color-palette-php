@@ -7,6 +7,7 @@ use Farzai\ColorPalette\Images\ImagickImage;
 beforeEach(function () {
     // Create a simple test image
     $this->testImagePath = __DIR__.'/../test-image.png';
+    $this->factory = new ImageFactory;
 
     if (! file_exists($this->testImagePath)) {
         if (extension_loaded('gd')) {
@@ -32,7 +33,7 @@ describe('ImageFactory GD Driver', function () {
             $this->markTestSkipped('GD extension is not available.');
         }
 
-        $image = ImageFactory::createFromPath($this->testImagePath, 'gd');
+        $image = $this->factory->createFromPath($this->testImagePath, 'gd');
 
         expect($image)->toBeInstanceOf(GdImage::class);
     });
@@ -42,7 +43,7 @@ describe('ImageFactory GD Driver', function () {
             $this->markTestSkipped('GD extension is not available.');
         }
 
-        $image = ImageFactory::createFromPath($this->testImagePath);
+        $image = $this->factory->createFromPath($this->testImagePath);
 
         expect($image)->toBeInstanceOf(GdImage::class);
     });
@@ -52,7 +53,7 @@ describe('ImageFactory GD Driver', function () {
             $this->markTestSkipped('This test requires GD to not be loaded.');
         }
 
-        expect(fn () => ImageFactory::createFromPath($this->testImagePath, 'gd'))
+        expect(fn () => $this->factory->createFromPath($this->testImagePath, 'gd'))
             ->toThrow(RuntimeException::class, 'GD extension is not available');
     });
 
@@ -65,7 +66,7 @@ describe('ImageFactory GD Driver', function () {
         file_put_contents($invalidPath, 'not an image');
 
         try {
-            expect(fn () => ImageFactory::createFromPath($invalidPath, 'gd'))
+            expect(fn () => $this->factory->createFromPath($invalidPath, 'gd'))
                 ->toThrow(InvalidArgumentException::class);
         } finally {
             @unlink($invalidPath);
@@ -77,7 +78,7 @@ describe('ImageFactory GD Driver', function () {
             $this->markTestSkipped('GD extension is not available.');
         }
 
-        expect(fn () => ImageFactory::createFromPath('/non/existent/path.png', 'gd'))
+        expect(fn () => $this->factory->createFromPath('/non/existent/path.png', 'gd'))
             ->toThrow(InvalidArgumentException::class, 'Image file not found');
     });
 });
@@ -88,7 +89,7 @@ describe('ImageFactory Imagick Driver', function () {
             $this->markTestSkipped('Imagick extension is not available.');
         }
 
-        $image = ImageFactory::createFromPath($this->testImagePath, 'imagick');
+        $image = $this->factory->createFromPath($this->testImagePath, 'imagick');
 
         expect($image)->toBeInstanceOf(ImagickImage::class);
     });
@@ -98,7 +99,7 @@ describe('ImageFactory Imagick Driver', function () {
             $this->markTestSkipped('This test requires Imagick to not be loaded.');
         }
 
-        expect(fn () => ImageFactory::createFromPath($this->testImagePath, 'imagick'))
+        expect(fn () => $this->factory->createFromPath($this->testImagePath, 'imagick'))
             ->toThrow(RuntimeException::class, 'Imagick extension is not available');
     });
 
@@ -111,7 +112,7 @@ describe('ImageFactory Imagick Driver', function () {
         file_put_contents($invalidPath, 'not an image');
 
         try {
-            expect(fn () => ImageFactory::createFromPath($invalidPath, 'imagick'))
+            expect(fn () => $this->factory->createFromPath($invalidPath, 'imagick'))
                 ->toThrow(InvalidArgumentException::class);
         } finally {
             @unlink($invalidPath);
@@ -121,12 +122,12 @@ describe('ImageFactory Imagick Driver', function () {
 
 describe('ImageFactory Driver Selection', function () {
     test('it throws exception for unsupported driver', function () {
-        expect(fn () => ImageFactory::createFromPath($this->testImagePath, 'invalid'))
+        expect(fn () => $this->factory->createFromPath($this->testImagePath, 'invalid'))
             ->toThrow(InvalidArgumentException::class, 'Unsupported driver: invalid');
     });
 
     test('it throws exception for unknown driver', function () {
-        expect(fn () => ImageFactory::createFromPath($this->testImagePath, 'webp'))
+        expect(fn () => $this->factory->createFromPath($this->testImagePath, 'webp'))
             ->toThrow(InvalidArgumentException::class, 'Unsupported driver');
     });
 });
@@ -151,7 +152,7 @@ describe('ImageFactory Edge Cases', function () {
                 call_user_func($info[2], $img, $testPath);
                 imagedestroy($img);
 
-                $image = ImageFactory::createFromPath($testPath, 'gd');
+                $image = $this->factory->createFromPath($testPath, 'gd');
                 expect($image)->toBeInstanceOf(GdImage::class);
 
                 @unlink($testPath);

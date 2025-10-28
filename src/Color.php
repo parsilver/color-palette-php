@@ -9,6 +9,28 @@ use InvalidArgumentException;
 
 class Color implements ColorInterface
 {
+    // Color component constraints
+    private const MIN_COMPONENT_VALUE = 0;
+
+    private const MAX_COMPONENT_VALUE = 255;
+
+    // Brightness threshold for determining if a color is light or dark
+    private const BRIGHTNESS_THRESHOLD = 128;
+
+    // D65 illuminant reference white values for LAB color space conversion
+    private const D65_WHITE_X = 0.95047;
+
+    private const D65_WHITE_Y = 1.00000;
+
+    private const D65_WHITE_Z = 1.08883;
+
+    // Luminance coefficients for relative luminance calculation (ITU-R BT.709)
+    private const LUMINANCE_RED_COEFFICIENT = 0.2126;
+
+    private const LUMINANCE_GREEN_COEFFICIENT = 0.7152;
+
+    private const LUMINANCE_BLUE_COEFFICIENT = 0.0722;
+
     private int $red;
 
     private int $green;
@@ -17,9 +39,9 @@ class Color implements ColorInterface
 
     public function __construct(int $red, int $green, int $blue)
     {
-        $this->validateRed($red);
-        $this->validateGreen($green);
-        $this->validateBlue($blue);
+        $this->validateColorComponent($red, 'red');
+        $this->validateColorComponent($green, 'green');
+        $this->validateColorComponent($blue, 'blue');
 
         $this->red = $red;
         $this->green = $green;
@@ -41,24 +63,21 @@ class Color implements ColorInterface
         return $this->blue;
     }
 
-    private function validateRed(int $value): void
+    /**
+     * Validate a color component value
+     *
+     * @param  int  $value  The color component value to validate
+     * @param  string  $component  The name of the component (red, green, or blue)
+     *
+     * @throws InvalidArgumentException If the value is not in the valid range (0-255)
+     */
+    private function validateColorComponent(int $value, string $component): void
     {
-        if ($value < 0 || $value > 255) {
-            throw new InvalidArgumentException('Invalid red color component. Must be between 0 and 255');
-        }
-    }
-
-    private function validateGreen(int $value): void
-    {
-        if ($value < 0 || $value > 255) {
-            throw new InvalidArgumentException('Invalid green color component. Must be between 0 and 255');
-        }
-    }
-
-    private function validateBlue(int $value): void
-    {
-        if ($value < 0 || $value > 255) {
-            throw new InvalidArgumentException('Invalid blue color component. Must be between 0 and 255');
+        if ($value < self::MIN_COMPONENT_VALUE || $value > self::MAX_COMPONENT_VALUE) {
+            throw new InvalidArgumentException(
+                "Invalid {$component} color component. Must be between ".
+                self::MIN_COMPONENT_VALUE.' and '.self::MAX_COMPONENT_VALUE.", got {$value}"
+            );
         }
     }
 
@@ -195,7 +214,7 @@ class Color implements ColorInterface
 
     public function isLight(): bool
     {
-        return $this->getBrightness() > 128;
+        return $this->getBrightness() > self::BRIGHTNESS_THRESHOLD;
     }
 
     public function isDark(): bool
@@ -215,14 +234,16 @@ class Color implements ColorInterface
     {
         $rgb = [$this->red, $this->green, $this->blue];
         $rgb = array_map(function ($value) {
-            $value = $value / 255;
+            $value = $value / self::MAX_COMPONENT_VALUE;
 
             return $value <= 0.03928
                 ? $value / 12.92
                 : pow(($value + 0.055) / 1.055, 2.4);
         }, $rgb);
 
-        return $rgb[0] * 0.2126 + $rgb[1] * 0.7152 + $rgb[2] * 0.0722;
+        return $rgb[0] * self::LUMINANCE_RED_COEFFICIENT +
+               $rgb[1] * self::LUMINANCE_GREEN_COEFFICIENT +
+               $rgb[2] * self::LUMINANCE_BLUE_COEFFICIENT;
     }
 
     public function lighten(float $amount): self
@@ -455,9 +476,9 @@ class Color implements ColorInterface
         $z = $r * 0.019333895582329317 + $g * 0.119192025881303 + $b * 0.9503040785363677;
 
         // Convert XYZ to Lab using D65 illuminant
-        $x = $x / 0.95047;
-        $y = $y / 1.00000;
-        $z = $z / 1.08883;
+        $x = $x / self::D65_WHITE_X;
+        $y = $y / self::D65_WHITE_Y;
+        $z = $z / self::D65_WHITE_Z;
 
         $x = ($x > 0.008856) ? pow($x, 1 / 3) : (903.3 * $x + 16) / 116;
         $y = ($y > 0.008856) ? pow($y, 1 / 3) : (903.3 * $y + 16) / 116;
@@ -498,9 +519,9 @@ class Color implements ColorInterface
         $z = ($z3 > 0.008856) ? $z3 : ($z - 16 / 116) / 7.787037;
 
         // Scale XYZ values using D65 illuminant
-        $x = $x * 0.95047;
-        $y = $y * 1.00000;
-        $z = $z * 1.08883;
+        $x = $x * self::D65_WHITE_X;
+        $y = $y * self::D65_WHITE_Y;
+        $z = $z * self::D65_WHITE_Z;
 
         // Convert XYZ to RGB using more accurate matrix
         $r = $x * 3.2404542361916533 - $y * 1.5371385127253989 - $z * 0.4985314095560161;

@@ -7,6 +7,8 @@ namespace Farzai\ColorPalette;
 use Farzai\ColorPalette\Contracts\ColorExtractorInterface;
 use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 use Farzai\ColorPalette\Contracts\ImageInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Abstract base class for color extractors
@@ -24,6 +26,13 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
      * Using a fixed seed ensures idempotent color extraction
      */
     protected int $seed = 42;
+
+    protected LoggerInterface $logger;
+
+    public function __construct(?LoggerInterface $logger = null)
+    {
+        $this->logger = $logger ?? new NullLogger;
+    }
 
     /**
      * {@inheritdoc}
@@ -44,13 +53,7 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
 
             // If no colors were extracted, return a default palette
             if (empty($colors)) {
-                return new ColorPalette([
-                    new Color(255, 255, 255), // White
-                    new Color(200, 200, 200), // Light gray
-                    new Color(150, 150, 150), // Medium gray
-                    new Color(100, 100, 100), // Dark gray
-                    new Color(50, 50, 50),    // Very dark gray
-                ]);
+                return $this->createDefaultGrayscalePalette();
             }
 
             // Cluster similar colors
@@ -66,18 +69,29 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
                 $dominantColors
             ));
         } catch (\Throwable $e) {
-            // Log the error (you should implement proper logging)
-            error_log('Error extracting colors: '.$e->getMessage());
+            // Log the error using PSR-3 logger
+            $this->logger->error('Error extracting colors from image', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             // Return a fallback palette
-            return new ColorPalette([
-                new Color(255, 255, 255), // White
-                new Color(200, 200, 200), // Light gray
-                new Color(150, 150, 150), // Medium gray
-                new Color(100, 100, 100), // Dark gray
-                new Color(50, 50, 50),    // Very dark gray
-            ]);
+            return $this->createDefaultGrayscalePalette();
         }
+    }
+
+    /**
+     * Create a default grayscale palette for fallback purposes
+     */
+    private function createDefaultGrayscalePalette(): ColorPalette
+    {
+        return new ColorPalette([
+            new Color(255, 255, 255), // White
+            new Color(200, 200, 200), // Light gray
+            new Color(150, 150, 150), // Medium gray
+            new Color(100, 100, 100), // Dark gray
+            new Color(50, 50, 50),    // Very dark gray
+        ]);
     }
 
     /**

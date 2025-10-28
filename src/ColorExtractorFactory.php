@@ -4,16 +4,29 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
+use Farzai\ColorPalette\Services\ExtensionChecker;
 use InvalidArgumentException;
-use RuntimeException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class ColorExtractorFactory
 {
+    private LoggerInterface $logger;
+
+    private ExtensionChecker $extensionChecker;
+
+    public function __construct(
+        ?LoggerInterface $logger = null,
+        ?ExtensionChecker $extensionChecker = null
+    ) {
+        $this->logger = $logger ?? new NullLogger;
+        $this->extensionChecker = $extensionChecker ?? new ExtensionChecker;
+    }
+
     /**
      * Create a new color extractor instance
      *
      * @throws InvalidArgumentException If an unsupported driver is specified
-     * @throws RuntimeException If the required PHP extension is not available
      */
     public function make(string $driver = 'gd'): AbstractColorExtractor
     {
@@ -26,29 +39,21 @@ class ColorExtractorFactory
 
     /**
      * Create GD color extractor
-     *
-     * @throws RuntimeException If GD extension is not available
      */
     private function createGdExtractor(): GdColorExtractor
     {
-        if (! extension_loaded('gd')) {
-            throw new RuntimeException('GD extension is not available. Please install or enable the GD extension.');
-        }
+        $this->extensionChecker->ensureGdLoaded();
 
-        return new GdColorExtractor;
+        return new GdColorExtractor($this->logger);
     }
 
     /**
      * Create Imagick color extractor
-     *
-     * @throws RuntimeException If Imagick extension is not available
      */
     private function createImagickExtractor(): ImagickColorExtractor
     {
-        if (! extension_loaded('imagick')) {
-            throw new RuntimeException('Imagick extension is not available. Please install or enable the Imagick extension.');
-        }
+        $this->extensionChecker->ensureImagickLoaded();
 
-        return new ImagickColorExtractor;
+        return new ImagickColorExtractor($this->logger);
     }
 }

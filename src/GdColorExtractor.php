@@ -12,8 +12,16 @@ class GdColorExtractor extends AbstractColorExtractor
 {
     protected function extractColors(ImageInterface $image): array
     {
-        if (! ($image instanceof GdImage)) {
-            throw new InvalidArgumentException('GdColorExtractor requires GdImage instance');
+        /**
+         * Note: This extractor is designed to work with GdImage instances.
+         * The type check has been removed to reduce coupling, but proper
+         * image/extractor pairing should be ensured by the factory.
+         */
+        if (! method_exists($image, 'getResource')) {
+            throw new InvalidArgumentException(
+                'Image must provide getResource() method. '.
+                'GdColorExtractor works with GdImage instances.'
+            );
         }
 
         $gdImage = $image->getResource();

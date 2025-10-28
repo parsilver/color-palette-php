@@ -6,6 +6,7 @@ namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Exceptions\InvalidImageException;
+use Farzai\ColorPalette\Services\ExtensionChecker;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -16,13 +17,18 @@ class ImageLoader
 
     private array $tempFiles = [];
 
+    private ExtensionChecker $extensionChecker;
+
     public function __construct(
         private readonly ClientInterface $httpClient,
         private readonly RequestFactoryInterface $requestFactory,
         private readonly StreamFactoryInterface $streamFactory,
+        private readonly ?ImageFactory $imageFactory = null,
+        ?ExtensionChecker $extensionChecker = null,
         ?string $preferredDriver = null
     ) {
-        $this->preferredDriver = $preferredDriver ?? $this->detectPreferredDriver();
+        $this->extensionChecker = $extensionChecker ?? new ExtensionChecker;
+        $this->preferredDriver = $preferredDriver ?? $this->extensionChecker->detectPreferredDriver();
     }
 
     public function load(string $source): ImageInterface
@@ -59,7 +65,9 @@ class ImageLoader
         }
 
         try {
-            return ImageFactory::createFromPath($path, $this->preferredDriver);
+            $factory = $this->imageFactory ?? new ImageFactory;
+
+            return $factory->createFromPath($path, $this->preferredDriver);
         } catch (\Exception $e) {
             throw new InvalidImageException("Failed to load image from path: {$path}", 0, $e);
         }
@@ -78,7 +86,9 @@ class ImageLoader
             $tempFile = $this->createTempFile();
             file_put_contents($tempFile, $response->getBody()->getContents());
 
-            return ImageFactory::createFromPath($tempFile, $this->preferredDriver);
+            $factory = $this->imageFactory ?? new ImageFactory;
+
+            return $factory->createFromPath($tempFile, $this->preferredDriver);
         } catch (\Exception $e) {
             if ($e instanceof InvalidImageException) {
                 throw $e;
@@ -93,23 +103,6 @@ class ImageLoader
         $this->tempFiles[] = $tempFile;
 
         return $tempFile;
-    }
-
-    private function detectPreferredDriver(): string
-    {
-        if (extension_loaded('imagick')) {
-            return 'imagick';
-        }
-
-        if (extension_loaded('gd')) {
-            return 'gd';
-        }
-
-        throw new \RuntimeException(
-            'No supported image processing extension found. '.
-            'Please install either GD (recommended) or Imagick extension. '.
-            'For installation instructions, visit: https://www.php.net/manual/en/book.image.php'
-        );
     }
 
     public function __destruct()

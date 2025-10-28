@@ -11,10 +11,18 @@ use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 
 class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable
 {
+    private const COLOR_WHITE = [255, 255, 255];
+
+    private const COLOR_BLACK = [0, 0, 0];
+
     /**
      * @var array<string|int, ColorInterface>
      */
     private array $colors;
+
+    private static ?Color $whiteColor = null;
+
+    private static ?Color $blackColor = null;
 
     /**
      * @param  array<string|int, ColorInterface>  $colors
@@ -22,6 +30,30 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable
     public function __construct(array $colors)
     {
         $this->colors = $colors;
+    }
+
+    /**
+     * Get white color instance (singleton for performance)
+     */
+    private static function getWhiteColor(): Color
+    {
+        if (self::$whiteColor === null) {
+            self::$whiteColor = new Color(...self::COLOR_WHITE);
+        }
+
+        return self::$whiteColor;
+    }
+
+    /**
+     * Get black color instance (singleton for performance)
+     */
+    private static function getBlackColor(): Color
+    {
+        if (self::$blackColor === null) {
+            self::$blackColor = new Color(...self::COLOR_BLACK);
+        }
+
+        return self::$blackColor;
     }
 
     /**
@@ -80,8 +112,8 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable
 
     public function getSuggestedTextColor(ColorInterface $backgroundColor): ColorInterface
     {
-        $lightColor = new Color(255, 255, 255); // White
-        $darkColor = new Color(0, 0, 0);        // Black
+        $lightColor = self::getWhiteColor();
+        $darkColor = self::getBlackColor();
 
         $lightContrast = $backgroundColor->getContrastRatio($lightColor);
         $darkContrast = $backgroundColor->getContrastRatio($darkColor);
@@ -116,9 +148,12 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable
      */
     private function findAccentColor(array $colors): ColorInterface
     {
+        $whiteColor = self::getWhiteColor();
+        $blackColor = self::getBlackColor();
+
         foreach ($colors as $color) {
-            $lightContrast = $color->getContrastRatio(new Color(255, 255, 255));
-            $darkContrast = $color->getContrastRatio(new Color(0, 0, 0));
+            $lightContrast = $color->getContrastRatio($whiteColor);
+            $darkContrast = $color->getContrastRatio($blackColor);
 
             if ($lightContrast >= 3.0 && $darkContrast >= 3.0) {
                 return $color;

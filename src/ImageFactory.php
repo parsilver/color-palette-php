@@ -7,25 +7,25 @@ namespace Farzai\ColorPalette;
 use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Images\GdImage;
 use Farzai\ColorPalette\Images\ImagickImage;
+use Farzai\ColorPalette\Services\ExtensionChecker;
 use InvalidArgumentException;
-use RuntimeException;
 
 class ImageFactory
 {
-    public static function createFromPath(string $path, string $driver = 'gd'): ImageInterface
+    public function __construct(private readonly ?ExtensionChecker $extensionChecker = null) {}
+
+    public function createFromPath(string $path, string $driver = 'gd'): ImageInterface
     {
         return match ($driver) {
-            'gd' => self::createGdImage($path),
-            'imagick' => self::createImagickImage($path),
+            'gd' => $this->createGdImage($path),
+            'imagick' => $this->createImagickImage($path),
             default => throw new InvalidArgumentException("Unsupported driver: {$driver}"),
         };
     }
 
-    private static function createGdImage(string $path): GdImage
+    private function createGdImage(string $path): GdImage
     {
-        if (! extension_loaded('gd')) {
-            throw new RuntimeException('GD extension is not available. Please install or enable the GD extension.');
-        }
+        $this->getExtensionChecker()->ensureGdLoaded();
 
         if (! file_exists($path)) {
             throw new InvalidArgumentException("Image file not found: {$path}");
@@ -36,27 +36,27 @@ class ImageFactory
             throw new InvalidArgumentException("Failed to read image file: {$path}");
         }
 
-        // Suppress all errors and warnings from imagecreatefromstring
-        set_error_handler(function () {});
-        $image = imagecreatefromstring($imageData);
-        restore_error_handler();
+        // Attempt to create image from string, suppressing PHP warnings
+        // imagecreatefromstring() returns false on failure and may emit warnings
+        $image = @imagecreatefromstring($imageData);
 
         if ($image === false) {
-            throw new InvalidArgumentException("Failed to create GD image from file: {$path}. The file may not be a valid image.");
+            throw new InvalidArgumentException(
+                "Failed to create GD image from file: {$path}. ".
+                'The file may not be a valid image format supported by GD. '.
+                'Supported formats: JPEG, PNG, GIF, BMP, WBMP, WebP, XBM, XPM.'
+            );
         }
 
         return new GdImage($image);
     }
 
     /**
-     * @throws RuntimeException
      * @throws InvalidArgumentException
      */
-    private static function createImagickImage(string $path): ImagickImage
+    private function createImagickImage(string $path): ImagickImage
     {
-        if (! extension_loaded('imagick')) {
-            throw new RuntimeException('Imagick extension is not available. Please install or enable the Imagick extension.');
-        }
+        $this->getExtensionChecker()->ensureImagickLoaded();
 
         try {
             /** @var \Imagick $image */
@@ -66,5 +66,15 @@ class ImageFactory
         } catch (\ImagickException $e) {
             throw new InvalidArgumentException("Failed to create Imagick image from file: {$path}. ".$e->getMessage(), 0, $e);
         }
+    }
+
+    /**
+     * Get the extension checker instance
+     *
+     * Creates a default instance if not injected (for backwards compatibility)
+     */
+    private function getExtensionChecker(): ExtensionChecker
+    {
+        return $this->extensionChecker ?? new ExtensionChecker;
     }
 }

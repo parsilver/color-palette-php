@@ -246,7 +246,7 @@ describe('ImageLoader driver detection', function () {
             $this->markTestSkipped('GD extension is required for this test.');
         }
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory, 'gd');
+        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory, null, null, 'gd');
         $image = $loader->load(__DIR__.'/../../example/assets/sample.jpg');
 
         expect($image)->toBeObject();
