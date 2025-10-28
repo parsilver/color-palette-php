@@ -4,7 +4,6 @@ use Farzai\ColorPalette\Config\HttpClientConfig;
 use Farzai\ColorPalette\Exceptions\HttpException;
 use Farzai\ColorPalette\Exceptions\SsrfException;
 use Farzai\ColorPalette\ImageLoader;
-use Mockery;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;

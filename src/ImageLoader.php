@@ -241,7 +241,14 @@ class ImageLoader
         // Get DNS records for both IPv4 (A) and IPv6 (AAAA)
         $records = @dns_get_record($host, DNS_A + DNS_AAAA);
 
-        if ($records === false) {
+        if ($records === false || empty($records)) {
+            // Fallback to gethostbyname for systems where dns_get_record doesn't work
+            // (e.g., Windows with localhost in hosts file)
+            $ipv4 = @gethostbyname($host);
+            if ($ipv4 !== $host && filter_var($ipv4, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                return [$ipv4];
+            }
+
             return [];
         }
 
