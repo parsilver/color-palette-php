@@ -267,22 +267,24 @@ function ImageExtractor() {
             {/* Left Column - Upload */}
             <div className="space-y-4">
                 <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                    <div className="p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold">Upload Image</h2>
-                            <span className="text-xs text-muted-foreground">Max 10MB</span>
+                    <div className="p-4 space-y-3">
+                        {/* Header with Color Count Slider */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-4">
+                                <h2 className="text-lg font-semibold whitespace-nowrap">Upload Image</h2>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <span className="text-xs text-muted-foreground whitespace-nowrap">Colors: {colorCount}</span>
+                                    <input
+                                        type="range"
+                                        min="3"
+                                        max="15"
+                                        value={colorCount}
+                                        onChange={(e) => setColorCount(parseInt(e.target.value))}
+                                        className="flex-1 h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                                    />
+                                </div>
+                            </div>
                         </div>
-
-                        {/* Random Image Button */}
-                        <button
-                            onClick={loadRandomImage}
-                            className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                        >
-                            <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Random Demo Image
-                        </button>
 
                         {/* Drag & Drop Zone */}
                         <div
@@ -290,15 +292,15 @@ function ImageExtractor() {
                             onDragLeave={() => setDragOver(false)}
                             onDrop={handleDrop}
                             onClick={() => fileInputRef.current.click()}
-                            className={`upload-zone border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
+                            className={`upload-zone border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all ${
                                 dragOver ? 'drag-over' : 'border-border hover:border-muted-foreground/50'
                             }`}
                         >
-                            <svg className="mx-auto h-10 w-10 text-muted-foreground mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="mx-auto h-8 w-8 text-muted-foreground mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
-                            <p className="text-sm font-medium mb-1">Click to upload or drag and drop</p>
-                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF, WebP</p>
+                            <p className="text-sm font-medium mb-0.5">Click to upload or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF, WebP (Max 10MB)</p>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -315,40 +317,35 @@ function ImageExtractor() {
                             </div>
                         )}
 
-                        {/* Color Count Slider */}
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium">Color Count</label>
-                                <span className="text-sm text-muted-foreground">{colorCount}</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="3"
-                                max="15"
-                                value={colorCount}
-                                onChange={(e) => setColorCount(parseInt(e.target.value))}
-                                className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
-                            />
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={loadRandomImage}
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                            >
+                                <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Random Demo
+                            </button>
+                            <button
+                                onClick={handleExtract}
+                                disabled={!image || loading}
+                                className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                            >
+                                {loading ? (
+                                    <>
+                                        <svg className="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Extracting...
+                                    </>
+                                ) : (
+                                    'Extract Colors'
+                                )}
+                            </button>
                         </div>
-
-                        {/* Extract Button */}
-                        <button
-                            onClick={handleExtract}
-                            disabled={!image || loading}
-                            className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
-                        >
-                            {loading ? (
-                                <>
-                                    <svg className="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Extracting...
-                                </>
-                            ) : (
-                                'Extract Colors'
-                            )}
-                        </button>
                     </div>
                 </div>
             </div>
@@ -357,59 +354,256 @@ function ImageExtractor() {
             <div className="space-y-4">
                 {colors.length > 0 && (
                     <>
-                        {/* Extracted Colors */}
-                        <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-semibold">Colors ({colors.length})</h2>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={exportAsJSON}
-                                            className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                                        >
-                                            JSON
-                                        </button>
-                                        <button
-                                            onClick={exportAsCSS}
-                                            className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                                        >
-                                            CSS
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                    {colors.map((color, index) => (
-                                        <ColorSwatch key={index} color={color} onClick={() => copyToClipboard(color.hex)} />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Theme Colors */}
-                        {theme && (
+                        {/* Colors and Theme Colors - Side by Side */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {/* Extracted Colors */}
                             <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
                                 <div className="p-6">
-                                    <h2 className="text-lg font-semibold mb-4">Theme Colors</h2>
-                                    <div className="space-y-3">
-                                        {Object.entries(theme).map(([key, value]) => (
-                                            <div key={key} className="flex items-center gap-3 group">
-                                                <div
-                                                    className="w-12 h-12 rounded-md shadow-sm cursor-pointer color-swatch border border-border"
-                                                    style={{ backgroundColor: value.hex }}
-                                                    onClick={() => copyToClipboard(value.hex)}
-                                                ></div>
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-medium capitalize">{key.replace('_', ' ')}</p>
-                                                    <p className="text-xs text-muted-foreground font-mono">{value.hex}</p>
-                                                </div>
-                                            </div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="text-lg font-semibold">Colors ({colors.length})</h2>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={exportAsJSON}
+                                                className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                                            >
+                                                JSON
+                                            </button>
+                                            <button
+                                                onClick={exportAsCSS}
+                                                className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                                            >
+                                                CSS
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        {colors.map((color, index) => (
+                                            <ColorSwatch key={index} color={color} onClick={() => copyToClipboard(color.hex)} />
                                         ))}
                                     </div>
                                 </div>
                             </div>
-                        )}
+
+                            {/* Theme Colors */}
+                            {theme && (
+                                <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+                                    <div className="p-6">
+                                        <h2 className="text-lg font-semibold mb-4">Theme Colors</h2>
+                                        <div className="space-y-3">
+                                            {Object.entries(theme).map(([key, value]) => (
+                                                <div key={key} className="flex items-center gap-3 group">
+                                                    <div
+                                                        className="w-12 h-12 rounded-md shadow-sm cursor-pointer color-swatch border border-border"
+                                                        style={{ backgroundColor: value.hex }}
+                                                        onClick={() => copyToClipboard(value.hex)}
+                                                    ></div>
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium capitalize">{key.replace('_', ' ')}</p>
+                                                        <p className="text-xs text-muted-foreground font-mono">{value.hex}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Component Examples */}
+                        <ComponentShowcase colors={colors} />
                     </>
                 )}
+            </div>
+        </div>
+    );
+}
+
+// Component Showcase - demonstrates colors in UI components
+function ComponentShowcase({ colors }) {
+    if (!colors || colors.length === 0) return null;
+
+    // Helper to determine if we should use white or black text based on background
+    const getTextColor = (hex) => {
+        // Simple luminance calculation
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance > 0.5 ? '#000000' : '#ffffff';
+    };
+
+    return (
+        <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+            <div className="p-6 space-y-6">
+                <div>
+                    <h2 className="text-lg font-semibold mb-1">Component Examples</h2>
+                    <p className="text-sm text-muted-foreground">See your colors in action</p>
+                </div>
+
+                {/* Buttons Section */}
+                <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">Buttons</h3>
+                    <div className="flex flex-wrap gap-3">
+                        {/* Primary Button */}
+                        {colors[0] && (
+                            <button
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 transition-all hover:opacity-90"
+                                style={{
+                                    backgroundColor: colors[0].hex,
+                                    color: getTextColor(colors[0].hex)
+                                }}
+                            >
+                                Primary Button
+                            </button>
+                        )}
+
+                        {/* Secondary Button */}
+                        {colors[1] && (
+                            <button
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 transition-all hover:opacity-90"
+                                style={{
+                                    backgroundColor: colors[1].hex,
+                                    color: getTextColor(colors[1].hex)
+                                }}
+                            >
+                                Secondary Button
+                            </button>
+                        )}
+
+                        {/* Outline Button */}
+                        {colors[2] && (
+                            <button
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-background transition-all hover:opacity-80"
+                                style={{
+                                    borderWidth: '2px',
+                                    borderColor: colors[2].hex,
+                                    color: colors[2].hex
+                                }}
+                            >
+                                Outline Button
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Cards Section */}
+                <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">Cards</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {/* Card with colored header */}
+                        {colors[0] && (
+                            <div className="rounded-lg border border-border overflow-hidden bg-background">
+                                <div
+                                    className="p-4"
+                                    style={{
+                                        backgroundColor: colors[0].hex,
+                                        color: getTextColor(colors[0].hex)
+                                    }}
+                                >
+                                    <h4 className="font-semibold">Featured Card</h4>
+                                </div>
+                                <div className="p-4">
+                                    <p className="text-sm text-muted-foreground">Card with colored header using your first color.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Card with accent border */}
+                        {colors[1] && (
+                            <div
+                                className="rounded-lg border-l-4 p-4 bg-background"
+                                style={{
+                                    borderLeftColor: colors[1].hex,
+                                    borderTop: '1px solid hsl(var(--border))',
+                                    borderRight: '1px solid hsl(var(--border))',
+                                    borderBottom: '1px solid hsl(var(--border))'
+                                }}
+                            >
+                                <h4 className="font-semibold mb-2">Accent Card</h4>
+                                <p className="text-sm text-muted-foreground">Card with left accent border using your second color.</p>
+                            </div>
+                        )}
+
+                        {/* Card with subtle background */}
+                        {colors[2] && (
+                            <div
+                                className="rounded-lg border border-border p-4"
+                                style={{
+                                    backgroundColor: `${colors[2].hex}15`
+                                }}
+                            >
+                                <h4 className="font-semibold mb-2">Tinted Card</h4>
+                                <p className="text-sm text-muted-foreground">Card with subtle background tint using your third color.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Alerts Section */}
+                <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">Alerts</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {colors.slice(0, 4).map((color, index) => {
+                            const alertTypes = ['Info', 'Success', 'Warning', 'Error'];
+                            const alertIcons = [
+                                // Info icon
+                                <svg key="info" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>,
+                                // Success icon
+                                <svg key="success" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>,
+                                // Warning icon
+                                <svg key="warning" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>,
+                                // Error icon
+                                <svg key="error" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            ];
+
+                            return (
+                                <div
+                                    key={index}
+                                    className="rounded-lg p-4 flex items-start gap-3"
+                                    style={{
+                                        backgroundColor: `${color.hex}15`,
+                                        borderLeft: `4px solid ${color.hex}`
+                                    }}
+                                >
+                                    <div style={{ color: color.hex }}>
+                                        {alertIcons[index]}
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-sm mb-1">{alertTypes[index]} Alert</h4>
+                                        <p className="text-xs text-muted-foreground">This is an example {alertTypes[index].toLowerCase()} message using color {index + 1}.</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Badges Section */}
+                <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">Badges</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {colors.slice(0, 6).map((color, index) => (
+                            <span
+                                key={index}
+                                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-all"
+                                style={{
+                                    backgroundColor: color.hex,
+                                    color: getTextColor(color.hex)
+                                }}
+                            >
+                                Badge {index + 1}
+                            </span>
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );
