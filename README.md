@@ -551,6 +551,156 @@ echo $lighter->toHex(); // Lighter color!
 
 More colors = more processing time and memory usage.
 
+## Security
+
+### HTTP Client Security
+
+The library implements comprehensive security measures when loading images from URLs to protect against SSRF (Server-Side Request Forgery) and other attacks.
+
+#### SSRF Protection
+
+All remote URLs are validated before making HTTP requests:
+
+**Blocked Protocols:**
+- Only `http://` and `https://` are allowed
+- All other protocols (`file://`, `ftp://`, `gopher://`, etc.) are rejected
+
+**Blocked IP Addresses:**
+- Localhost: `127.0.0.1`, `::1`
+- Private networks: `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`
+- Link-local: `169.254.0.0/16`, `fe80::/10`
+- Unique local (IPv6): `fc00::/7`, `fd00::/8`
+- IPv4-mapped IPv6 addresses: `::ffff:0:0/96`
+
+```php
+use Farzai\ColorPalette\ImageLoaderFactory;
+
+$factory = new ImageLoaderFactory;
+$loader = $factory->create();
+
+// These will throw SsrfException:
+$loader->load('http://localhost/internal-image.jpg');  // Blocked
+$loader->load('http://192.168.1.1/image.jpg');         // Blocked
+$loader->load('http://[::1]/image.jpg');               // Blocked
+$loader->load('file:///etc/passwd');                    // Blocked
+
+// Only public HTTP/HTTPS URLs are allowed:
+$loader->load('https://example.com/public-image.jpg'); // OK
+```
+
+#### File Size Limits
+
+Downloaded files are limited to **10MB by default** to prevent denial-of-service attacks:
+
+```php
+use Farzai\ColorPalette\Config\HttpClientConfig;
+use Farzai\ColorPalette\ImageLoaderFactory;
+
+// Custom file size limit (5MB)
+$config = new HttpClientConfig(
+    maxFileSizeBytes: 5 * 1024 * 1024
+);
+
+$factory = new ImageLoaderFactory(httpConfig: $config);
+$loader = $factory->create();
+
+// Will throw HttpException if file exceeds 5MB
+$loader->load('https://example.com/huge-image.jpg');
+```
+
+Files are streamed in chunks (8KB at a time) and validated during download, not loaded entirely into memory.
+
+#### MIME Type Validation
+
+Remote files are validated to ensure they're actual images:
+
+1. **Content-Type Header:** Checked if present in HTTP response
+2. **File Detection:** Actual file content verified using `finfo` after download
+
+Only these MIME types are accepted:
+- `image/jpeg`, `image/jpg`
+- `image/png`
+- `image/gif`
+- `image/webp`
+- `image/bmp`
+- `image/tiff`
+- `image/svg+xml`
+
+#### HTTP Client Configuration
+
+Customize HTTP client behavior for security and performance:
+
+```php
+use Farzai\ColorPalette\Config\HttpClientConfig;
+use Farzai\ColorPalette\ImageLoaderFactory;
+
+$config = new HttpClientConfig(
+    timeoutSeconds: 30,           // Request timeout (default: 30)
+    maxRedirects: 0,              // Follow redirects (default: 0 - disabled)
+    maxFileSizeBytes: 10485760,   // Max file size in bytes (default: 10MB)
+    userAgent: 'MyApp/1.0',       // Custom User-Agent header
+    verifySsl: true               // SSL certificate verification (default: true)
+);
+
+$factory = new ImageLoaderFactory(httpConfig: $config);
+$loader = $factory->create();
+```
+
+**Security Recommendations:**
+
+1. **Keep `maxRedirects: 0`** - Redirects can bypass SSRF protection
+2. **Keep `verifySsl: true`** - Prevents man-in-the-middle attacks
+3. **Set appropriate timeout** - Prevents hanging on slow servers
+4. **Limit file size** - Protects against DoS via large downloads
+
+#### Exception Handling
+
+Different exception types for different security scenarios:
+
+```php
+use Farzai\ColorPalette\Exceptions\SsrfException;
+use Farzai\ColorPalette\Exceptions\HttpException;
+use Farzai\ColorPalette\Exceptions\InvalidImageException;
+
+try {
+    $loader->load($userProvidedUrl);
+} catch (SsrfException $e) {
+    // URL validation failed (private IP, invalid protocol, etc.)
+    log_security_event('SSRF attempt blocked', $userProvidedUrl);
+} catch (HttpException $e) {
+    // HTTP error (status code, file size, MIME type, etc.)
+    log_error('Failed to download image', $e->getMessage());
+} catch (InvalidImageException $e) {
+    // Image processing error
+    log_error('Invalid image', $e->getMessage());
+}
+```
+
+### Best Practices for User-Provided URLs
+
+When accepting URLs from users:
+
+```php
+// ✓ GOOD: Validate and handle errors
+try {
+    $palette = ColorPalette::fromImage($userUrl, count: 5);
+} catch (SsrfException $e) {
+    // Don't expose internal network structure in error messages
+    throw new UserFacingException('Invalid URL provided');
+}
+
+// ✗ BAD: Don't blindly trust user input
+$palette = ColorPalette::fromImage($_GET['url']); // Dangerous!
+
+// ✓ GOOD: Add URL whitelist for extra security
+$allowedDomains = ['cdn.example.com', 'images.example.com'];
+$host = parse_url($userUrl, PHP_URL_HOST);
+
+if (!in_array($host, $allowedDomains)) {
+    throw new Exception('URL not from allowed domain');
+}
+```
+
 ## Testing
 
 Run the test suite:

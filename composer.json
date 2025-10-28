@@ -2,8 +2,20 @@
     "name": "farzai/color-palette",
     "description": "A robust PHP library for extracting, analyzing, and managing color palettes from images",
     "keywords": [
-        "Farzai",
-        "color-palette"
+        "color",
+        "palette",
+        "color-extraction",
+        "image-processing",
+        "color-analysis",
+        "theme-generation",
+        "wcag",
+        "accessibility",
+        "contrast-ratio",
+        "rgb",
+        "hsl",
+        "hsv",
+        "gd",
+        "imagick"
     ],
     "homepage": "https://github.com/parsilver/color-palette-php",
     "license": "MIT",
