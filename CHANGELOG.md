@@ -2,6 +2,16 @@
 
 All notable changes to `color-palette` will be documented in this file.
 
+## 1.2.0 - 2025-10-28
+
+### What's Changed
+
+* Add new palette generation algorithms and ColorPaletteBuilder by @parsilver in https://github.com/parsilver/color-palette-php/pull/21
+* Add interactive web UI demo by @parsilver in https://github.com/parsilver/color-palette-php/pull/22
+* feat: Add comprehensive HTTP security features by @parsilver in https://github.com/parsilver/color-palette-php/pull/23
+
+**Full Changelog**: https://github.com/parsilver/color-palette-php/compare/1.1.1...1.2.0
+
 ## 1.1.0 - 2025-10-20
 
 ### What's Changed
