@@ -84,14 +84,9 @@ test('can calculate contrast ratio between colors', function () {
     expect($white->getContrastRatio($black))->toBe($black->getContrastRatio($white));
 });
 
-test('handles default values for RGB array creation', function () {
-    $color = Color::fromRgb([]);
-
-    expect($color->toRgb())->toBe([
-        'r' => 0,
-        'g' => 0,
-        'b' => 0,
-    ]);
+test('throws exception for invalid RGB array', function () {
+    expect(fn () => Color::fromRgb([]))
+        ->toThrow(InvalidArgumentException::class, 'RGB array must have either string keys');
 });
 
 test('it can convert RGB to HSL', function () {

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Farzai\ColorPalette\Strategies;
 
 use Farzai\ColorPalette\ColorPalette;
+use Farzai\ColorPalette\Constants\ColorSchemeConstants;
 use Farzai\ColorPalette\Contracts\ColorInterface;
-use Farzai\ColorPalette\Contracts\PaletteGenerationStrategyInterface;
 
 /**
  * Tints color palette generation strategy
@@ -17,13 +17,13 @@ use Farzai\ColorPalette\Contracts\PaletteGenerationStrategyInterface;
  * Options:
  * - count: Number of tints to generate (default: 5)
  */
-class TintsStrategy implements PaletteGenerationStrategyInterface
+class TintsStrategy extends AbstractPaletteStrategy
 {
     public function generate(ColorInterface $baseColor, array $options = []): ColorPalette
     {
-        $count = $options['count'] ?? 5;
+        $count = $this->getCountOption($options, 5);
         $colors = [$baseColor];
-        $step = 0.8 / ($count - 1);
+        $step = ColorSchemeConstants::DEFAULT_MANIPULATION_STEP / ($count - 1);
 
         for ($i = 1; $i < $count; $i++) {
             $colors[] = $baseColor->lighten($step * $i);

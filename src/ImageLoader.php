@@ -15,6 +15,9 @@ class ImageLoader
 {
     private string $preferredDriver;
 
+    /**
+     * @var array<string>
+     */
     private array $tempFiles = [];
 
     private ExtensionChecker $extensionChecker;
@@ -22,6 +25,7 @@ class ImageLoader
     public function __construct(
         private readonly ClientInterface $httpClient,
         private readonly RequestFactoryInterface $requestFactory,
+        /** @phpstan-ignore-next-line */
         private readonly StreamFactoryInterface $streamFactory,
         private readonly ?ImageFactory $imageFactory = null,
         ?ExtensionChecker $extensionChecker = null,
@@ -35,6 +39,8 @@ class ImageLoader
     {
         try {
             if (filter_var($source, FILTER_VALIDATE_URL)) {
+                $this->validateUrl($source);
+
                 return $this->loadFromUrl($source);
             }
 
@@ -100,17 +106,81 @@ class ImageLoader
     private function createTempFile(): string
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'img_');
+
+        if ($tempFile === false) {
+            throw new InvalidImageException('Failed to create temporary file');
+        }
+
         $this->tempFiles[] = $tempFile;
 
         return $tempFile;
     }
 
-    public function __destruct()
+    /**
+     * Validate URL for security (prevent SSRF attacks)
+     *
+     * @param  string  $url  The URL to validate
+     *
+     * @throws InvalidImageException If URL is invalid or points to a private network
+     */
+    private function validateUrl(string $url): void
+    {
+        $parsed = parse_url($url);
+
+        if (! $parsed || ! isset($parsed['scheme'], $parsed['host'])) {
+            throw new InvalidImageException('Invalid URL format');
+        }
+
+        // Only allow HTTP/HTTPS
+        if (! in_array(strtolower($parsed['scheme']), ['http', 'https'], true)) {
+            throw new InvalidImageException(
+                sprintf('URL scheme "%s" is not allowed. Only http and https are supported.', $parsed['scheme'])
+            );
+        }
+
+        $host = $parsed['host'];
+
+        // Resolve hostname to IP
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ip = $host;
+        } else {
+            $ip = gethostbyname($host);
+            // gethostbyname returns the hostname itself if resolution fails
+            if ($ip === $host) {
+                throw new InvalidImageException(sprintf('Failed to resolve hostname: %s', $host));
+            }
+        }
+
+        // Block private and reserved IP ranges
+        if (! filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        )) {
+            throw new InvalidImageException(
+                sprintf('Access to private/reserved IP addresses is not allowed: %s', $ip)
+            );
+        }
+    }
+
+    /**
+     * Explicitly clean up temporary files
+     *
+     * Call this method when you're done with the ImageLoader to immediately
+     * clean up temporary files instead of waiting for object destruction.
+     */
+    public function cleanup(): void
     {
         foreach ($this->tempFiles as $tempFile) {
             if (file_exists($tempFile)) {
-                unlink($tempFile);
+                @unlink($tempFile);
             }
         }
+        $this->tempFiles = [];
+    }
+
+    public function __destruct()
+    {
+        $this->cleanup();
     }
 }

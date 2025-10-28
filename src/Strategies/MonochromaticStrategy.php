@@ -6,8 +6,8 @@ namespace Farzai\ColorPalette\Strategies;
 
 use Farzai\ColorPalette\Color;
 use Farzai\ColorPalette\ColorPalette;
+use Farzai\ColorPalette\Constants\ColorSchemeConstants;
 use Farzai\ColorPalette\Contracts\ColorInterface;
-use Farzai\ColorPalette\Contracts\PaletteGenerationStrategyInterface;
 
 /**
  * Monochromatic color palette generation strategy
@@ -18,14 +18,14 @@ use Farzai\ColorPalette\Contracts\PaletteGenerationStrategyInterface;
  * Options:
  * - count: Number of colors to generate (default: 5)
  */
-class MonochromaticStrategy implements PaletteGenerationStrategyInterface
+class MonochromaticStrategy extends AbstractPaletteStrategy
 {
     public function generate(ColorInterface $baseColor, array $options = []): ColorPalette
     {
-        $count = $options['count'] ?? 5;
+        $count = $this->getCountOption($options, 5);
         $colors = [$baseColor];
         $hsl = $baseColor->toHsl();
-        $step = 0.8 / ($count - 1);
+        $step = ColorSchemeConstants::DEFAULT_MANIPULATION_STEP / ($count - 1);
 
         for ($i = 1; $i < $count; $i++) {
             $lightness = max(0, min(100, $hsl['l'] + ($step * $i * 100)));

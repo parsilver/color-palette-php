@@ -9,6 +9,9 @@ use Countable;
 use Farzai\ColorPalette\Contracts\ColorInterface;
 use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 
+/**
+ * @implements ArrayAccess<string|int, ColorInterface>
+ */
 class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable
 {
     private const COLOR_WHITE = [255, 255, 255];
@@ -87,13 +90,20 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable
         return isset($this->colors[$offset]);
     }
 
-    public function offsetGet(mixed $offset): ?ColorInterface
+    public function offsetGet(mixed $offset): ColorInterface
     {
-        return $this->colors[$offset] ?? null;
+        if (! $this->offsetExists($offset)) {
+            throw new \OutOfBoundsException(
+                sprintf('Color at offset "%s" does not exist in palette', $offset)
+            );
+        }
+
+        return $this->colors[$offset];
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
+        /** @phpstan-ignore-next-line */
         if (! ($value instanceof ColorInterface)) {
             throw new \InvalidArgumentException('Value must be an instance of ColorInterface');
         }

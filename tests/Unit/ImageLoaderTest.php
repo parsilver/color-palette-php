@@ -96,26 +96,12 @@ test('it throws exception when loading invalid image url', function () {
     $requestFactory = Mockery::mock(RequestFactoryInterface::class);
     /** @var StreamFactoryInterface $streamFactory */
     $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-    /** @var RequestInterface $request */
-    $request = Mockery::mock(RequestInterface::class);
-    /** @var ResponseInterface $response */
-    $response = Mockery::mock(ResponseInterface::class);
-
-    $requestFactory->shouldReceive('createRequest')
-        ->with('GET', 'https://invalid-url/image.jpg')
-        ->andReturn($request);
-
-    $httpClient->shouldReceive('sendRequest')
-        ->with($request)
-        ->andReturn($response);
-
-    $response->shouldReceive('getStatusCode')
-        ->andReturn(404);
 
     $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
 
+    // URL validation catches unresolvable hostname before HTTP request
     expect(fn () => $loader->load('https://invalid-url/image.jpg'))
-        ->toThrow(InvalidImageException::class, 'Failed to download image. Status code: 404');
+        ->toThrow(InvalidImageException::class, 'Failed to resolve hostname');
 });
 
 describe('ImageLoader supports() method', function () {

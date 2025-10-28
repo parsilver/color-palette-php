@@ -24,7 +24,7 @@ interface ColorInterface
     /**
      * Convert the color to HSL format
      *
-     * @return array{h: float, s: float, l: float}
+     * @return array{h: int, s: int, l: int}
      */
     public function toHsl(): array;
 

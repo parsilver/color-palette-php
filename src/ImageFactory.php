@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
+use Farzai\ColorPalette\Constants\ImageConstants;
 use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Images\GdImage;
 use Farzai\ColorPalette\Images\ImagickImage;
@@ -30,6 +31,9 @@ class ImageFactory
         if (! file_exists($path)) {
             throw new InvalidArgumentException("Image file not found: {$path}");
         }
+
+        // Validate file before processing
+        $this->validateImageFile($path);
 
         $imageData = @file_get_contents($path);
         if ($imageData === false) {
@@ -65,6 +69,65 @@ class ImageFactory
             return new ImagickImage($image);
         } catch (\ImagickException $e) {
             throw new InvalidArgumentException("Failed to create Imagick image from file: {$path}. ".$e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Validate image file for security
+     *
+     * Checks file size and MIME type to prevent malicious uploads
+     *
+     * @param  string  $path  Path to the image file
+     *
+     * @throws InvalidArgumentException If file fails validation
+     */
+    private function validateImageFile(string $path): void
+    {
+        // Check file size
+        $fileSize = filesize($path);
+        if ($fileSize === false) {
+            throw new InvalidArgumentException("Unable to determine file size: {$path}");
+        }
+
+        if ($fileSize > ImageConstants::MAX_IMAGE_FILE_SIZE) {
+            $maxSizeMB = ImageConstants::MAX_IMAGE_FILE_SIZE / (1024 * 1024);
+            $actualSizeMB = round($fileSize / (1024 * 1024), 2);
+            throw new InvalidArgumentException(
+                sprintf(
+                    'Image file is too large: %s MB (maximum: %s MB)',
+                    $actualSizeMB,
+                    $maxSizeMB
+                )
+            );
+        }
+
+        // Check MIME type
+        if (! function_exists('finfo_open')) {
+            // finfo not available, skip MIME check
+            return;
+        }
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo === false) {
+            // finfo failed to open, skip MIME check
+            return;
+        }
+
+        $mimeType = finfo_file($finfo, $path);
+        finfo_close($finfo);
+
+        if ($mimeType === false) {
+            throw new InvalidArgumentException("Unable to determine file MIME type: {$path}");
+        }
+
+        if (! in_array($mimeType, ImageConstants::ALLOWED_IMAGE_MIME_TYPES, true)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    'Unsupported image MIME type: %s. Allowed types: %s',
+                    $mimeType,
+                    implode(', ', ImageConstants::ALLOWED_IMAGE_MIME_TYPES)
+                )
+            );
         }
     }
 

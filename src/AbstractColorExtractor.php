@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
+use Farzai\ColorPalette\Constants\AccessibilityConstants;
 use Farzai\ColorPalette\Contracts\ColorExtractorInterface;
 use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 use Farzai\ColorPalette\Contracts\ImageInterface;
@@ -116,9 +117,9 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
 
         // Filter colors
         $filteredColors = array_filter($colors, function ($color) {
-            // Ensure RGB values are valid
-            if (! isset($color['r'], $color['g'], $color['b']) ||
-                ! is_numeric($color['r']) || ! is_numeric($color['g']) || ! is_numeric($color['b'])) {
+            // Check if color has required RGB keys
+            // @phpstan-ignore-next-line - Validation needed for defensive programming even if type suggests keys always exist
+            if (! is_array($color) || ! array_key_exists('r', $color) || ! array_key_exists('g', $color) || ! array_key_exists('b', $color)) {
                 return false;
             }
 
@@ -304,8 +305,14 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
         usort($colors, function ($a, $b) {
             // Calculate perceived brightness using standard luminance formula
             // This provides consistent ordering based on how bright humans perceive colors
-            $luminanceA = 0.299 * $a['r'] + 0.587 * $a['g'] + 0.114 * $a['b'];
-            $luminanceB = 0.299 * $b['r'] + 0.587 * $b['g'] + 0.114 * $b['b'];
+            $luminanceA = (AccessibilityConstants::BRIGHTNESS_RED_COEFFICIENT * $a['r'] +
+                          AccessibilityConstants::BRIGHTNESS_GREEN_COEFFICIENT * $a['g'] +
+                          AccessibilityConstants::BRIGHTNESS_BLUE_COEFFICIENT * $a['b']) /
+                          AccessibilityConstants::BRIGHTNESS_DIVISOR;
+            $luminanceB = (AccessibilityConstants::BRIGHTNESS_RED_COEFFICIENT * $b['r'] +
+                          AccessibilityConstants::BRIGHTNESS_GREEN_COEFFICIENT * $b['g'] +
+                          AccessibilityConstants::BRIGHTNESS_BLUE_COEFFICIENT * $b['b']) /
+                          AccessibilityConstants::BRIGHTNESS_DIVISOR;
 
             // Sort by luminance descending (brightest first)
             $diff = $luminanceB - $luminanceA;
@@ -331,38 +338,6 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
      */
     protected function rgbToHsb(int $r, int $g, int $b): array
     {
-        // Normalize RGB values to 0-1 range
-        $r = $r / 255;
-        $g = $g / 255;
-        $b = $b / 255;
-
-        $max = max($r, $g, $b);
-        $min = min($r, $g, $b);
-        $delta = $max - $min;
-
-        // Initialize HSB values
-        $h = 0;
-        $s = ($max == 0) ? 0 : ($delta / $max); // Saturation
-        $v = $max; // Brightness
-
-        // Calculate hue only if delta is not zero (use epsilon for float comparison)
-        if ($delta > 0.000001) {
-            if ($max == $r) {
-                $h = 60 * (($g - $b) / $delta + ($g < $b ? 6 : 0));
-            } elseif ($max == $g) {
-                $h = 60 * (($b - $r) / $delta + 2);
-            } elseif ($max == $b) {
-                $h = 60 * (($r - $g) / $delta + 4);
-            }
-        }
-
-        // Ensure hue is in the range [0, 360]
-        $h = max(0, min(360, $h));
-
-        return [
-            'h' => $h,
-            's' => $s,
-            'b' => $v,
-        ];
+        return ColorSpaceConverter::rgbToHsb($r, $g, $b);
     }
 }

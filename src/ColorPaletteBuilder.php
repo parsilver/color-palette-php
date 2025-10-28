@@ -189,13 +189,22 @@ class ColorPaletteBuilder
      */
     private function buildFromImage(): ColorPalette
     {
+        if ($this->imagePath === null) {
+            return new ColorPalette([]);
+        }
+
         $loader = (new ImageLoaderFactory)->create();
         $image = $loader->load($this->imagePath);
 
         $extractorFactory = new ColorExtractorFactory;
         $extractor = $extractorFactory->make('gd');
 
-        return $extractor->extract($image, $this->extractionCount);
+        $palette = $extractor->extract($image, $this->extractionCount);
+
+        // The extractor always returns ColorPalette in practice
+        assert($palette instanceof ColorPalette);
+
+        return $palette;
     }
 
     /**
@@ -203,6 +212,10 @@ class ColorPaletteBuilder
      */
     private function buildFromStrategy(): ColorPalette
     {
+        if ($this->strategy === null || $this->baseColor === null) {
+            return new ColorPalette([]);
+        }
+
         return $this->strategy->generate($this->baseColor, $this->strategyOptions);
     }
 

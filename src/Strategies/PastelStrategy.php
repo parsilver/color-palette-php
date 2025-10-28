@@ -6,8 +6,8 @@ namespace Farzai\ColorPalette\Strategies;
 
 use Farzai\ColorPalette\Color;
 use Farzai\ColorPalette\ColorPalette;
+use Farzai\ColorPalette\Constants\ColorSchemeConstants;
 use Farzai\ColorPalette\Contracts\ColorInterface;
-use Farzai\ColorPalette\Contracts\PaletteGenerationStrategyInterface;
 
 /**
  * Pastel color palette generation strategy
@@ -15,8 +15,18 @@ use Farzai\ColorPalette\Contracts\PaletteGenerationStrategyInterface;
  * Generates a palette of soft, muted pastel colors based on the base color's hue.
  * Perfect for gentle, calming designs.
  */
-class PastelStrategy implements PaletteGenerationStrategyInterface
+class PastelStrategy extends AbstractPaletteStrategy
 {
+    /**
+     * Default saturation for pastel colors (low saturation for soft colors)
+     */
+    private const PASTEL_SATURATION = 25;
+
+    /**
+     * Default lightness for pastel colors (high lightness for soft colors)
+     */
+    private const PASTEL_LIGHTNESS = 90;
+
     public function generate(ColorInterface $baseColor, array $options = []): ColorPalette
     {
         $colors = [];
@@ -24,8 +34,8 @@ class PastelStrategy implements PaletteGenerationStrategyInterface
         $baseHue = $hsl['h'];
 
         for ($i = 0; $i < 5; $i++) {
-            $hue = ($baseHue + ($i * 72)) % 360;
-            $colors[] = Color::fromHsl($hue, 25, 90);
+            $hue = ($baseHue + ($i * ColorSchemeConstants::PENTADIC_ANGLE)) % 360;
+            $colors[] = Color::fromHsl($hue, self::PASTEL_SATURATION, self::PASTEL_LIGHTNESS);
         }
 
         return new ColorPalette($colors);

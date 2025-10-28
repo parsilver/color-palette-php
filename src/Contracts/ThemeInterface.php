@@ -35,6 +35,18 @@ interface ThemeInterface
     public function getSurfaceColor(): ColorInterface;
 
     /**
+     * Get all colors in the theme
+     *
+     * @return array<string, ColorInterface>
+     */
+    public function getColors(): array;
+
+    /**
+     * Check if a color exists in the theme
+     */
+    public function hasColor(string $name): bool;
+
+    /**
      * Export theme as array
      *
      * @return array<string, string>

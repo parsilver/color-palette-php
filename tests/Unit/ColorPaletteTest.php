@@ -96,11 +96,11 @@ describe('ColorPalette ArrayAccess Implementation', function () {
         expect($palette[1])->toBe($green);
     });
 
-    test('it returns null for non-existent offset', function () {
+    test('it throws exception for non-existent offset', function () {
         $palette = new ColorPalette([new Color(255, 0, 0)]);
 
-        expect($palette[10])->toBeNull();
-        expect($palette['non-existent'])->toBeNull();
+        expect(fn () => $palette[10])->toThrow(\OutOfBoundsException::class);
+        expect(fn () => $palette['non-existent'])->toThrow(\OutOfBoundsException::class);
     });
 
     test('it can set color at numeric offset', function () {

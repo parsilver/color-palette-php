@@ -25,7 +25,9 @@ class ImageLoaderFactory
     {
         $httpClient = $this->httpClient ?? new Psr18Client;
         $psr17Factory = $this->requestFactory ?? new Psr17Factory;
-        $streamFactory = $this->streamFactory ?? $psr17Factory;
+
+        // Psr17Factory implements both RequestFactoryInterface and StreamFactoryInterface
+        $streamFactory = $this->streamFactory ?? ($psr17Factory instanceof StreamFactoryInterface ? $psr17Factory : new Psr17Factory);
         $extensionChecker = $this->extensionChecker ?? new ExtensionChecker;
 
         return new ImageLoader(
