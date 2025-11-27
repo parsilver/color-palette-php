@@ -2,6 +2,16 @@
 
 All notable changes to `color-palette` will be documented in this file.
 
+## 1.2.1 - 2025-11-27
+
+### What's Changed
+
+* Bump actions/checkout from 5 to 6 by @dependabot[bot] in https://github.com/parsilver/color-palette-php/pull/24
+* Update symfony/http-client requirement from ^6.4 to ^7.2 by @dependabot[bot] in https://github.com/parsilver/color-palette-php/pull/7
+* Update pestphp/pest requirement from ^2.20 to ^3.7 by @dependabot[bot] in https://github.com/parsilver/color-palette-php/pull/9
+
+**Full Changelog**: https://github.com/parsilver/color-palette-php/compare/1.2.0...1.2.1
+
 ## 1.2.0 - 2025-10-28
 
 ### What's Changed
