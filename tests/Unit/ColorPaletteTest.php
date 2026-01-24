@@ -326,7 +326,7 @@ describe('ColorPalette Static Factory Methods', function () {
         imagefilledrectangle($image, 67, 0, 100, 100, $blue);
 
         imagepng($image, $this->testImagePath);
-        imagedestroy($image);
+
     });
 
     afterEach(function () {
@@ -601,7 +601,6 @@ describe('ColorPalette fromImage Edge Cases', function () {
         $imagePath = $this->testDir.'/test.png';
         $image = imagecreatetruecolor(10, 10);
         imagepng($image, $imagePath);
-        imagedestroy($image);
 
         expect(fn () => ColorPalette::fromImage($imagePath, 5, 'invalid-driver'))
             ->toThrow(InvalidArgumentException::class);
@@ -618,7 +617,6 @@ describe('ColorPalette fromImage Edge Cases', function () {
         $red = imagecolorallocate($image, 255, 0, 0);
         imagefilledrectangle($image, 0, 0, 10, 10, $red);
         imagepng($image, $imagePath);
-        imagedestroy($image);
 
         $palette = ColorPalette::fromImage($imagePath, 1);
 
@@ -640,7 +638,6 @@ describe('ColorPalette fromImage Edge Cases', function () {
         }
 
         imagepng($image, $imagePath);
-        imagedestroy($image);
 
         $palette = ColorPalette::fromImage($imagePath, 50);
 
@@ -653,7 +650,6 @@ describe('ColorPalette fromImage Edge Cases', function () {
         $red = imagecolorallocate($image, 200, 50, 50);
         imagesetpixel($image, 0, 0, $red);
         imagepng($image, $imagePath);
-        imagedestroy($image);
 
         $palette = ColorPalette::fromImage($imagePath, 3);
 

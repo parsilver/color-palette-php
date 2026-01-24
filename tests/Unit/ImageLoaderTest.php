@@ -15,7 +15,6 @@ beforeEach(function () {
         $red = imagecolorallocate($image, 255, 0, 0);
         imagefill($image, 0, 0, $red);
         imagejpeg($image, __DIR__.'/../../example/assets/sample.jpg');
-        imagedestroy($image);
     }
 });
 

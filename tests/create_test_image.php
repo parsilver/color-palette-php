@@ -19,4 +19,3 @@ if (! is_dir(__DIR__.'/../example/assets')) {
 }
 
 imagejpeg($image, __DIR__.'/../example/assets/sample.jpg');
-imagedestroy($image);

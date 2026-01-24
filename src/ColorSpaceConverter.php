@@ -241,7 +241,7 @@ class ColorSpaceConverter
         }
 
         $h = $h * 6;
-        $i = floor($h);
+        $i = (int) floor($h);
         $f = $h - $i;
         $p = $v * (1 - $s);
         $q = $v * (1 - $s * $f);

@@ -384,19 +384,15 @@ class ImageLoader
             return;
         }
 
-        try {
-            $mimeType = finfo_file($finfo, $filePath);
+        $mimeType = finfo_file($finfo, $filePath);
 
-            if ($mimeType === false || ! $this->isValidImageMimeType($mimeType)) {
-                throw new HttpException(
-                    sprintf(
-                        'Downloaded file is not a valid image. Detected MIME type: %s',
-                        $mimeType ?: 'unknown'
-                    )
-                );
-            }
-        } finally {
-            finfo_close($finfo);
+        if ($mimeType === false || ! $this->isValidImageMimeType($mimeType)) {
+            throw new HttpException(
+                sprintf(
+                    'Downloaded file is not a valid image. Detected MIME type: %s',
+                    $mimeType ?: 'unknown'
+                )
+            );
         }
     }
 
