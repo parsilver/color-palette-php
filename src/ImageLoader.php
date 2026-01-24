@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Config\HttpClientConfig;
+use Farzai\ColorPalette\Constants\ImageConstants;
 use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Exceptions\HttpException;
 use Farzai\ColorPalette\Exceptions\InvalidImageException;
@@ -12,7 +13,6 @@ use Farzai\ColorPalette\Exceptions\SsrfException;
 use Farzai\ColorPalette\Services\ExtensionChecker;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 
 class ImageLoader
 {
@@ -30,8 +30,6 @@ class ImageLoader
     public function __construct(
         private readonly ClientInterface $httpClient,
         private readonly RequestFactoryInterface $requestFactory,
-        /** @phpstan-ignore-next-line */
-        private readonly StreamFactoryInterface $streamFactory,
         private readonly ?ImageFactory $imageFactory = null,
         ?ExtensionChecker $extensionChecker = null,
         ?string $preferredDriver = null,
@@ -326,18 +324,7 @@ class ImageLoader
      */
     private function isValidImageMimeType(string $mimeType): bool
     {
-        $validTypes = [
-            'image/jpeg',
-            'image/jpg',
-            'image/png',
-            'image/gif',
-            'image/webp',
-            'image/bmp',
-            'image/tiff',
-            'image/svg+xml',
-        ];
-
-        return in_array(strtolower(trim($mimeType)), $validTypes, true);
+        return in_array(strtolower(trim($mimeType)), ImageConstants::ALLOWED_IMAGE_MIME_TYPES, true);
     }
 
     /**

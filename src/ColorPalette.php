@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace Farzai\ColorPalette;
 
 use ArrayAccess;
+use ArrayIterator;
 use Countable;
 use Farzai\ColorPalette\Contracts\ColorInterface;
 use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
+use IteratorAggregate;
 
 /**
  * @implements ArrayAccess<string|int, ColorInterface>
+ * @implements IteratorAggregate<string|int, ColorInterface>
  */
-class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable
+class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable, IteratorAggregate
 {
     private const COLOR_WHITE = [255, 255, 255];
 
@@ -170,6 +173,14 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable
     public function count(): int
     {
         return count($this->colors);
+    }
+
+    /**
+     * @return ArrayIterator<string|int, ColorInterface>
+     */
+    public function getIterator(): ArrayIterator
+    {
+        return new ArrayIterator($this->colors);
     }
 
     public function offsetExists(mixed $offset): bool

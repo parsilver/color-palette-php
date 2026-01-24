@@ -9,7 +9,6 @@ use Farzai\ColorPalette\Services\ExtensionChecker;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\Psr18Client;
 
@@ -18,7 +17,6 @@ class ImageLoaderFactory
     public function __construct(
         private readonly ?ClientInterface $httpClient = null,
         private readonly ?RequestFactoryInterface $requestFactory = null,
-        private readonly ?StreamFactoryInterface $streamFactory = null,
         private readonly ?ExtensionChecker $extensionChecker = null,
         private readonly ?string $preferredDriver = null,
         private readonly ?HttpClientConfig $httpConfig = null
@@ -29,15 +27,11 @@ class ImageLoaderFactory
         $httpConfig = $this->httpConfig ?? new HttpClientConfig;
         $httpClient = $this->httpClient ?? $this->createDefaultHttpClient($httpConfig);
         $psr17Factory = $this->requestFactory ?? new Psr17Factory;
-
-        // Psr17Factory implements both RequestFactoryInterface and StreamFactoryInterface
-        $streamFactory = $this->streamFactory ?? ($psr17Factory instanceof StreamFactoryInterface ? $psr17Factory : new Psr17Factory);
         $extensionChecker = $this->extensionChecker ?? new ExtensionChecker;
 
         return new ImageLoader(
             $httpClient,
             $psr17Factory,
-            $streamFactory,
             null, // imageFactory
             $extensionChecker,
             $this->preferredDriver,

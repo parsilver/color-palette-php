@@ -483,11 +483,18 @@ test('it throws exception for RGB values above 255', function () {
         ->toThrow(InvalidArgumentException::class, 'Invalid blue color component');
 });
 
-test('it throws exception for 3-character hex (shorthand not supported)', function () {
-    expect(fn () => Color::fromHex('#f00'))
-        ->toThrow(InvalidArgumentException::class, 'Invalid hex color format');
-    expect(fn () => Color::fromHex('f00'))
-        ->toThrow(InvalidArgumentException::class, 'Invalid hex color format');
+test('it supports 3-character hex shorthand', function () {
+    $color = Color::fromHex('#f00');
+    expect($color->toHex())->toBe('#ff0000');
+
+    $color = Color::fromHex('f00');
+    expect($color->toHex())->toBe('#ff0000');
+
+    $color = Color::fromHex('#abc');
+    expect($color->toHex())->toBe('#aabbcc');
+
+    $color = Color::fromHex('FFF');
+    expect($color->toHex())->toBe('#ffffff');
 });
 
 test('it throws exception for 5-character hex', function () {
