@@ -135,7 +135,6 @@ class ImageFactory
         }
 
         $mimeType = finfo_file($finfo, $path);
-        finfo_close($finfo);
 
         if ($mimeType === false) {
             throw new InvalidArgumentException("Unable to determine file MIME type: {$path}");

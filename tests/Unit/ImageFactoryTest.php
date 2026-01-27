@@ -15,7 +15,6 @@ beforeEach(function () {
             $red = imagecolorallocate($image, 255, 0, 0);
             imagefilledrectangle($image, 0, 0, 10, 10, $red);
             imagepng($image, $this->testImagePath);
-            imagedestroy($image);
         }
     }
 });
@@ -150,7 +149,6 @@ describe('ImageFactory Edge Cases', function () {
             if (function_exists($info[1]) && function_exists($info[2])) {
                 $img = call_user_func($info[1], 10, 10);
                 call_user_func($info[2], $img, $testPath);
-                imagedestroy($img);
 
                 $image = $this->factory->createFromPath($testPath, 'gd');
                 expect($image)->toBeInstanceOf(GdImage::class);

@@ -8,16 +8,13 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
 describe('ImageLoader SSRF Protection', function () {
     test('it blocks localhost URL', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('http://localhost/image.jpg'))
             ->toThrow(SsrfException::class, 'private/reserved');
@@ -26,9 +23,7 @@ describe('ImageLoader SSRF Protection', function () {
     test('it blocks 127.0.0.1 URL', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('http://127.0.0.1/image.jpg'))
             ->toThrow(SsrfException::class, 'private/reserved');
@@ -37,9 +32,7 @@ describe('ImageLoader SSRF Protection', function () {
     test('it blocks IPv6 localhost', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('http://[::1]/image.jpg'))
             ->toThrow(SsrfException::class, 'private/reserved');
@@ -48,9 +41,7 @@ describe('ImageLoader SSRF Protection', function () {
     test('it blocks private network 10.0.0.0/8', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('http://10.0.0.1/image.jpg'))
             ->toThrow(SsrfException::class, 'private/reserved');
@@ -59,9 +50,7 @@ describe('ImageLoader SSRF Protection', function () {
     test('it blocks private network 192.168.0.0/16', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('http://192.168.1.1/image.jpg'))
             ->toThrow(SsrfException::class, 'private/reserved');
@@ -70,9 +59,7 @@ describe('ImageLoader SSRF Protection', function () {
     test('it blocks private network 172.16.0.0/12', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('http://172.16.0.1/image.jpg'))
             ->toThrow(SsrfException::class, 'private/reserved');
@@ -81,9 +68,7 @@ describe('ImageLoader SSRF Protection', function () {
     test('it blocks IPv6 unique local addresses fc00::/7', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('http://[fc00::1]/image.jpg'))
             ->toThrow(SsrfException::class, 'private/reserved');
@@ -92,9 +77,7 @@ describe('ImageLoader SSRF Protection', function () {
     test('it blocks IPv6 link-local addresses fe80::/10', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('http://[fe80::1]/image.jpg'))
             ->toThrow(SsrfException::class, 'private/reserved');
@@ -103,9 +86,7 @@ describe('ImageLoader SSRF Protection', function () {
     test('it blocks file:// protocol', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('file:///etc/passwd'))
             ->toThrow(SsrfException::class, 'not allowed');
@@ -114,9 +95,7 @@ describe('ImageLoader SSRF Protection', function () {
     test('it blocks ftp:// protocol', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('ftp://example.com/image.jpg'))
             ->toThrow(SsrfException::class, 'not allowed');
@@ -127,7 +106,7 @@ describe('ImageLoader File Size Limits', function () {
     test('it rejects files larger than Content-Length limit', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         $request = Mockery::mock(RequestInterface::class);
         $response = Mockery::mock(ResponseInterface::class);
 
@@ -139,7 +118,7 @@ describe('ImageLoader File Size Limits', function () {
         $response->shouldReceive('getHeaderLine')->with('Content-Length')->andReturn('20000000'); // 20MB
 
         $config = new HttpClientConfig(maxFileSizeBytes: 10485760); // 10MB
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory, null, null, null, $config);
+        $loader = new ImageLoader($httpClient, $requestFactory, null, null, null, $config);
 
         expect(fn () => $loader->load('https://example.com/large-image.jpg'))
             ->toThrow(HttpException::class, 'too large');
@@ -148,7 +127,7 @@ describe('ImageLoader File Size Limits', function () {
     test('it rejects files during streaming when exceeding size limit', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         $request = Mockery::mock(RequestInterface::class);
         $response = Mockery::mock(ResponseInterface::class);
         $stream = Mockery::mock(StreamInterface::class);
@@ -167,7 +146,7 @@ describe('ImageLoader File Size Limits', function () {
         $stream->shouldReceive('read')->with(8192)->andReturn($largeChunk);
 
         $config = new HttpClientConfig(maxFileSizeBytes: 1000); // Very small limit
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory, null, null, null, $config);
+        $loader = new ImageLoader($httpClient, $requestFactory, null, null, null, $config);
 
         expect(fn () => $loader->load('https://example.com/image.jpg'))
             ->toThrow(HttpException::class, 'too large');
@@ -178,7 +157,7 @@ describe('ImageLoader MIME Type Validation', function () {
     test('it rejects non-image Content-Type', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         $request = Mockery::mock(RequestInterface::class);
         $response = Mockery::mock(ResponseInterface::class);
 
@@ -190,7 +169,7 @@ describe('ImageLoader MIME Type Validation', function () {
         $response->shouldReceive('hasHeader')->with('Content-Type')->andReturn(true);
         $response->shouldReceive('getHeaderLine')->with('Content-Type')->andReturn('text/html');
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('https://example.com/malicious.jpg'))
             ->toThrow(HttpException::class, 'Invalid content type');
@@ -202,7 +181,7 @@ describe('ImageLoader MIME Type Validation', function () {
         foreach ($validTypes as $mimeType) {
             $httpClient = Mockery::mock(ClientInterface::class);
             $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-            $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
             $request = Mockery::mock(RequestInterface::class);
             $response = Mockery::mock(ResponseInterface::class);
             $stream = Mockery::mock(StreamInterface::class);
@@ -220,7 +199,7 @@ describe('ImageLoader MIME Type Validation', function () {
             $stream->shouldReceive('eof')->andReturn(false, true);
             $stream->shouldReceive('read')->with(8192)->andReturn($imageContent);
 
-            $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+            $loader = new ImageLoader($httpClient, $requestFactory);
 
             // Should not throw - just verify no exception
             try {
@@ -238,7 +217,7 @@ describe('ImageLoader MIME Type Validation', function () {
     test('it handles Content-Type with charset parameter', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         $request = Mockery::mock(RequestInterface::class);
         $response = Mockery::mock(ResponseInterface::class);
         $stream = Mockery::mock(StreamInterface::class);
@@ -256,7 +235,7 @@ describe('ImageLoader MIME Type Validation', function () {
         $stream->shouldReceive('eof')->andReturn(false, true);
         $stream->shouldReceive('read')->with(8192)->andReturn($imageContent);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         // Should not throw - just verify no exception
         try {
@@ -275,7 +254,7 @@ describe('ImageLoader HTTP Status Code Handling', function () {
     test('it accepts 200 OK', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         $request = Mockery::mock(RequestInterface::class);
         $response = Mockery::mock(ResponseInterface::class);
         $stream = Mockery::mock(StreamInterface::class);
@@ -291,7 +270,7 @@ describe('ImageLoader HTTP Status Code Handling', function () {
         $stream->shouldReceive('eof')->andReturn(false, true);
         $stream->shouldReceive('read')->with(8192)->andReturn($imageContent);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
         $image = $loader->load('https://example.com/image.jpg');
 
         expect($image)->toBeObject();
@@ -300,7 +279,7 @@ describe('ImageLoader HTTP Status Code Handling', function () {
     test('it accepts 201 Created', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         $request = Mockery::mock(RequestInterface::class);
         $response = Mockery::mock(ResponseInterface::class);
         $stream = Mockery::mock(StreamInterface::class);
@@ -316,7 +295,7 @@ describe('ImageLoader HTTP Status Code Handling', function () {
         $stream->shouldReceive('eof')->andReturn(false, true);
         $stream->shouldReceive('read')->with(8192)->andReturn($imageContent);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
         $image = $loader->load('https://example.com/image.jpg');
 
         expect($image)->toBeObject();
@@ -325,7 +304,7 @@ describe('ImageLoader HTTP Status Code Handling', function () {
     test('it rejects 1xx status codes', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         $request = Mockery::mock(RequestInterface::class);
         $response = Mockery::mock(ResponseInterface::class);
 
@@ -334,7 +313,7 @@ describe('ImageLoader HTTP Status Code Handling', function () {
         $httpClient->shouldReceive('sendRequest')->andReturn($response);
         $response->shouldReceive('getStatusCode')->andReturn(100);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('https://example.com/image.jpg'))
             ->toThrow(HttpException::class, 'HTTP status code: 100');
@@ -343,7 +322,7 @@ describe('ImageLoader HTTP Status Code Handling', function () {
     test('it rejects 3xx status codes', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         $request = Mockery::mock(RequestInterface::class);
         $response = Mockery::mock(ResponseInterface::class);
 
@@ -352,7 +331,7 @@ describe('ImageLoader HTTP Status Code Handling', function () {
         $httpClient->shouldReceive('sendRequest')->andReturn($response);
         $response->shouldReceive('getStatusCode')->andReturn(301);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('https://example.com/image.jpg'))
             ->toThrow(HttpException::class, 'HTTP status code: 301');

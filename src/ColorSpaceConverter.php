@@ -42,16 +42,12 @@ class ColorSpaceConverter
             $d = $max - $min;
             $s = $l > 0.5 ? $d / (2 - $max - $min) : $d / ($max + $min);
 
-            switch ($max) {
-                case $r:
-                    $h = ($g - $b) / $d + ($g < $b ? 6 : 0);
-                    break;
-                case $g:
-                    $h = ($b - $r) / $d + 2;
-                    break;
-                case $b:
-                    $h = ($r - $g) / $d + 4;
-                    break;
+            if (abs($max - $r) < ValidationConstants::FLOAT_EPSILON) {
+                $h = ($g - $b) / $d + ($g < $b ? 6 : 0);
+            } elseif (abs($max - $g) < ValidationConstants::FLOAT_EPSILON) {
+                $h = ($b - $r) / $d + 2;
+            } else {
+                $h = ($r - $g) / $d + 4;
             }
 
             $h = round($h * 60);
@@ -151,18 +147,12 @@ class ColorSpaceConverter
         if (abs($max - $min) < ValidationConstants::FLOAT_EPSILON) {
             $h = 0;
         } else {
-            switch ($max) {
-                case $r:
-                    $h = ($g - $b) / $d + ($g < $b ? 6 : 0);
-                    break;
-                case $g:
-                    $h = ($b - $r) / $d + 2;
-                    break;
-                case $b:
-                    $h = ($r - $g) / $d + 4;
-                    break;
-                default:
-                    $h = 0;
+            if (abs($max - $r) < ValidationConstants::FLOAT_EPSILON) {
+                $h = ($g - $b) / $d + ($g < $b ? 6 : 0);
+            } elseif (abs($max - $g) < ValidationConstants::FLOAT_EPSILON) {
+                $h = ($b - $r) / $d + 2;
+            } else {
+                $h = ($r - $g) / $d + 4;
             }
             $h = round($h * 60);
         }
@@ -251,7 +241,7 @@ class ColorSpaceConverter
         }
 
         $h = $h * 6;
-        $i = floor($h);
+        $i = (int) floor($h);
         $f = $h - $i;
         $p = $v * (1 - $s);
         $q = $v * (1 - $s * $f);

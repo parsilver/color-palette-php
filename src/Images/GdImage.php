@@ -24,9 +24,4 @@ class GdImage implements ImageInterface
     {
         return $this->resource;
     }
-
-    public function __destruct()
-    {
-        imagedestroy($this->resource);
-    }
 }

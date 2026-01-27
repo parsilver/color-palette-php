@@ -6,7 +6,6 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
 beforeEach(function () {
@@ -16,7 +15,6 @@ beforeEach(function () {
         $red = imagecolorallocate($image, 255, 0, 0);
         imagefill($image, 0, 0, $red);
         imagejpeg($image, __DIR__.'/../../example/assets/sample.jpg');
-        imagedestroy($image);
     }
 });
 
@@ -25,10 +23,7 @@ test('it can load image from path', function () {
     $httpClient = Mockery::mock(ClientInterface::class);
     /** @var RequestFactoryInterface $requestFactory */
     $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-    /** @var StreamFactoryInterface $streamFactory */
-    $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-    $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+    $loader = new ImageLoader($httpClient, $requestFactory);
     $image = $loader->load(__DIR__.'/../../example/assets/sample.jpg');
 
     expect($image)->toBeObject();
@@ -41,8 +36,7 @@ test('it can load image from url', function () {
     $httpClient = Mockery::mock(ClientInterface::class);
     /** @var RequestFactoryInterface $requestFactory */
     $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-    /** @var StreamFactoryInterface $streamFactory */
-    $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
     /** @var RequestInterface $request */
     $request = Mockery::mock(RequestInterface::class);
     /** @var ResponseInterface $response */
@@ -85,7 +79,7 @@ test('it can load image from url', function () {
         ->with(8192)
         ->andReturn($imageContent);
 
-    $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+    $loader = new ImageLoader($httpClient, $requestFactory);
     $image = $loader->load('https://example.com/image.jpg');
 
     expect($image)->toBeObject();
@@ -98,10 +92,7 @@ test('it throws exception when loading invalid image path', function () {
     $httpClient = Mockery::mock(ClientInterface::class);
     /** @var RequestFactoryInterface $requestFactory */
     $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-    /** @var StreamFactoryInterface $streamFactory */
-    $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-    $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+    $loader = new ImageLoader($httpClient, $requestFactory);
 
     expect(fn () => $loader->load('invalid/path/to/image.jpg'))
         ->toThrow(InvalidImageException::class, 'Image file not found: invalid/path/to/image.jpg');
@@ -112,10 +103,7 @@ test('it throws exception when loading invalid image url', function () {
     $httpClient = Mockery::mock(ClientInterface::class);
     /** @var RequestFactoryInterface $requestFactory */
     $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-    /** @var StreamFactoryInterface $streamFactory */
-    $streamFactory = Mockery::mock(StreamFactoryInterface::class);
-
-    $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+    $loader = new ImageLoader($httpClient, $requestFactory);
 
     // URL validation catches unresolvable hostname before HTTP request
     expect(fn () => $loader->load('https://invalid-url/image.jpg'))
@@ -128,10 +116,8 @@ describe('ImageLoader supports() method', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect($loader->supports('https://example.com/image.jpg'))->toBeTrue();
         expect($loader->supports('http://example.com/image.png'))->toBeTrue();
@@ -142,10 +128,8 @@ describe('ImageLoader supports() method', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect($loader->supports(__DIR__.'/../../example/assets/sample.jpg'))->toBeTrue();
     });
@@ -155,10 +139,8 @@ describe('ImageLoader supports() method', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect($loader->supports('/non/existent/path.jpg'))->toBeFalse();
     });
@@ -168,10 +150,8 @@ describe('ImageLoader supports() method', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect($loader->supports('not-a-valid-source'))->toBeFalse();
     });
@@ -183,8 +163,7 @@ describe('ImageLoader HTTP error handling', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         /** @var RequestInterface $request */
         $request = Mockery::mock(RequestInterface::class);
         /** @var ResponseInterface $response */
@@ -205,7 +184,7 @@ describe('ImageLoader HTTP error handling', function () {
         $response->shouldReceive('getStatusCode')
             ->andReturn(500);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('https://example.com/error.jpg'))
             ->toThrow(Farzai\ColorPalette\Exceptions\HttpException::class, 'HTTP status code: 500');
@@ -216,8 +195,7 @@ describe('ImageLoader HTTP error handling', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         /** @var RequestInterface $request */
         $request = Mockery::mock(RequestInterface::class);
         /** @var ResponseInterface $response */
@@ -238,7 +216,7 @@ describe('ImageLoader HTTP error handling', function () {
         $response->shouldReceive('getStatusCode')
             ->andReturn(403);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('https://example.com/forbidden.jpg'))
             ->toThrow(Farzai\ColorPalette\Exceptions\HttpException::class, 'HTTP status code: 403');
@@ -251,14 +229,12 @@ describe('ImageLoader driver detection', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
 
         if (! extension_loaded('gd')) {
             $this->markTestSkipped('GD extension is required for this test.');
         }
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory, null, null, 'gd');
+        $loader = new ImageLoader($httpClient, $requestFactory, null, null, 'gd');
         $image = $loader->load(__DIR__.'/../../example/assets/sample.jpg');
 
         expect($image)->toBeObject();
@@ -269,14 +245,12 @@ describe('ImageLoader driver detection', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
 
         if (! extension_loaded('gd') && ! extension_loaded('imagick')) {
             $this->markTestSkipped('Either GD or Imagick extension is required.');
         }
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
         $image = $loader->load(__DIR__.'/../../example/assets/sample.jpg');
 
         expect($image)->toBeObject();
@@ -289,13 +263,11 @@ describe('ImageLoader edge cases', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
 
         $invalidFile = __DIR__.'/../invalid-image-test.txt';
         file_put_contents($invalidFile, 'not an image');
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         try {
             expect(fn () => $loader->load($invalidFile))
@@ -310,8 +282,7 @@ describe('ImageLoader edge cases', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         /** @var RequestInterface $request */
         $request = Mockery::mock(RequestInterface::class);
 
@@ -321,7 +292,7 @@ describe('ImageLoader edge cases', function () {
         $request->shouldReceive('withHeader')
             ->andThrow(new \Exception('Network error'));
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('https://example.com/image.jpg'))
             ->toThrow(Farzai\ColorPalette\Exceptions\HttpException::class, 'Failed to load image from URL');
@@ -336,8 +307,7 @@ describe('ImageLoader edge cases', function () {
         $httpClient = Mockery::mock(ClientInterface::class);
         /** @var RequestFactoryInterface $requestFactory */
         $requestFactory = Mockery::mock(RequestFactoryInterface::class);
-        /** @var StreamFactoryInterface $streamFactory */
-        $streamFactory = Mockery::mock(StreamFactoryInterface::class);
+
         /** @var RequestInterface $request */
         $request = Mockery::mock(RequestInterface::class);
         /** @var ResponseInterface $response */
@@ -356,7 +326,7 @@ describe('ImageLoader edge cases', function () {
         $stream->shouldReceive('eof')->andReturn(false, true);
         $stream->shouldReceive('read')->with(8192)->andReturn($imageContent);
 
-        $loader = new ImageLoader($httpClient, $requestFactory, $streamFactory);
+        $loader = new ImageLoader($httpClient, $requestFactory);
         $loader->load('https://example.com/test.jpg');
 
         // Destructor should clean up temp files

@@ -58,6 +58,8 @@ class ColorPaletteBuilder
 
     private int $extractionCount = 5;
 
+    private string $driver = 'gd';
+
     /**
      * Create a new builder instance
      */
@@ -159,6 +161,19 @@ class ColorPaletteBuilder
     }
 
     /**
+     * Set the image processing driver
+     *
+     * @param  string  $driver  Driver name: 'gd' or 'imagick'
+     * @return $this
+     */
+    public function withDriver(string $driver): self
+    {
+        $this->driver = $driver;
+
+        return $this;
+    }
+
+    /**
      * Build and return the ColorPalette instance
      *
      * @return ColorPalette The constructed palette
@@ -197,7 +212,7 @@ class ColorPaletteBuilder
         $image = $loader->load($this->imagePath);
 
         $extractorFactory = new ColorExtractorFactory;
-        $extractor = $extractorFactory->make('gd');
+        $extractor = $extractorFactory->make($this->driver);
 
         $palette = $extractor->extract($image, $this->extractionCount);
 

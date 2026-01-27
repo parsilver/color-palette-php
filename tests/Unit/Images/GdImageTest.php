@@ -68,7 +68,6 @@ describe('GdImage', function () {
             $tempFile = tempnam(sys_get_temp_dir(), 'test_image_').'.png';
             $resource = imagecreatetruecolor(200, 150);
             imagepng($resource, $tempFile);
-            imagedestroy($resource);
 
             // Load the image
             $loadedResource = imagecreatefrompng($tempFile);
@@ -86,7 +85,6 @@ describe('GdImage', function () {
             ob_start();
             imagepng($resource);
             $imageData = ob_get_clean();
-            imagedestroy($resource);
 
             $loadedResource = imagecreatefromstring($imageData);
             $image = new GdImage($loadedResource);
