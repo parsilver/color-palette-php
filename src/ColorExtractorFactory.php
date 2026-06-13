@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
+use Farzai\ColorPalette\Enums\Driver;
 use Farzai\ColorPalette\Services\ExtensionChecker;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
@@ -77,10 +78,14 @@ class ColorExtractorFactory
     /**
      * Create a new color extractor instance
      *
+     * @param  Driver|string  $driver  The image driver ('gd' or 'imagick', or a Driver enum)
+     *
      * @throws InvalidArgumentException If an unsupported driver is specified
      */
-    public function make(string $driver = 'gd'): AbstractColorExtractor
+    public function make(Driver|string $driver = 'gd'): AbstractColorExtractor
     {
+        $driver = Driver::normalize($driver);
+
         return match ($driver) {
             'gd' => $this->createGdExtractor(),
             'imagick' => $this->createImagickExtractor(),

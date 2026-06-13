@@ -1,5 +1,6 @@
 <?php
 
+use Farzai\ColorPalette\Enums\Driver;
 use Farzai\ColorPalette\ImageFactory;
 use Farzai\ColorPalette\Images\GdImage;
 use Farzai\ColorPalette\Images\ImagickImage;
@@ -202,5 +203,15 @@ describe('ImageFactory Static Factory Methods', function () {
     test('it throws exception for unsupported driver with static method', function () {
         expect(fn () => ImageFactory::fromPath($this->testImagePath, 'invalid'))
             ->toThrow(InvalidArgumentException::class, 'Unsupported driver');
+    });
+
+    test('fromPath accepts a Driver enum', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        $image = ImageFactory::fromPath($this->testImagePath, Driver::Gd);
+
+        expect($image)->toBeInstanceOf(GdImage::class);
     });
 });

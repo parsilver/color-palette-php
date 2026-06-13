@@ -17,18 +17,9 @@ class ImagickColorExtractor extends AbstractColorExtractor
      */
     protected function extractColors(ImageInterface $image): array
     {
-        /**
-         * Note: This extractor is designed to work with ImagickImage instances.
-         * The type check has been removed to reduce coupling, but proper
-         * image/extractor pairing should be ensured by the factory.
-         */
-        if (! method_exists($image, 'getResource')) {
-            throw new \InvalidArgumentException(
-                'Image must provide getResource() method. '.
-                'ImagickColorExtractor works with ImagickImage instances.'
-            );
-        }
-
+        // ImageInterface guarantees getResource(); an ImagickImage yields the
+        // \Imagick handle used below. A mismatched image type surfaces as a
+        // TypeError, which extract() turns into the grayscale fallback.
         $imagick = $image->getResource();
 
         // Resize image for faster processing

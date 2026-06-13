@@ -10,6 +10,7 @@ use Countable;
 use Farzai\ColorPalette\Constants\AccessibilityConstants;
 use Farzai\ColorPalette\Contracts\ColorInterface;
 use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
+use Farzai\ColorPalette\Enums\Driver;
 use IteratorAggregate;
 
 /**
@@ -57,7 +58,7 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable, Ite
      * $colors = $palette->toArray();
      * ```
      */
-    public static function fromImage(string $path, int $count = 5, string $driver = 'gd'): self
+    public static function fromImage(string $path, int $count = 5, Driver|string $driver = 'gd'): self
     {
         $imageFactory = new ImageFactory;
         $image = $imageFactory->createFromPath($path, $driver);

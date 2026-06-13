@@ -6,6 +6,7 @@ namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Contracts\ColorInterface;
 use Farzai\ColorPalette\Contracts\PaletteGenerationStrategyInterface;
+use Farzai\ColorPalette\Enums\Driver;
 
 /**
  * Fluent builder for creating ColorPalette instances
@@ -163,12 +164,12 @@ class ColorPaletteBuilder
     /**
      * Set the image processing driver
      *
-     * @param  string  $driver  Driver name: 'gd' or 'imagick'
+     * @param  Driver|string  $driver  Driver name ('gd' or 'imagick') or a Driver enum
      * @return $this
      */
-    public function withDriver(string $driver): self
+    public function withDriver(Driver|string $driver): self
     {
-        $this->driver = $driver;
+        $this->driver = Driver::normalize($driver);
 
         return $this;
     }

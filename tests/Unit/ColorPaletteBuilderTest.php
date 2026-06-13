@@ -3,6 +3,7 @@
 use Farzai\ColorPalette\Color;
 use Farzai\ColorPalette\ColorPalette;
 use Farzai\ColorPalette\ColorPaletteBuilder;
+use Farzai\ColorPalette\Enums\Driver;
 use Farzai\ColorPalette\Strategies\MonochromaticStrategy;
 
 describe('ColorPaletteBuilder Basic Operations', function () {
@@ -514,5 +515,20 @@ describe('ColorPaletteBuilder image driver alignment', function () {
         expect($palette)->toBeInstanceOf(ColorPalette::class);
         $top = $palette->getColors()[0];
         expect($top->getRed())->toBeGreaterThan($top->getBlue() + 30);
+    });
+
+    test('withDriver() accepts a Driver enum', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension required.');
+        }
+
+        $palette = ColorPaletteBuilder::create()
+            ->withDriver(Driver::Gd)
+            ->fromImage(__DIR__.'/../../example/assets/sample.jpg')
+            ->withCount(3)
+            ->build();
+
+        expect($palette)->toBeInstanceOf(ColorPalette::class);
+        expect($palette->count())->toBe(3);
     });
 });

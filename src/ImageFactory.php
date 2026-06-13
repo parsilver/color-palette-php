@@ -6,6 +6,7 @@ namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Constants\ImageConstants;
 use Farzai\ColorPalette\Contracts\ImageInterface;
+use Farzai\ColorPalette\Enums\Driver;
 use Farzai\ColorPalette\Images\GdImage;
 use Farzai\ColorPalette\Images\ImagickImage;
 use Farzai\ColorPalette\Services\ExtensionChecker;
@@ -31,13 +32,15 @@ class ImageFactory
      * $image = ImageFactory::fromPath('photo.jpg', 'imagick');
      * ```
      */
-    public static function fromPath(string $path, string $driver = 'gd'): ImageInterface
+    public static function fromPath(string $path, Driver|string $driver = 'gd'): ImageInterface
     {
         return (new self)->createFromPath($path, $driver);
     }
 
-    public function createFromPath(string $path, string $driver = 'gd'): ImageInterface
+    public function createFromPath(string $path, Driver|string $driver = 'gd'): ImageInterface
     {
+        $driver = Driver::normalize($driver);
+
         return match ($driver) {
             'gd' => $this->createGdImage($path),
             'imagick' => $this->createImagickImage($path),
