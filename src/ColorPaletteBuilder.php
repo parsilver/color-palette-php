@@ -208,7 +208,11 @@ class ColorPaletteBuilder
             return new ColorPalette([]);
         }
 
-        $loader = (new ImageLoaderFactory)->create();
+        // Load with the SAME driver the extractor uses, otherwise the loader's
+        // auto-detected driver (e.g. imagick when available) yields an image type
+        // the gd extractor can't read — extract() would catch the TypeError and
+        // silently fall back to a grayscale palette.
+        $loader = (new ImageLoaderFactory(preferredDriver: $this->driver))->create();
         $image = $loader->load($this->imagePath);
 
         $extractorFactory = new ColorExtractorFactory;

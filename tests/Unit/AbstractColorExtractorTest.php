@@ -264,3 +264,16 @@ test('extract() does not mutate the global random number generator', function ()
 
     expect($actual)->toBe($expected);
 });
+
+test('clusterColors does not divide by zero when a cluster has zero total weight', function () {
+    // A custom extractor can emit colors with count=0; their weighted-centroid
+    // average must not divide by a zero total weight.
+    $colors = [
+        ['r' => 200, 'g' => 10, 'b' => 10, 'count' => 0],
+        ['r' => 10, 'g' => 200, 'b' => 10, 'count' => 0],
+    ];
+
+    $result = $this->extractor->publicClusterColors($colors, 2);
+
+    expect($result)->toBeArray()->toHaveCount(2);
+});

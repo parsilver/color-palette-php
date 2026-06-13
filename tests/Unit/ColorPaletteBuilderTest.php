@@ -493,3 +493,26 @@ describe('ColorPaletteBuilder Complex Workflows', function () {
         expect($palette->count())->toBe(10);
     });
 });
+
+describe('ColorPaletteBuilder image driver alignment', function () {
+    test('build() extracts real colors with the requested driver (no grayscale fallback on a driver mismatch)', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension required.');
+        }
+
+        // The builder must load the image with the SAME driver the extractor uses.
+        // If the loader auto-detects a different driver (e.g. imagick when present)
+        // than the 'gd' extractor, the mismatch makes extract() fall back to a
+        // grayscale palette. sample.jpg is solid red, so a grayscale fallback
+        // (r≈g≈b) is distinguishable from a correct red extraction.
+        $palette = ColorPaletteBuilder::create()
+            ->withDriver('gd')
+            ->fromImage(__DIR__.'/../../example/assets/sample.jpg')
+            ->withCount(3)
+            ->build();
+
+        expect($palette)->toBeInstanceOf(ColorPalette::class);
+        $top = $palette->getColors()[0];
+        expect($top->getRed())->toBeGreaterThan($top->getBlue() + 30);
+    });
+});
