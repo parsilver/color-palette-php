@@ -604,6 +604,25 @@ $loader->load('file:///etc/passwd');                    // Blocked
 $loader->load('https://example.com/public-image.jpg'); // OK
 ```
 
+#### Choosing an HTTP Client (redirect safety)
+
+The loader follows redirects itself and **re-validates every hop** against the
+SSRF rules above — but only if the underlying PSR-18 client does **not** follow
+redirects on its own. The default does this correctly: when `symfony/http-client`
+is installed, the factory configures it with `max_redirects = 0`.
+
+> ⚠️ **A different PSR-18 client (e.g. Guzzle) may follow redirects internally by
+> default**, which bypasses the per-hop re-validation — a redirect from a public
+> URL to an internal address would be followed before the loader can check it.
+> When accepting user-supplied URLs, prefer `symfony/http-client`, or inject a
+> client configured **not** to follow redirects:
+>
+> ```php
+> // Guzzle: disable redirect-following so the loader re-validates each hop
+> $client = new \GuzzleHttp\Client(['allow_redirects' => false]);
+> $loader = (new \Farzai\ColorPalette\ImageLoaderFactory(httpClient: $client))->create();
+> ```
+
 #### File Size Limits
 
 Downloaded files are limited to **10MB by default** to prevent denial-of-service attacks:

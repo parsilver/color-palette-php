@@ -44,7 +44,7 @@
     },
     "suggest": {
         "symfony/http-client": "Recommended PSR-18 client for loading images from remote URLs; the factory configures it to not follow redirects for SSRF safety",
-        "guzzlehttp/guzzle": "Alternative PSR-18 client (auto-discovered) for loading images from remote URLs",
+        "guzzlehttp/guzzle": "Alternative PSR-18 client (auto-discovered). When loading user-supplied URLs, configure it with allow_redirects=false (or inject it) so the loader's per-hop SSRF re-validation is not bypassed",
         "nyholm/psr7": "Lightweight PSR-17 request factory, if your PSR-18 client does not provide one"
     },
     "autoload": {
