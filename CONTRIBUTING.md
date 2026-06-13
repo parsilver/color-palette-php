@@ -78,7 +78,7 @@ composer test
 ### Coding Standards
 
 - Follow PSR-12 coding standards
-- Use PHP 8.1+ features appropriately
+- Use PHP 8.2+ features appropriately
 - Add PHPDoc blocks for all classes and methods
 - Write tests for new features
 - Maintain high test coverage
@@ -120,7 +120,7 @@ composer test-coverage
 
 ### PHP Version Support
 
-- Code must be compatible with PHP 8.1 and above
+- Code must be compatible with PHP 8.2 and above
 - Use type declarations where possible
 - Leverage modern PHP features when appropriate
 

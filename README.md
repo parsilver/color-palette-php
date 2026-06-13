@@ -48,7 +48,7 @@ A powerful PHP library for extracting color palettes from images and generating 
 
 ## Requirements
 
-- PHP 8.1 or higher
+- PHP 8.2 or higher
 - GD extension **OR** ImageMagick extension (at least one is required)
 - Composer
 
