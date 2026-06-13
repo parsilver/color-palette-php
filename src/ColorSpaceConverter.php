@@ -51,9 +51,13 @@ class ColorSpaceConverter
             }
 
             $h = round($h * 60);
-            if ($h < 0) {
-                $h += ValidationConstants::HUE_MAX;
-            }
+        }
+
+        // Normalize hue into the documented [0, 360) range. round() can land
+        // exactly on 360 (e.g. rgb(255, 0, 1)), which is out of range.
+        $h = fmod((float) $h, ValidationConstants::HUE_MAX);
+        if ($h < 0) {
+            $h += ValidationConstants::HUE_MAX;
         }
 
         return [
@@ -155,6 +159,13 @@ class ColorSpaceConverter
                 $h = ($r - $g) / $d + 4;
             }
             $h = round($h * 60);
+        }
+
+        // Normalize hue into the documented [0, 360) range so the result is
+        // always a valid fromHsv() input (round() can produce exactly 360).
+        $h = fmod((float) $h, ValidationConstants::HUE_MAX);
+        if ($h < 0) {
+            $h += ValidationConstants::HUE_MAX;
         }
 
         return [
