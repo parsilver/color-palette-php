@@ -3,9 +3,15 @@
 ## Upgrading from 1.x to 2.0
 
 Version 2.0 focuses on a lighter dependency footprint and a higher minimum PHP
-version. Color extraction, conversion, manipulation, analysis, and palette
-generation are **unchanged** — the breaking changes are limited to the minimum
-PHP version and to loading images from remote URLs.
+version. The public API of color conversion, manipulation, analysis, and palette
+generation is **unchanged**; the breaking changes are limited to the minimum PHP
+version and to loading images from remote URLs.
+
+> **Note on extracted colors:** the k-means image extractor's centroid seeding
+> moved off PHP's global `mt_rand()` to a locally-seeded `\Random\Randomizer`
+> (so extraction no longer mutates your global RNG state). Results remain
+> deterministic and idempotent, but the exact colors extracted from a given
+> image with `count > 1` may differ slightly from 1.x.
 
 ### 1. PHP 8.2 is now required
 
@@ -52,7 +58,14 @@ $loader = (new ImageLoaderFactory(httpClient: $yourPsr18Client))->create();
 ```
 
 If you call `load()` with a URL and no PSR-18 client is available, a
-`RuntimeException` is thrown explaining how to install or inject one.
+`RuntimeException` is thrown explaining how to install or inject one. Loading a
+**local file path needs no HTTP client** and always works.
+
+**Direct constructors:** `ImageLoader` and `ImageLoaderFactory` no longer accept
+a PSR-17 `StreamFactoryInterface` / `$streamFactory` argument (it was unused). If
+you construct either directly, drop that argument and prefer the named arguments
+`httpClient:` / `requestFactory:` / `httpConfig:`. Both the client and request
+factory are now optional and default to `null`.
 
 ### 3. Removed `ImageConstants::HTTP_OK`
 

@@ -696,16 +696,21 @@ try {
 When accepting URLs from users:
 
 ```php
-// ✓ GOOD: Validate and handle errors
+use Farzai\ColorPalette\ColorExtractorFactory;
+use Farzai\ColorPalette\ImageLoaderFactory;
+
+// ✓ GOOD: load through the SSRF-protected loader and handle errors.
+// (ColorPalette::fromImage() is for local paths only — it does not fetch URLs.)
 try {
-    $palette = ColorPalette::fromImage($userUrl, count: 5);
+    $image = (new ImageLoaderFactory)->create()->load($userUrl);
+    $palette = (new ColorExtractorFactory)->make('gd')->extract($image, 5);
 } catch (SsrfException $e) {
     // Don't expose internal network structure in error messages
     throw new UserFacingException('Invalid URL provided');
 }
 
 // ✗ BAD: Don't blindly trust user input
-$palette = ColorPalette::fromImage($_GET['url']); // Dangerous!
+$image = (new ImageLoaderFactory)->create()->load($_GET['url']); // validate first!
 
 // ✓ GOOD: Add URL whitelist for extra security
 $allowedDomains = ['cdn.example.com', 'images.example.com'];
