@@ -864,7 +864,7 @@ function ColorManipulator() {
                                     <div className="space-y-1 text-xs">
                                         <p className="font-mono"><span className="text-muted-foreground">HEX:</span> {result.original.hex}</p>
                                         <p className="font-mono"><span className="text-muted-foreground">RGB:</span> {result.original.rgb.r}, {result.original.rgb.g}, {result.original.rgb.b}</p>
-                                        <p className="font-mono"><span className="text-muted-foreground">HSL:</span> {Math.round(result.original.hsl.h)}°, {Math.round(result.original.hsl.s * 100)}%, {Math.round(result.original.hsl.l * 100)}%</p>
+                                        <p className="font-mono"><span className="text-muted-foreground">HSL:</span> {Math.round(result.original.hsl.h)}°, {Math.round(result.original.hsl.s)}%, {Math.round(result.original.hsl.l)}%</p>
                                     </div>
                                 </div>
 
@@ -879,7 +879,7 @@ function ColorManipulator() {
                                     <div className="space-y-1 text-xs">
                                         <p className="font-mono"><span className="text-muted-foreground">HEX:</span> {result.result.hex}</p>
                                         <p className="font-mono"><span className="text-muted-foreground">RGB:</span> {result.result.rgb.r}, {result.result.rgb.g}, {result.result.rgb.b}</p>
-                                        <p className="font-mono"><span className="text-muted-foreground">HSL:</span> {Math.round(result.result.hsl.h)}°, {Math.round(result.result.hsl.s * 100)}%, {Math.round(result.result.hsl.l * 100)}%</p>
+                                        <p className="font-mono"><span className="text-muted-foreground">HSL:</span> {Math.round(result.result.hsl.h)}°, {Math.round(result.result.hsl.s)}%, {Math.round(result.result.hsl.l)}%</p>
                                     </div>
                                 </div>
                             </div>
