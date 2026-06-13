@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette;
 
-use Farzai\ColorPalette\Constants\AccessibilityConstants;
 use Farzai\ColorPalette\Constants\ValidationConstants;
 use Farzai\ColorPalette\Contracts\ColorInterface;
 use InvalidArgumentException;
 
 class Color implements ColorInterface
 {
-    private int $red;
+    private readonly int $red;
 
-    private int $green;
+    private readonly int $green;
 
-    private int $blue;
+    private readonly int $blue;
 
     public function __construct(int $red, int $green, int $blue)
     {
@@ -151,91 +150,57 @@ class Color implements ColorInterface
 
     public function getBrightness(): float
     {
-        return (($this->red * AccessibilityConstants::BRIGHTNESS_RED_COEFFICIENT) +
-                ($this->green * AccessibilityConstants::BRIGHTNESS_GREEN_COEFFICIENT) +
-                ($this->blue * AccessibilityConstants::BRIGHTNESS_BLUE_COEFFICIENT)) / AccessibilityConstants::BRIGHTNESS_DIVISOR;
+        return ColorAnalyzer::getBrightness($this);
     }
 
     public function isLight(): bool
     {
-        return $this->getBrightness() > AccessibilityConstants::BRIGHTNESS_THRESHOLD;
+        return ColorAnalyzer::isLight($this);
     }
 
     public function isDark(): bool
     {
-        return ! $this->isLight();
+        return ColorAnalyzer::isDark($this);
     }
 
     public function getContrastRatio(ColorInterface $color): float
     {
-        $l1 = $this->getLuminance() + AccessibilityConstants::CONTRAST_LUMINANCE_OFFSET;
-        $l2 = $color->getLuminance() + AccessibilityConstants::CONTRAST_LUMINANCE_OFFSET;
-
-        return $l1 > $l2 ? $l1 / $l2 : $l2 / $l1;
+        return ColorAnalyzer::getContrastRatio($this, $color);
     }
 
     public function getLuminance(): float
     {
-        $rgb = [$this->red, $this->green, $this->blue];
-        $rgb = array_map(function ($value) {
-            $value = $value / ValidationConstants::MAX_RGB_VALUE;
-
-            return $value <= AccessibilityConstants::LUMINANCE_GAMMA_THRESHOLD
-                ? $value / AccessibilityConstants::LUMINANCE_GAMMA_DIVISOR
-                : pow(($value + AccessibilityConstants::LUMINANCE_GAMMA_OFFSET) / AccessibilityConstants::LUMINANCE_GAMMA_MULTIPLIER,
-                    AccessibilityConstants::LUMINANCE_GAMMA_POWER);
-        }, $rgb);
-
-        return $rgb[0] * AccessibilityConstants::LUMINANCE_RED_COEFFICIENT +
-               $rgb[1] * AccessibilityConstants::LUMINANCE_GREEN_COEFFICIENT +
-               $rgb[2] * AccessibilityConstants::LUMINANCE_BLUE_COEFFICIENT;
+        return ColorAnalyzer::getLuminance($this);
     }
 
     public function lighten(float $amount): self
     {
-        $hsl = $this->toHsl();
-        $hsl['l'] = min(100, $hsl['l'] + $amount * 100);
-
-        return self::fromHsl($hsl['h'], $hsl['s'], $hsl['l']);
+        return ColorManipulator::lighten($this, $amount);
     }
 
     public function darken(float $amount): self
     {
-        $hsl = $this->toHsl();
-        $hsl['l'] = max(0, $hsl['l'] - $amount * 100);
-
-        return self::fromHsl($hsl['h'], $hsl['s'], $hsl['l']);
+        return ColorManipulator::darken($this, $amount);
     }
 
     public function saturate(float $amount): self
     {
-        $hsl = $this->toHsl();
-        $hsl['s'] = min(100, $hsl['s'] + $amount * 100);
-
-        return self::fromHsl($hsl['h'], $hsl['s'], $hsl['l']);
+        return ColorManipulator::saturate($this, $amount);
     }
 
     public function desaturate(float $amount): self
     {
-        $hsl = $this->toHsl();
-        $hsl['s'] = max(0, $hsl['s'] - $amount * 100);
-
-        return self::fromHsl($hsl['h'], $hsl['s'], $hsl['l']);
+        return ColorManipulator::desaturate($this, $amount);
     }
 
     public function rotate(float $degrees): self
     {
-        $hsl = $this->toHsl();
-        $hsl['h'] = fmod(($hsl['h'] + $degrees + 360), 360);
-
-        return self::fromHsl($hsl['h'], $hsl['s'], $hsl['l']);
+        return ColorManipulator::rotate($this, $degrees);
     }
 
     public function withLightness(float $lightness): self
     {
-        $hsl = $this->toHsl();
-
-        return self::fromHsl($hsl['h'], $hsl['s'], $lightness * 100);
+        return ColorManipulator::withLightness($this, $lightness);
     }
 
     /**
