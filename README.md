@@ -50,6 +50,7 @@ A powerful PHP library for extracting color palettes from images and generating 
 
 - PHP 8.2 or higher
 - GD extension **OR** ImageMagick extension (at least one is required)
+- A [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP client **only if you load images from URLs** (e.g. `symfony/http-client` or `guzzlehttp/guzzle`) — not needed for local files
 - Composer
 
 ## Installation
@@ -59,6 +60,21 @@ Install the package via composer:
 ```bash
 composer require farzai/color-palette
 ```
+
+### Loading images from URLs (optional)
+
+Extracting colors from **local files has no HTTP dependencies**. To load images from
+**remote URLs**, also install any [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP
+client — it is auto-discovered, no wiring required:
+
+```bash
+composer require symfony/http-client   # recommended
+# or: composer require guzzlehttp/guzzle
+```
+
+`symfony/http-client` is recommended because the loader configures it to not follow
+redirects, so every redirect hop is re-validated against the SSRF rules. You can also
+pass your own PSR-18 client / PSR-17 factory to `ImageLoaderFactory` or `ImageLoader`.
 
 ## Quick Start
 
