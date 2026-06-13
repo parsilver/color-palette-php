@@ -1,10 +1,19 @@
 <?php
 
 use Farzai\ColorPalette\ColorExtractorFactory;
+use Farzai\ColorPalette\Enums\Driver;
 use Farzai\ColorPalette\GdColorExtractor;
 use Farzai\ColorPalette\ImagickColorExtractor;
 use Farzai\ColorPalette\Services\ExtensionChecker;
 use Psr\Log\NullLogger;
+
+test('make() accepts a Driver enum', function () {
+    if (! extension_loaded('gd')) {
+        $this->markTestSkipped('GD extension is not available.');
+    }
+
+    expect((new ColorExtractorFactory)->make(Driver::Gd))->toBeInstanceOf(GdColorExtractor::class);
+});
 
 test('it creates GD extractor when GD is available', function () {
     if (! extension_loaded('gd')) {

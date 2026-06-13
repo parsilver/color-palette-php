@@ -113,32 +113,6 @@ describe('GdColorExtractor - Error Handling', function () {
         // Should return grayscale fallback
         expect($palette[0]->toHex())->toBe('#ffffff');
     });
-
-    test('it throws exception when image lacks getResource method', function () {
-        if (! extension_loaded('gd')) {
-            $this->markTestSkipped('GD extension is not available.');
-        }
-
-        // Create a mock without getResource method
-        $mockImage = new class implements ImageInterface
-        {
-            public function getWidth(): int
-            {
-                return 100;
-            }
-
-            public function getHeight(): int
-            {
-                return 100;
-            }
-        };
-
-        $extractor = new GdColorExtractor;
-
-        // Should return fallback because the error is caught in AbstractColorExtractor
-        $palette = $extractor->extract($mockImage, 5);
-        expect($palette)->toHaveCount(5);
-    });
 });
 
 describe('GdColorExtractor - Color Filtering', function () {

@@ -87,3 +87,35 @@ the literal `200` instead.
 On PHP 8+, `\GdImage` objects are reference-counted and freed automatically, so
 the explicit `imagedestroy()` was unnecessary. This is internal cleanup only —
 there is nothing to call and no behavior to migrate.
+
+### 5. `ImageInterface` now declares `getResource()`
+
+`Farzai\ColorPalette\Contracts\ImageInterface` now declares
+`public function getResource(): mixed`, formalising the accessor the color
+extractors already relied on. The bundled `GdImage` and `ImagickImage` already
+implement it, so no change is needed for normal use.
+
+**If you have a custom `ImageInterface` implementation**, add the method:
+
+```php
+public function getResource(): mixed
+{
+    return $this->resource; // your \GdImage, \Imagick, or other backend handle
+}
+```
+
+## New (non-breaking)
+
+### A `Driver` enum for image drivers
+
+You can now pass a `Farzai\ColorPalette\Enums\Driver` enum anywhere a driver was
+given as a string (`ColorExtractorFactory::make()`, `ImageFactory::fromPath()` /
+`createFromPath()`, `ColorPalette::fromImage()`, `ColorPaletteBuilder::withDriver()`):
+
+```php
+use Farzai\ColorPalette\Enums\Driver;
+
+$palette = ColorPalette::fromImage('photo.jpg', 5, Driver::Imagick);
+```
+
+Plain strings (`'gd'` / `'imagick'`) keep working — this is additive.

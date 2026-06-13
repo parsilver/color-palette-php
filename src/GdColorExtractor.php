@@ -6,24 +6,15 @@ namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Images\GdImage;
-use InvalidArgumentException;
 
 class GdColorExtractor extends AbstractColorExtractor
 {
     protected function extractColors(ImageInterface $image): array
     {
-        /**
-         * Note: This extractor is designed to work with GdImage instances.
-         * The type check has been removed to reduce coupling, but proper
-         * image/extractor pairing should be ensured by the factory.
-         */
-        if (! method_exists($image, 'getResource')) {
-            throw new InvalidArgumentException(
-                'Image must provide getResource() method. '.
-                'GdColorExtractor works with GdImage instances.'
-            );
-        }
-
+        // ImageInterface guarantees getResource(); a GdImage yields the \GdImage
+        // handle the GD functions below operate on. A mismatched image type (e.g.
+        // an ImagickImage) surfaces as a TypeError, which extract() turns into the
+        // grayscale fallback.
         $gdImage = $image->getResource();
         $width = imagesx($gdImage);
         $height = imagesy($gdImage);

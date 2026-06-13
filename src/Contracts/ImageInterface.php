@@ -18,4 +18,12 @@ interface ImageInterface
      * Get image height
      */
     public function getHeight(): int;
+
+    /**
+     * Get the underlying driver resource.
+     *
+     * Returns the backend-specific handle (e.g. a \GdImage or \Imagick instance);
+     * implementations narrow this to their concrete resource type.
+     */
+    public function getResource(): mixed;
 }
