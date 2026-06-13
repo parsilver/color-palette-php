@@ -88,24 +88,10 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable, Ite
      */
     public static function fromColor(ColorInterface $color, string $scheme = 'monochromatic', array $options = []): self
     {
-        $generator = new PaletteGenerator($color);
-
-        $count = isset($options['count']) && is_int($options['count']) ? $options['count'] : 5;
-
-        return match ($scheme) {
-            'monochromatic' => $generator->monochromatic($count),
-            'complementary' => $generator->complementary(),
-            'analogous' => $generator->analogous(),
-            'triadic' => $generator->triadic(),
-            'tetradic' => $generator->tetradic(),
-            'split-complementary', 'splitComplementary' => $generator->splitComplementary(),
-            'shades' => $generator->shades($count),
-            'tints' => $generator->tints($count),
-            'pastel' => $generator->pastel(),
-            'vibrant' => $generator->vibrant(),
-            'website-theme', 'websiteTheme' => $generator->websiteTheme(),
-            default => throw new \InvalidArgumentException("Unknown scheme: {$scheme}"),
-        };
+        // Strategies read their own options (e.g. 'count') via getCountOption(),
+        // so the scheme name resolves through the shared registry and generates
+        // directly — no per-scheme dispatch to maintain here.
+        return StrategyRegistry::resolve($scheme)->generate($color, $options);
     }
 
     /**
