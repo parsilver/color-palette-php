@@ -96,7 +96,10 @@ function handleExtract()
             // file_get_contents(): it validates the scheme, blocks private/reserved
             // IPs (re-checking every redirect hop), and enforces the byte-size and
             // decoded-dimension limits before the image is ever decoded.
-            $image = (new ImageLoaderFactory)->create()->load($url);
+            // Load with the same 'gd' driver the extractor uses (otherwise the
+            // loader's auto-detected driver could yield an image the gd extractor
+            // can't read, silently falling back to a grayscale palette).
+            $image = (new ImageLoaderFactory(preferredDriver: 'gd'))->create()->load($url);
             $palette = (new ColorExtractorFactory)->make('gd')->extract($image, $count);
             assert($palette instanceof ColorPalette);
 

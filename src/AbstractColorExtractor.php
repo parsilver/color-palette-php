@@ -244,6 +244,14 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
                     $totalWeight += $weight;
                 }
 
+                // A cluster of zero-weight colors (e.g. a custom extractor emitting
+                // count=0) would divide by zero; keep the previous centroid instead.
+                if ($totalWeight <= 0) {
+                    $newCentroids[$i] = $centroids[$i];
+
+                    continue;
+                }
+
                 $newCentroids[$i] = [
                     'r' => (int) round($sumR / $totalWeight),
                     'g' => (int) round($sumG / $totalWeight),
