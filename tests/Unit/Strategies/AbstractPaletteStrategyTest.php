@@ -2,6 +2,7 @@
 
 use Farzai\ColorPalette\ColorPalette;
 use Farzai\ColorPalette\Contracts\ColorInterface;
+use Farzai\ColorPalette\Contracts\PaletteGenerationStrategyInterface;
 use Farzai\ColorPalette\Strategies\AbstractPaletteStrategy;
 
 // Create a concrete test implementation to test protected methods
@@ -199,7 +200,7 @@ describe('AbstractPaletteStrategy - validateCount', function () {
 
 describe('AbstractPaletteStrategy - Integration', function () {
     test('it implements PaletteGenerationStrategyInterface', function () {
-        expect($this->strategy)->toBeInstanceOf(\Farzai\ColorPalette\Contracts\PaletteGenerationStrategyInterface::class);
+        expect($this->strategy)->toBeInstanceOf(PaletteGenerationStrategyInterface::class);
     });
 
     test('it uses MIN_COUNT constant correctly', function () {

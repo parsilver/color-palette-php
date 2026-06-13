@@ -13,6 +13,7 @@ use Farzai\ColorPalette\Exceptions\SsrfException;
 use Farzai\ColorPalette\Services\ExtensionChecker;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamInterface;
 
 class ImageLoader
 {
@@ -332,7 +333,7 @@ class ImageLoader
      *
      * @throws HttpException
      */
-    private function downloadToFile(\Psr\Http\Message\StreamInterface $stream, string $filePath): void
+    private function downloadToFile(StreamInterface $stream, string $filePath): void
     {
         $handle = fopen($filePath, 'wb');
 

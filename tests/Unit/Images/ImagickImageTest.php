@@ -1,5 +1,6 @@
 <?php
 
+use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Images\ImagickImage;
 
 beforeEach(function () {
@@ -173,7 +174,7 @@ describe('ImagickImage - ImageInterface Compliance', function () {
 
         $image = new ImagickImage($imagick);
 
-        expect($image)->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ImageInterface::class);
+        expect($image)->toBeInstanceOf(ImageInterface::class);
     });
 
     test('it has all required interface methods', function () {
@@ -243,7 +244,7 @@ describe('ImagickImage - Comparison with GdImage', function () {
         $imagickImage = new ImagickImage($imagick);
 
         // Both should implement the same interface
-        expect($imagickImage)->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ImageInterface::class);
+        expect($imagickImage)->toBeInstanceOf(ImageInterface::class);
 
         // Both should have the same methods
         expect(method_exists($imagickImage, 'getWidth'))->toBeTrue();

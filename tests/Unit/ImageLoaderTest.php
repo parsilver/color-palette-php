@@ -1,6 +1,8 @@
 <?php
 
+use Farzai\ColorPalette\Exceptions\HttpException;
 use Farzai\ColorPalette\Exceptions\InvalidImageException;
+use Farzai\ColorPalette\Exceptions\SsrfException;
 use Farzai\ColorPalette\ImageLoader;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -107,7 +109,7 @@ test('it throws exception when loading invalid image url', function () {
 
     // URL validation catches unresolvable hostname before HTTP request
     expect(fn () => $loader->load('https://invalid-url/image.jpg'))
-        ->toThrow(Farzai\ColorPalette\Exceptions\SsrfException::class, 'Failed to resolve hostname');
+        ->toThrow(SsrfException::class, 'Failed to resolve hostname');
 });
 
 describe('ImageLoader supports() method', function () {
@@ -187,7 +189,7 @@ describe('ImageLoader HTTP error handling', function () {
         $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('https://example.com/error.jpg'))
-            ->toThrow(Farzai\ColorPalette\Exceptions\HttpException::class, 'HTTP status code: 500');
+            ->toThrow(HttpException::class, 'HTTP status code: 500');
     });
 
     test('it throws exception for 403 forbidden', function () {
@@ -219,7 +221,7 @@ describe('ImageLoader HTTP error handling', function () {
         $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('https://example.com/forbidden.jpg'))
-            ->toThrow(Farzai\ColorPalette\Exceptions\HttpException::class, 'HTTP status code: 403');
+            ->toThrow(HttpException::class, 'HTTP status code: 403');
     });
 });
 
@@ -290,12 +292,12 @@ describe('ImageLoader edge cases', function () {
             ->andReturn($request);
 
         $request->shouldReceive('withHeader')
-            ->andThrow(new \Exception('Network error'));
+            ->andThrow(new Exception('Network error'));
 
         $loader = new ImageLoader($httpClient, $requestFactory);
 
         expect(fn () => $loader->load('https://example.com/image.jpg'))
-            ->toThrow(Farzai\ColorPalette\Exceptions\HttpException::class, 'Failed to load image from URL');
+            ->toThrow(HttpException::class, 'Failed to load image from URL');
     });
 
     test('it cleans up temporary files on destruction', function () {

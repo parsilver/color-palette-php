@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette\Contracts;
 
+use Farzai\ColorPalette\Exceptions\ImageLoadException;
+
 /**
  * Interface for handling image loading operations
  */
@@ -14,7 +16,7 @@ interface ImageLoaderInterface
      *
      * @param  string  $source  Image source (URL or file path)
      *
-     * @throws \Farzai\ColorPalette\Exceptions\ImageLoadException
+     * @throws ImageLoadException
      */
     public function load(string $source): ImageInterface;
 
