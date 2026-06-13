@@ -10,6 +10,8 @@ use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 use Farzai\ColorPalette\Contracts\ImageInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Random\Engine\Mt19937;
+use Random\Randomizer;
 
 /**
  * Abstract base class for color extractors
@@ -272,12 +274,13 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     {
         $centroids = [];
 
-        // Seed the random number generator for deterministic results
-        mt_srand($this->seed);
+        // Locally-seeded randomizer: deterministic, reproducible centroid selection
+        // without mutating PHP's global RNG state (mt_srand) as a side effect.
+        $randomizer = new Randomizer(new Mt19937($this->seed));
 
-        // Choose first centroid using seeded random
+        // Choose first centroid using the seeded randomizer
         $colorKeys = array_keys($colors);
-        $firstIndex = $colorKeys[mt_rand(0, count($colorKeys) - 1)];
+        $firstIndex = $colorKeys[$randomizer->getInt(0, count($colorKeys) - 1)];
         $centroids[] = [
             'r' => $colors[$firstIndex]['r'],
             'g' => $colors[$firstIndex]['g'],
@@ -298,7 +301,7 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
 
             // Choose next centroid with probability proportional to distance (seeded)
             $sum = array_sum($distances);
-            $target = (mt_rand() / mt_getrandmax()) * $sum;
+            $target = $randomizer->getInt(0, PHP_INT_MAX) / PHP_INT_MAX * $sum;
             $currentSum = 0;
             foreach ($colors as $index => $color) {
                 $currentSum += $distances[$index];
