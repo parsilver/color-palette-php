@@ -30,6 +30,12 @@ class ImagickImage implements ImageInterface
 
     public function __destruct()
     {
-        $this->resource->clear();
+        try {
+            $this->resource->clear();
+        } catch (\Throwable) {
+            // Imagick::clear() can throw if the resource is already destroyed or
+            // invalid; a destructor must never let an exception escape (it would
+            // become a fatal error during object destruction / script shutdown).
+        }
     }
 }

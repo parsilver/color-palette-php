@@ -9,6 +9,22 @@ beforeEach(function () {
     }
 });
 
+describe('ImagickImage - Resource Cleanup Safety', function () {
+    test('its destructor swallows Imagick::clear() failures', function () {
+        // A destructor must never let an exception escape (it would become a
+        // fatal error during shutdown). Force clear() to throw and assert the
+        // object can be destroyed without the exception propagating.
+        $resource = Mockery::mock(Imagick::class);
+        $resource->shouldReceive('clear')->andThrow(new ImagickException('clear failed'));
+
+        $image = new ImagickImage($resource);
+
+        unset($image); // triggers __destruct -> clear() throws -> must be swallowed
+
+        expect(true)->toBeTrue();
+    });
+});
+
 describe('ImagickImage - Basic Functionality', function () {
     test('it can be constructed with Imagick resource', function () {
         $imagick = new Imagick;
