@@ -242,3 +242,25 @@ test('it produces idempotent results with same input', function () {
     // Should produce identical results
     expect($palette1->toArray())->toBe($palette2->toArray());
 });
+
+test('extract() does not mutate the global random number generator', function () {
+    $this->extractor->setMockColors([
+        ['r' => 200, 'g' => 10, 'b' => 10, 'count' => 50],
+        ['r' => 10, 'g' => 200, 'b' => 10, 'count' => 40],
+        ['r' => 10, 'g' => 10, 'b' => 200, 'count' => 30],
+        ['r' => 200, 'g' => 200, 'b' => 10, 'count' => 20],
+    ]);
+
+    // Record the caller's global RNG sequence from a known seed.
+    mt_srand(12345);
+    $expected = [mt_rand(), mt_rand(), mt_rand()];
+
+    // Re-seed identically, then run extraction. A library must not hijack the
+    // caller's global RNG state (the old implementation called mt_srand()/mt_rand()
+    // internally, which reseeded the global generator as a side effect).
+    mt_srand(12345);
+    $this->extractor->extract($this->mockImage, 4);
+    $actual = [mt_rand(), mt_rand(), mt_rand()];
+
+    expect($actual)->toBe($expected);
+});

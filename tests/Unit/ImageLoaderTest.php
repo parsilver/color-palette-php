@@ -337,3 +337,19 @@ describe('ImageLoader edge cases', function () {
         expect(true)->toBeTrue();
     });
 });
+
+test('it loads a local file without any HTTP client', function () {
+    // Headline 2.0 promise: local-file extraction must work with no HTTP client.
+    $loader = new ImageLoader(httpClient: null, requestFactory: null);
+
+    $image = $loader->load(__DIR__.'/../../example/assets/sample.jpg');
+
+    expect($image->getWidth())->toBeGreaterThan(0);
+});
+
+test('it fails with a clear error when loading a URL without an HTTP client', function () {
+    $loader = new ImageLoader(httpClient: null, requestFactory: null);
+
+    expect(fn () => $loader->load('https://example.com/image.jpg'))
+        ->toThrow(RuntimeException::class, 'No PSR-18 HTTP client');
+});

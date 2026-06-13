@@ -15,6 +15,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use RuntimeException;
 
 class ImageLoader
 {
@@ -30,8 +31,8 @@ class ImageLoader
     private HttpClientConfig $httpConfig;
 
     public function __construct(
-        private readonly ClientInterface $httpClient,
-        private readonly RequestFactoryInterface $requestFactory,
+        private readonly ?ClientInterface $httpClient = null,
+        private readonly ?RequestFactoryInterface $requestFactory = null,
         private readonly ?ImageFactory $imageFactory = null,
         ?ExtensionChecker $extensionChecker = null,
         ?string $preferredDriver = null,
@@ -44,8 +45,18 @@ class ImageLoader
 
     public function load(string $source): ImageInterface
     {
+        $isUrl = filter_var($source, FILTER_VALIDATE_URL) !== false;
+
+        // Fail fast (and unwrapped) before any network work when a URL is
+        // requested but no HTTP client is available. Loading a local file path
+        // never needs an HTTP client, so that path is left untouched.
+        if ($isUrl) {
+            $this->requireHttpClient();
+            $this->requireRequestFactory();
+        }
+
         try {
-            if (filter_var($source, FILTER_VALIDATE_URL)) {
+            if ($isUrl) {
                 $this->validateUrl($source);
 
                 return $this->loadFromUrl($source);
@@ -69,6 +80,43 @@ class ImageLoader
 
         // Check if source is an existing file path
         return file_exists($source);
+    }
+
+    /**
+     * Return the configured PSR-18 client, or throw if none is available.
+     *
+     * @throws RuntimeException If no HTTP client was provided/discovered
+     */
+    private function requireHttpClient(): ClientInterface
+    {
+        if ($this->httpClient === null) {
+            throw new RuntimeException(
+                'No PSR-18 HTTP client is available to load images from URLs. Install '
+                .'symfony/http-client (recommended) or any PSR-18 client, or pass your '
+                .'own client to ImageLoaderFactory / ImageLoader. Loading images from a '
+                .'local file path does not require an HTTP client.'
+            );
+        }
+
+        return $this->httpClient;
+    }
+
+    /**
+     * Return the configured PSR-17 request factory, or throw if none is available.
+     *
+     * @throws RuntimeException If no request factory was provided/discovered
+     */
+    private function requireRequestFactory(): RequestFactoryInterface
+    {
+        if ($this->requestFactory === null) {
+            throw new RuntimeException(
+                'No PSR-17 request factory is available to load images from URLs. Install '
+                .'a PSR-17 implementation (e.g. nyholm/psr7) or pass one to '
+                .'ImageLoaderFactory / ImageLoader.'
+            );
+        }
+
+        return $this->requestFactory;
     }
 
     private function loadFromPath(string $path): ImageInterface
@@ -171,14 +219,16 @@ class ImageLoader
      */
     private function sendRequestFollowingRedirects(string $url): ResponseInterface
     {
+        $httpClient = $this->requireHttpClient();
+        $requestFactory = $this->requireRequestFactory();
         $maxRedirects = $this->httpConfig->getMaxRedirects();
         $currentUrl = $url;
 
         for ($redirect = 0; ; $redirect++) {
-            $request = $this->requestFactory->createRequest('GET', $currentUrl)
+            $request = $requestFactory->createRequest('GET', $currentUrl)
                 ->withHeader('User-Agent', $this->httpConfig->getUserAgent());
 
-            $response = $this->httpClient->sendRequest($request);
+            $response = $httpClient->sendRequest($request);
 
             $status = $response->getStatusCode();
 
