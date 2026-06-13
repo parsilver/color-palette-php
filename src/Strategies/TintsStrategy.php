@@ -22,6 +22,11 @@ class TintsStrategy extends AbstractPaletteStrategy
     public function generate(ColorInterface $baseColor, array $options = []): ColorPalette
     {
         $count = $this->getCountOption($options, 5);
+
+        if ($count === 1) {
+            return new ColorPalette([$baseColor]);
+        }
+
         $colors = [$baseColor];
         $step = ColorSchemeConstants::DEFAULT_MANIPULATION_STEP / ($count - 1);
 
