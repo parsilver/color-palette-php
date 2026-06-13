@@ -80,3 +80,10 @@ factory are now optional and default to `null`.
 The unused public constant `Farzai\ColorPalette\Constants\ImageConstants::HTTP_OK`
 was removed. It was never referenced by the library. If you referenced it, use
 the literal `200` instead.
+
+### 4. `GdImage::__destruct()` removed
+
+`Farzai\ColorPalette\Images\GdImage` no longer defines a `__destruct()` method.
+On PHP 8+, `\GdImage` objects are reference-counted and freed automatically, so
+the explicit `imagedestroy()` was unnecessary. This is internal cleanup only —
+there is nothing to call and no behavior to migrate.

@@ -236,6 +236,8 @@ class ColorAnalyzer
      * Determine if a color is a warm color
      *
      * Warm colors are red, orange, and yellow hues (roughly 0-60 degrees on the color wheel).
+     * Hues in 61-119 (yellow-green) and 301-360 (magenta/pink) are intentionally
+     * classified as neither warm nor cool, so isWarm() and isCool() can both be false.
      *
      * @param  ColorInterface  $color  The color to check
      * @return bool True if the color is warm
@@ -253,6 +255,8 @@ class ColorAnalyzer
      * Determine if a color is a cool color
      *
      * Cool colors are green, blue, and purple hues (roughly 120-300 degrees on the color wheel).
+     * Hues outside the warm (0-60) and cool (120-300) bands are intentionally
+     * classified as neither, so isWarm() and isCool() can both be false.
      *
      * @param  ColorInterface  $color  The color to check
      * @return bool True if the color is cool

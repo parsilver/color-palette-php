@@ -728,8 +728,9 @@ try {
     throw new UserFacingException('Invalid URL provided');
 }
 
-// ✗ BAD: Don't blindly trust user input
-$image = (new ImageLoaderFactory)->create()->load($_GET['url']); // validate first!
+// ⚠️ The loader already validates the URL against the SSRF rules, but for
+// untrusted input add an allowlist for defense in depth (see below).
+$image = (new ImageLoaderFactory)->create()->load($_GET['url']);
 
 // ✓ GOOD: Add URL whitelist for extra security
 $allowedDomains = ['cdn.example.com', 'images.example.com'];

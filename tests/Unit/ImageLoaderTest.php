@@ -353,3 +353,12 @@ test('it fails with a clear error when loading a URL without an HTTP client', fu
     expect(fn () => $loader->load('https://example.com/image.jpg'))
         ->toThrow(RuntimeException::class, 'No PSR-18 HTTP client');
 });
+
+test('it fails with a clear error when loading a URL without a PSR-17 request factory', function () {
+    // A client that is not also a request factory, with no factory provided.
+    $client = Mockery::mock(ClientInterface::class);
+    $loader = new ImageLoader(httpClient: $client, requestFactory: null);
+
+    expect(fn () => $loader->load('https://example.com/image.jpg'))
+        ->toThrow(RuntimeException::class, 'No PSR-17 request factory');
+});

@@ -7,6 +7,7 @@ namespace Farzai\ColorPalette;
 use Farzai\ColorPalette\Config\HttpClientConfig;
 use Farzai\ColorPalette\Constants\ImageConstants;
 use Farzai\ColorPalette\Contracts\ImageInterface;
+use Farzai\ColorPalette\Contracts\ImageLoaderInterface;
 use Farzai\ColorPalette\Exceptions\HttpException;
 use Farzai\ColorPalette\Exceptions\InvalidImageException;
 use Farzai\ColorPalette\Exceptions\SsrfException;
@@ -17,7 +18,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 
-class ImageLoader
+class ImageLoader implements ImageLoaderInterface
 {
     private string $preferredDriver;
 
