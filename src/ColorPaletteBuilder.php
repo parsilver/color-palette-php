@@ -239,19 +239,6 @@ class ColorPaletteBuilder
      */
     private function resolveStrategy(string $name): PaletteGenerationStrategyInterface
     {
-        return match (strtolower($name)) {
-            'monochromatic' => new Strategies\MonochromaticStrategy,
-            'complementary' => new Strategies\ComplementaryStrategy,
-            'analogous' => new Strategies\AnalogousStrategy,
-            'triadic' => new Strategies\TriadicStrategy,
-            'tetradic' => new Strategies\TetradicStrategy,
-            'split-complementary', 'splitcomplementary' => new Strategies\SplitComplementaryStrategy,
-            'shades' => new Strategies\ShadesStrategy,
-            'tints' => new Strategies\TintsStrategy,
-            'pastel' => new Strategies\PastelStrategy,
-            'vibrant' => new Strategies\VibrantStrategy,
-            'website-theme', 'websitetheme' => new Strategies\WebsiteThemeStrategy,
-            default => throw new \InvalidArgumentException("Unknown color scheme: {$name}"),
-        };
+        return StrategyRegistry::resolve($name);
     }
 }
