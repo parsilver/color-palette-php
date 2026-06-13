@@ -14,7 +14,7 @@ This section guides you through submitting a bug report for Color Palette PHP. F
 
 **Before Submitting A Bug Report**
 - Check the documentation for a list of common questions and problems.
-- Ensure the bug is not already reported by searching on GitHub under [Issues](https://github.com/farzai/color-palette/issues).
+- Ensure the bug is not already reported by searching on GitHub under [Issues](https://github.com/parsilver/color-palette-php/issues).
 - If you're unable to find an open issue addressing the problem, open a new one.
 
 **How Do I Submit A (Good) Bug Report?**
@@ -62,7 +62,7 @@ Enhancement suggestions are tracked as GitHub issues. Create an issue and provid
 
 1. Clone your fork of the repository
 ```bash
-git clone https://github.com/<your-username>/color-palette.git
+git clone https://github.com/<your-username>/color-palette-php.git
 ```
 
 2. Install dependencies
