@@ -10,7 +10,6 @@ use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use RuntimeException;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\Psr18Client;
 
@@ -48,11 +47,11 @@ class ImageLoaderFactory
      * HttpClient is installed we build a securely-configured instance (redirects
      * disabled at the transport layer so ImageLoader can follow + re-validate
      * each hop against the SSRF rules); otherwise we discover any PSR-18 client
-     * the project provides. If none is available, URL loading is unsupported.
-     *
-     * @throws RuntimeException If no PSR-18 client can be resolved
+     * the project provides. Returns null when none is available so that local
+     * file loading still works without an HTTP client — ImageLoader raises a
+     * clear error only if a URL is actually loaded.
      */
-    private function resolveHttpClient(HttpClientConfig $config): ClientInterface
+    private function resolveHttpClient(HttpClientConfig $config): ?ClientInterface
     {
         if (class_exists(Psr18Client::class) && class_exists(HttpClient::class)) {
             return new Psr18Client(HttpClient::create([
@@ -73,16 +72,11 @@ class ImageLoaderFactory
             try {
                 return Psr18ClientDiscovery::find();
             } catch (\Throwable) {
-                // Fall through to the explicit error below.
+                // No discoverable client — fall through and return null.
             }
         }
 
-        throw new RuntimeException(
-            'No PSR-18 HTTP client is available to load images from URLs. Install '
-            .'symfony/http-client (recommended) or any PSR-18 client, or pass your '
-            .'own client to ImageLoaderFactory / ImageLoader. Loading images from a '
-            .'local file path does not require an HTTP client.'
-        );
+        return null;
     }
 
     /**
@@ -90,10 +84,9 @@ class ImageLoaderFactory
      *
      * Many PSR-18 clients (e.g. Symfony's Psr18Client) also implement PSR-17, so
      * the client itself is reused when possible; otherwise a factory is discovered.
-     *
-     * @throws RuntimeException If no PSR-17 request factory can be resolved
+     * Returns null when none is available (see resolveHttpClient()).
      */
-    private function resolveRequestFactory(ClientInterface $client): RequestFactoryInterface
+    private function resolveRequestFactory(?ClientInterface $client): ?RequestFactoryInterface
     {
         if ($client instanceof RequestFactoryInterface) {
             return $client;
@@ -103,13 +96,10 @@ class ImageLoaderFactory
             try {
                 return Psr17FactoryDiscovery::findRequestFactory();
             } catch (\Throwable) {
-                // Fall through to the explicit error below.
+                // No discoverable factory — fall through and return null.
             }
         }
 
-        throw new RuntimeException(
-            'No PSR-17 request factory is available. Install a PSR-17 implementation '
-            .'(e.g. nyholm/psr7) or pass one to ImageLoaderFactory / ImageLoader.'
-        );
+        return null;
     }
 }
