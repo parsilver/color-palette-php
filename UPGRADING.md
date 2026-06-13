@@ -3,15 +3,19 @@
 ## Upgrading from 1.x to 2.0
 
 Version 2.0 focuses on a lighter dependency footprint and a higher minimum PHP
-version. The public API of color conversion, manipulation, analysis, and palette
-generation is **unchanged**; the breaking changes are limited to the minimum PHP
-version and to loading images from remote URLs.
+version. The public API of color extraction, conversion, manipulation, analysis,
+and palette generation is **unchanged**; the breaking changes are limited to the
+minimum PHP version and to loading images from remote URLs.
 
-> **Note on extracted colors:** the k-means image extractor's centroid seeding
-> moved off PHP's global `mt_rand()` to a locally-seeded `\Random\Randomizer`
-> (so extraction no longer mutates your global RNG state). Results remain
-> deterministic and idempotent, but the exact colors extracted from a given
-> image with `count > 1` may differ slightly from 1.x.
+> **Behavior change — extracted colors.** The color-extraction **algorithm and
+> public API are unchanged**, but the k-means centroid **seeding** moved off
+> PHP's global `mt_rand()` to a locally-seeded
+> `\Random\Randomizer(new \Random\Engine\Mt19937($seed))` so that extraction no
+> longer mutates your application's global RNG state. As a result, the exact
+> colors extracted from a given image **may differ slightly from 1.x** when more
+> than one color is requested (`count > 1`). Extraction stays **deterministic
+> within 2.0** — the same image always yields the same palette — so if you cache
+> or snapshot extracted palettes, re-baseline them after upgrading.
 
 ### 1. PHP 8.2 is now required
 
