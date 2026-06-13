@@ -83,6 +83,13 @@ class ImageFactory
     {
         $this->getExtensionChecker()->ensureImagickLoaded();
 
+        if (! file_exists($path)) {
+            throw new InvalidArgumentException("Image file not found: {$path}");
+        }
+
+        // Apply the same size/MIME/dimension guards as the GD path before decoding.
+        $this->validateImageFile($path);
+
         try {
             /** @var \Imagick $image */
             $image = new \Imagick($path);
@@ -122,6 +129,10 @@ class ImageFactory
             );
         }
 
+        // Guard against decompression bombs before any decoder loads the bitmap.
+        // Runs regardless of finfo availability since getimagesize reads only the header.
+        $this->validateImageDimensions($path);
+
         // Check MIME type
         if (! function_exists('finfo_open')) {
             // finfo not available, skip MIME check
@@ -146,6 +157,51 @@ class ImageFactory
                     'Unsupported image MIME type: %s. Allowed types: %s',
                     $mimeType,
                     implode(', ', ImageConstants::ALLOWED_IMAGE_MIME_TYPES)
+                )
+            );
+        }
+    }
+
+    /**
+     * Validate decoded image dimensions to prevent decompression-bomb / pixel-flood DoS
+     *
+     * Reads dimensions from the image header (getimagesize) without decoding the
+     * pixel data, then rejects images that exceed the per-side or total-pixel caps.
+     *
+     * @param  string  $path  Path to the image file
+     *
+     * @throws InvalidArgumentException If dimensions are unreadable or too large
+     */
+    private function validateImageDimensions(string $path): void
+    {
+        $dimensions = @getimagesize($path);
+
+        if ($dimensions === false) {
+            throw new InvalidArgumentException(
+                "Unable to read image dimensions (file may not be a supported image): {$path}"
+            );
+        }
+
+        [$width, $height] = $dimensions;
+
+        if ($width <= 0 || $height <= 0) {
+            throw new InvalidArgumentException(
+                sprintf('Invalid image dimensions: %dx%d', $width, $height)
+            );
+        }
+
+        if ($width > ImageConstants::MAX_IMAGE_WIDTH
+            || $height > ImageConstants::MAX_IMAGE_HEIGHT
+            || ($width * $height) > ImageConstants::MAX_IMAGE_PIXELS) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    'Image dimensions too large: %dx%d (%d pixels). Maximum allowed: %dx%d or %d pixels.',
+                    $width,
+                    $height,
+                    $width * $height,
+                    ImageConstants::MAX_IMAGE_WIDTH,
+                    ImageConstants::MAX_IMAGE_HEIGHT,
+                    ImageConstants::MAX_IMAGE_PIXELS
                 )
             );
         }
