@@ -48,11 +48,4 @@ class ImageConstants
         'image/bmp',
         'image/tiff',
     ];
-
-    /**
-     * HTTP status code for successful response
-     *
-     * Used when validating remote image URLs.
-     */
-    public const HTTP_OK = 200;
 }

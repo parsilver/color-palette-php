@@ -49,12 +49,15 @@ class HttpClientConfig
         ?string $userAgent = null,
         ?bool $verifySsl = null,
     ): self {
+        // Derive defaults from the constructor so they live in exactly one place.
+        $defaults = new self;
+
         return new self(
-            $timeoutSeconds ?? 30,
-            $maxRedirects ?? 0,
-            $maxFileSizeBytes ?? 10485760,
-            $userAgent ?? 'Farzai-ColorPalette/1.0',
-            $verifySsl ?? true,
+            $timeoutSeconds ?? $defaults->timeoutSeconds,
+            $maxRedirects ?? $defaults->maxRedirects,
+            $maxFileSizeBytes ?? $defaults->maxFileSizeBytes,
+            $userAgent ?? $defaults->userAgent,
+            $verifySsl ?? $defaults->verifySsl,
         );
     }
 }

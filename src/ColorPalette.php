@@ -7,6 +7,7 @@ namespace Farzai\ColorPalette;
 use ArrayAccess;
 use ArrayIterator;
 use Countable;
+use Farzai\ColorPalette\Constants\AccessibilityConstants;
 use Farzai\ColorPalette\Contracts\ColorInterface;
 use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 use IteratorAggregate;
@@ -249,7 +250,8 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable, Ite
             $lightContrast = $color->getContrastRatio($whiteColor);
             $darkContrast = $color->getContrastRatio($blackColor);
 
-            if ($lightContrast >= 3.0 && $darkContrast >= 3.0) {
+            if ($lightContrast >= AccessibilityConstants::WCAG_AA_LARGE_TEXT_RATIO
+                && $darkContrast >= AccessibilityConstants::WCAG_AA_LARGE_TEXT_RATIO) {
                 return $color;
             }
         }
