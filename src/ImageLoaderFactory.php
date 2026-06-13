@@ -46,7 +46,11 @@ class ImageLoaderFactory
     {
         $symfonyClient = HttpClient::create([
             'timeout' => $config->getTimeoutSeconds(),
-            'max_redirects' => $config->getMaxRedirects(),
+            // Never auto-follow redirects at the transport layer: ImageLoader follows
+            // them itself and re-validates each hop against the SSRF rules. Letting the
+            // client follow internally would skip that check (the config's maxRedirects
+            // is the budget ImageLoader uses for validated following).
+            'max_redirects' => 0,
             'verify_peer' => $config->shouldVerifySsl(),
             'verify_host' => $config->shouldVerifySsl(),
             'headers' => [

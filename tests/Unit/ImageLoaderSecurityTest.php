@@ -205,7 +205,7 @@ describe('ImageLoader MIME Type Validation', function () {
             try {
                 $loader->load('https://example.com/image.jpg');
                 expect(true)->toBeTrue();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Ignore other exceptions, we're only testing MIME type validation
                 if (str_contains($e->getMessage(), 'Invalid content type')) {
                     throw $e;
@@ -241,7 +241,7 @@ describe('ImageLoader MIME Type Validation', function () {
         try {
             $loader->load('https://example.com/image.jpg');
             expect(true)->toBeTrue();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Ignore other exceptions, we're only testing MIME type validation
             if (str_contains($e->getMessage(), 'Invalid content type')) {
                 throw $e;

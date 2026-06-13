@@ -13,6 +13,8 @@ use Farzai\ColorPalette\Exceptions\SsrfException;
 use Farzai\ColorPalette\Services\ExtensionChecker;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 
 class ImageLoader
 {
@@ -89,11 +91,11 @@ class ImageLoader
         $tempFile = null;
 
         try {
-            // Create request with User-Agent header
-            $request = $this->requestFactory->createRequest('GET', $url)
-                ->withHeader('User-Agent', $this->httpConfig->getUserAgent());
-
-            $response = $this->httpClient->sendRequest($request);
+            // Follow redirects ourselves, re-validating every hop against the
+            // SSRF rules. The underlying client must NOT auto-follow (the factory
+            // forces max_redirects=0) or a redirect to an internal address would
+            // never reach validateUrl().
+            $response = $this->sendRequestFollowingRedirects($url);
 
             // Accept all 2xx status codes
             $statusCode = $response->getStatusCode();
@@ -153,6 +155,102 @@ class ImageLoader
 
             throw new HttpException("Failed to load image from URL: {$url}", 0, $e);
         }
+    }
+
+    /**
+     * Send a GET request, manually following redirects with per-hop SSRF validation
+     *
+     * Every redirect target is resolved to an absolute URL and re-checked with
+     * validateUrl() before it is fetched, so an attacker cannot use a redirect to
+     * reach a private/reserved address. The number of hops is bounded by the
+     * configured maxRedirects; with the default of 0, redirect responses are
+     * returned unfollowed and rejected by the caller's status-code check.
+     *
+     * @throws HttpException If the redirect budget is exceeded
+     * @throws SsrfException If a redirect target points to a private/reserved host
+     */
+    private function sendRequestFollowingRedirects(string $url): ResponseInterface
+    {
+        $maxRedirects = $this->httpConfig->getMaxRedirects();
+        $currentUrl = $url;
+
+        for ($redirect = 0; ; $redirect++) {
+            $request = $this->requestFactory->createRequest('GET', $currentUrl)
+                ->withHeader('User-Agent', $this->httpConfig->getUserAgent());
+
+            $response = $this->httpClient->sendRequest($request);
+
+            $status = $response->getStatusCode();
+
+            // Not a redirect: this is the final response.
+            if ($status < 300 || $status >= 400) {
+                return $response;
+            }
+
+            if ($redirect >= $maxRedirects) {
+                // Not following (budget exhausted). With maxRedirects=0 we hand the
+                // redirect back so the status check rejects it; otherwise it's an error.
+                if ($maxRedirects === 0) {
+                    return $response;
+                }
+
+                throw new HttpException(
+                    sprintf('Too many redirects (max: %d) while loading image from URL: %s', $maxRedirects, $url)
+                );
+            }
+
+            if (! $response->hasHeader('Location')) {
+                return $response;
+            }
+
+            $nextUrl = $this->resolveRedirectUrl($currentUrl, $response->getHeaderLine('Location'));
+
+            // Re-validate every hop so a redirect cannot bypass SSRF protection.
+            $this->validateUrl($nextUrl);
+
+            $currentUrl = $nextUrl;
+        }
+    }
+
+    /**
+     * Resolve a (possibly relative) redirect Location against the current URL
+     */
+    private function resolveRedirectUrl(string $baseUrl, string $location): string
+    {
+        $location = trim($location);
+
+        if ($location === '') {
+            throw new HttpException('Redirect response is missing a Location target');
+        }
+
+        // Already an absolute http(s) URL.
+        if (preg_match('#^https?://#i', $location) === 1) {
+            return $location;
+        }
+
+        $base = parse_url($baseUrl);
+        if ($base === false || ! isset($base['scheme'], $base['host'])) {
+            throw new HttpException('Cannot resolve a relative redirect against an invalid base URL');
+        }
+
+        $authority = $base['scheme'].'://'.$base['host'].(isset($base['port']) ? ':'.$base['port'] : '');
+
+        // Scheme-relative: //host/path
+        if (str_starts_with($location, '//')) {
+            return $base['scheme'].':'.$location;
+        }
+
+        // Absolute path: /path
+        if (str_starts_with($location, '/')) {
+            return $authority.$location;
+        }
+
+        // Relative path: resolve against the base path's directory.
+        $basePath = $base['path'] ?? '/';
+        $slash = strrpos($basePath, '/');
+        $dir = $slash === false ? '/' : substr($basePath, 0, $slash + 1);
+
+        return $authority.$dir.$location;
     }
 
     private function createTempFile(): string
@@ -332,7 +430,7 @@ class ImageLoader
      *
      * @throws HttpException
      */
-    private function downloadToFile(\Psr\Http\Message\StreamInterface $stream, string $filePath): void
+    private function downloadToFile(StreamInterface $stream, string $filePath): void
     {
         $handle = fopen($filePath, 'wb');
 

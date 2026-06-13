@@ -48,7 +48,7 @@ A powerful PHP library for extracting color palettes from images and generating 
 
 ## Requirements
 
-- PHP 8.1 or higher
+- PHP 8.2 or higher
 - GD extension **OR** ImageMagick extension (at least one is required)
 - Composer
 
@@ -624,7 +624,6 @@ Only these MIME types are accepted:
 - `image/webp`
 - `image/bmp`
 - `image/tiff`
-- `image/svg+xml`
 
 #### HTTP Client Configuration
 
@@ -712,7 +711,7 @@ composer test
 Run tests with coverage:
 
 ```bash
-composer test:coverage
+composer test-coverage
 ```
 
 ## Contributing

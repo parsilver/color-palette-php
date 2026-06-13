@@ -3,7 +3,9 @@
 require_once __DIR__.'/../../vendor/autoload.php';
 
 use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\ColorExtractorFactory;
 use Farzai\ColorPalette\ColorPalette;
+use Farzai\ColorPalette\ImageLoaderFactory;
 
 // Enable CORS for local development
 header('Access-Control-Allow-Origin: *');
@@ -90,16 +92,13 @@ function handleExtract()
         if (! empty($_POST['url'])) {
             $url = $_POST['url'];
 
-            // Download the image to a temporary file
-            $imageData = @file_get_contents($url);
-            if ($imageData === false) {
-                throw new Exception('Failed to download image from URL');
-            }
-
-            // Create a temporary file
-            $tempFile = tempnam(sys_get_temp_dir(), 'color_palette_');
-            file_put_contents($tempFile, $imageData);
-            $imagePath = $tempFile;
+            // Load via the library's SSRF-protected loader instead of a raw
+            // file_get_contents(): it validates the scheme, blocks private/reserved
+            // IPs (re-checking every redirect hop), and enforces the byte-size and
+            // decoded-dimension limits before the image is ever decoded.
+            $image = (new ImageLoaderFactory)->create()->load($url);
+            $palette = (new ColorExtractorFactory)->make('gd')->extract($image, $count);
+            assert($palette instanceof ColorPalette);
 
         } elseif (isset($_FILES['image'])) {
             // Handle uploaded file
@@ -130,8 +129,11 @@ function handleExtract()
             throw new Exception('No image provided');
         }
 
-        // Extract colors from image
-        $palette = ColorPalette::fromImage($imagePath, $count);
+        // Extract colors from the uploaded file (the URL branch above already
+        // produced $palette through the SSRF-protected loader).
+        if (! isset($palette)) {
+            $palette = ColorPalette::fromImage($imagePath, $count);
+        }
 
         // Get color information
         $colors = [];

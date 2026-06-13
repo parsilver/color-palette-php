@@ -2,6 +2,8 @@
 
 use Farzai\ColorPalette\Color;
 use Farzai\ColorPalette\ColorPalette;
+use Farzai\ColorPalette\ColorPaletteBuilder;
+use Farzai\ColorPalette\Contracts\ColorInterface;
 
 describe('ColorPalette Basic Operations', function () {
     test('it can get colors from palette', function () {
@@ -99,8 +101,8 @@ describe('ColorPalette ArrayAccess Implementation', function () {
     test('it throws exception for non-existent offset', function () {
         $palette = new ColorPalette([new Color(255, 0, 0)]);
 
-        expect(fn () => $palette[10])->toThrow(\OutOfBoundsException::class);
-        expect(fn () => $palette['non-existent'])->toThrow(\OutOfBoundsException::class);
+        expect(fn () => $palette[10])->toThrow(OutOfBoundsException::class);
+        expect(fn () => $palette['non-existent'])->toThrow(OutOfBoundsException::class);
     });
 
     test('it can set color at numeric offset', function () {
@@ -231,7 +233,7 @@ describe('ColorPalette Surface Color Suggestions', function () {
         expect($surfaceColors)->toHaveKey('background');
         expect($surfaceColors)->toHaveKey('accent');
         expect($surfaceColors)->toHaveKey('surface_variant');
-        expect($surfaceColors['surface'])->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ColorInterface::class);
+        expect($surfaceColors['surface'])->toBeInstanceOf(ColorInterface::class);
     });
 
     test('it generates surface colors sorted by brightness', function () {
@@ -276,7 +278,7 @@ describe('ColorPalette Surface Color Suggestions', function () {
 
         $surfaceColors = $palette->getSuggestedSurfaceColors();
 
-        expect($surfaceColors['accent'])->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ColorInterface::class);
+        expect($surfaceColors['accent'])->toBeInstanceOf(ColorInterface::class);
     });
 
     test('it generates surface variant based on surface color lightness', function () {
@@ -285,7 +287,7 @@ describe('ColorPalette Surface Color Suggestions', function () {
         $surfaceColors = $lightPalette->getSuggestedSurfaceColors();
 
         // For light color, variant should be darker
-        expect($surfaceColors['surface_variant'])->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ColorInterface::class);
+        expect($surfaceColors['surface_variant'])->toBeInstanceOf(ColorInterface::class);
         expect($surfaceColors['surface_variant']->toHex())->not->toBe($surfaceColors['surface']->toHex());
     });
 
@@ -336,88 +338,88 @@ describe('ColorPalette Static Factory Methods', function () {
     });
 
     test('it can extract colors from image using fromImage static method', function () {
-        $palette = \Farzai\ColorPalette\ColorPalette::fromImage($this->testImagePath, 3);
+        $palette = ColorPalette::fromImage($this->testImagePath, 3);
 
-        expect($palette)->toBeInstanceOf(\Farzai\ColorPalette\ColorPalette::class);
+        expect($palette)->toBeInstanceOf(ColorPalette::class);
         expect($palette->count())->toBeGreaterThan(0);
-        expect($palette->getColors())->each->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ColorInterface::class);
+        expect($palette->getColors())->each->toBeInstanceOf(ColorInterface::class);
     });
 
     test('it can specify count in fromImage method', function () {
-        $palette = \Farzai\ColorPalette\ColorPalette::fromImage($this->testImagePath, 5);
+        $palette = ColorPalette::fromImage($this->testImagePath, 5);
 
         expect($palette->count())->toBe(5);
     });
 
     test('it uses default count of 5 when not specified', function () {
-        $palette = \Farzai\ColorPalette\ColorPalette::fromImage($this->testImagePath);
+        $palette = ColorPalette::fromImage($this->testImagePath);
 
         expect($palette->count())->toBe(5);
     });
 
     test('it can specify driver in fromImage method', function () {
         // This test will pass if GD is available
-        $palette = \Farzai\ColorPalette\ColorPalette::fromImage($this->testImagePath, 3, 'gd');
+        $palette = ColorPalette::fromImage($this->testImagePath, 3, 'gd');
 
-        expect($palette)->toBeInstanceOf(\Farzai\ColorPalette\ColorPalette::class);
+        expect($palette)->toBeInstanceOf(ColorPalette::class);
         expect($palette->count())->toBe(3);
     });
 
     test('it throws exception for non-existent image path', function () {
-        expect(fn () => \Farzai\ColorPalette\ColorPalette::fromImage('/non/existent/path.jpg'))
+        expect(fn () => ColorPalette::fromImage('/non/existent/path.jpg'))
             ->toThrow(InvalidArgumentException::class);
     });
 
     test('it can generate palette from color using fromColor static method', function () {
-        $baseColor = new \Farzai\ColorPalette\Color(52, 152, 219); // #3498db
+        $baseColor = new Color(52, 152, 219); // #3498db
 
-        $palette = \Farzai\ColorPalette\ColorPalette::fromColor($baseColor, 'monochromatic');
+        $palette = ColorPalette::fromColor($baseColor, 'monochromatic');
 
-        expect($palette)->toBeInstanceOf(\Farzai\ColorPalette\ColorPalette::class);
+        expect($palette)->toBeInstanceOf(ColorPalette::class);
         expect($palette->count())->toBeGreaterThan(0);
-        expect($palette->getColors())->each->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ColorInterface::class);
+        expect($palette->getColors())->each->toBeInstanceOf(ColorInterface::class);
     });
 
     test('it can specify scheme options in fromColor method', function () {
-        $baseColor = new \Farzai\ColorPalette\Color(52, 152, 219);
+        $baseColor = new Color(52, 152, 219);
 
-        $palette = \Farzai\ColorPalette\ColorPalette::fromColor($baseColor, 'monochromatic', ['count' => 7]);
+        $palette = ColorPalette::fromColor($baseColor, 'monochromatic', ['count' => 7]);
 
         expect($palette->count())->toBe(7);
     });
 
     test('it supports different color schemes', function () {
-        $baseColor = new \Farzai\ColorPalette\Color(52, 152, 219);
+        $baseColor = new Color(52, 152, 219);
 
         $schemes = ['monochromatic', 'complementary', 'analogous', 'triadic', 'tetradic'];
 
         foreach ($schemes as $scheme) {
-            $palette = \Farzai\ColorPalette\ColorPalette::fromColor($baseColor, $scheme);
-            expect($palette)->toBeInstanceOf(\Farzai\ColorPalette\ColorPalette::class);
+            $palette = ColorPalette::fromColor($baseColor, $scheme);
+            expect($palette)->toBeInstanceOf(ColorPalette::class);
             expect($palette->count())->toBeGreaterThan(0);
         }
     });
 
     test('it throws exception for unknown scheme', function () {
-        $baseColor = new \Farzai\ColorPalette\Color(52, 152, 219);
+        $baseColor = new Color(52, 152, 219);
 
-        expect(fn () => \Farzai\ColorPalette\ColorPalette::fromColor($baseColor, 'unknown-scheme'))
+        expect(fn () => ColorPalette::fromColor($baseColor, 'unknown-scheme'))
             ->toThrow(InvalidArgumentException::class);
     });
 
     test('it returns ColorPaletteBuilder from builder static method', function () {
-        $builder = \Farzai\ColorPalette\ColorPalette::builder();
+        $builder = ColorPalette::builder();
 
-        expect($builder)->toBeInstanceOf(\Farzai\ColorPalette\ColorPaletteBuilder::class);
+        expect($builder)->toBeInstanceOf(ColorPaletteBuilder::class);
     });
 
     test('it can chain builder methods', function () {
-        $palette = \Farzai\ColorPalette\ColorPalette::builder()
+        $palette = ColorPalette::builder()
             ->fromImage($this->testImagePath)
             ->withCount(3)
             ->build();
 
-        expect($palette)->toBeInstanceOf(\Farzai\ColorPalette\ColorPalette::class);
+        expect($palette)->toBeInstanceOf(ColorPalette::class);
         expect($palette->count())->toBe(3);
     });
 });
@@ -427,7 +429,7 @@ describe('ColorPalette Edge Cases', function () {
         $palette = new ColorPalette([new Color(100, 150, 200)]);
 
         expect($palette->count())->toBe(1);
-        expect($palette[0])->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ColorInterface::class);
+        expect($palette[0])->toBeInstanceOf(ColorInterface::class);
         expect($palette->toArray())->toHaveCount(1);
     });
 
@@ -440,8 +442,8 @@ describe('ColorPalette Edge Cases', function () {
         $palette = new ColorPalette($colors);
 
         expect($palette->count())->toBe(50);
-        expect($palette[0])->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ColorInterface::class);
-        expect($palette[49])->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ColorInterface::class);
+        expect($palette[0])->toBeInstanceOf(ColorInterface::class);
+        expect($palette[49])->toBeInstanceOf(ColorInterface::class);
     });
 
     test('it handles palette with duplicate colors', function () {
@@ -493,19 +495,19 @@ describe('ColorPalette ArrayAccess Edge Cases', function () {
     test('it handles negative offsets gracefully', function () {
         $palette = new ColorPalette([new Color(255, 0, 0)]);
 
-        expect(fn () => $palette[-1])->toThrow(\OutOfBoundsException::class);
+        expect(fn () => $palette[-1])->toThrow(OutOfBoundsException::class);
     });
 
     test('it handles very large offset numbers', function () {
         $palette = new ColorPalette([new Color(255, 0, 0)]);
 
-        expect(fn () => $palette[999999])->toThrow(\OutOfBoundsException::class);
+        expect(fn () => $palette[999999])->toThrow(OutOfBoundsException::class);
     });
 
     test('it handles empty string as offset', function () {
         $palette = new ColorPalette(['color' => new Color(255, 0, 0)]);
 
-        expect(fn () => $palette[''])->toThrow(\OutOfBoundsException::class);
+        expect(fn () => $palette[''])->toThrow(OutOfBoundsException::class);
     });
 
     test('it can use numeric strings as offsets', function () {

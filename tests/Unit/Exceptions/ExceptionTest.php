@@ -11,7 +11,7 @@ describe('ImageException', function () {
         $exception = new ImageException('Test message');
 
         expect($exception)->toBeInstanceOf(ImageException::class)
-            ->and($exception)->toBeInstanceOf(\Exception::class);
+            ->and($exception)->toBeInstanceOf(Exception::class);
     });
 
     it('can be thrown and caught', function () {
@@ -36,7 +36,7 @@ describe('ImageException', function () {
     });
 
     it('can chain previous exceptions', function () {
-        $previous = new \RuntimeException('Original error');
+        $previous = new RuntimeException('Original error');
         $exception = new ImageException('Wrapped error', 0, $previous);
 
         expect($exception->getPrevious())->toBe($previous);
@@ -45,7 +45,7 @@ describe('ImageException', function () {
     it('can be caught as base Exception', function () {
         try {
             throw new ImageException('Test error');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             expect($e)->toBeInstanceOf(ImageException::class);
         }
     });
@@ -56,7 +56,7 @@ describe('ImageLoadException', function () {
         $exception = new ImageLoadException('Load failed');
 
         expect($exception)->toBeInstanceOf(ImageLoadException::class)
-            ->and($exception)->toBeInstanceOf(\Exception::class);
+            ->and($exception)->toBeInstanceOf(Exception::class);
     });
 
     it('can be thrown and caught', function () {
@@ -81,7 +81,7 @@ describe('ImageLoadException', function () {
     });
 
     it('can chain previous exceptions', function () {
-        $previous = new \Exception('File system error');
+        $previous = new Exception('File system error');
         $exception = new ImageLoadException('Cannot load image', 0, $previous);
 
         expect($exception->getPrevious())->toBe($previous)
@@ -99,7 +99,7 @@ describe('ImageLoadException', function () {
     it('can be caught as base Exception', function () {
         try {
             throw new ImageLoadException('Test load error');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             expect($e)->toBeInstanceOf(ImageLoadException::class);
         }
     });
@@ -110,7 +110,7 @@ describe('InvalidImageException', function () {
         $exception = new InvalidImageException('Invalid image');
 
         expect($exception)->toBeInstanceOf(InvalidImageException::class)
-            ->and($exception)->toBeInstanceOf(\Exception::class);
+            ->and($exception)->toBeInstanceOf(Exception::class);
     });
 
     it('can be thrown and caught', function () {
@@ -135,7 +135,7 @@ describe('InvalidImageException', function () {
     });
 
     it('can chain previous exceptions', function () {
-        $previous = new \InvalidArgumentException('Bad parameter');
+        $previous = new InvalidArgumentException('Bad parameter');
         $exception = new InvalidImageException('Image validation failed', 0, $previous);
 
         expect($exception->getPrevious())->toBe($previous)
@@ -156,7 +156,7 @@ describe('InvalidImageException', function () {
     it('can be caught as base Exception', function () {
         try {
             throw new InvalidImageException('Test invalid error');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             expect($e)->toBeInstanceOf(InvalidImageException::class);
         }
     });
@@ -168,9 +168,9 @@ describe('Exception hierarchy and relationships', function () {
         $loadException = new ImageLoadException('Test');
         $invalidException = new InvalidImageException('Test');
 
-        expect($imageException)->toBeInstanceOf(\Exception::class);
-        expect($loadException)->toBeInstanceOf(\Exception::class);
-        expect($invalidException)->toBeInstanceOf(\Exception::class);
+        expect($imageException)->toBeInstanceOf(Exception::class);
+        expect($loadException)->toBeInstanceOf(Exception::class);
+        expect($invalidException)->toBeInstanceOf(Exception::class);
     });
 
     it('exceptions can be differentiated in catch blocks', function () {
@@ -262,8 +262,8 @@ describe('Edge cases and boundary conditions', function () {
     });
 
     it('handles deeply nested exception chains', function () {
-        $level1 = new \Exception('Level 1');
-        $level2 = new \RuntimeException('Level 2', 0, $level1);
+        $level1 = new Exception('Level 1');
+        $level2 = new RuntimeException('Level 2', 0, $level1);
         $level3 = new ImageException('Level 3', 0, $level2);
         $level4 = new InvalidImageException('Level 4', 0, $level3);
 

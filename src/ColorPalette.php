@@ -7,6 +7,7 @@ namespace Farzai\ColorPalette;
 use ArrayAccess;
 use ArrayIterator;
 use Countable;
+use Farzai\ColorPalette\Constants\AccessibilityConstants;
 use Farzai\ColorPalette\Contracts\ColorInterface;
 use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 use IteratorAggregate;
@@ -88,24 +89,10 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable, Ite
      */
     public static function fromColor(ColorInterface $color, string $scheme = 'monochromatic', array $options = []): self
     {
-        $generator = new PaletteGenerator($color);
-
-        $count = isset($options['count']) && is_int($options['count']) ? $options['count'] : 5;
-
-        return match ($scheme) {
-            'monochromatic' => $generator->monochromatic($count),
-            'complementary' => $generator->complementary(),
-            'analogous' => $generator->analogous(),
-            'triadic' => $generator->triadic(),
-            'tetradic' => $generator->tetradic(),
-            'split-complementary', 'splitComplementary' => $generator->splitComplementary(),
-            'shades' => $generator->shades($count),
-            'tints' => $generator->tints($count),
-            'pastel' => $generator->pastel(),
-            'vibrant' => $generator->vibrant(),
-            'website-theme', 'websiteTheme' => $generator->websiteTheme(),
-            default => throw new \InvalidArgumentException("Unknown scheme: {$scheme}"),
-        };
+        // Strategies read their own options (e.g. 'count') via getCountOption(),
+        // so the scheme name resolves through the shared registry and generates
+        // directly — no per-scheme dispatch to maintain here.
+        return StrategyRegistry::resolve($scheme)->generate($color, $options);
     }
 
     /**
@@ -263,7 +250,8 @@ class ColorPalette implements ArrayAccess, ColorPaletteInterface, Countable, Ite
             $lightContrast = $color->getContrastRatio($whiteColor);
             $darkContrast = $color->getContrastRatio($blackColor);
 
-            if ($lightContrast >= 3.0 && $darkContrast >= 3.0) {
+            if ($lightContrast >= AccessibilityConstants::WCAG_AA_LARGE_TEXT_RATIO
+                && $darkContrast >= AccessibilityConstants::WCAG_AA_LARGE_TEXT_RATIO) {
                 return $color;
             }
         }

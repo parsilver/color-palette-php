@@ -1,11 +1,28 @@
 <?php
 
+use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\Images\ImagickImage;
 
 beforeEach(function () {
     if (! extension_loaded('imagick')) {
         $this->markTestSkipped('Imagick extension is not available.');
     }
+});
+
+describe('ImagickImage - Resource Cleanup Safety', function () {
+    test('its destructor swallows Imagick::clear() failures', function () {
+        // A destructor must never let an exception escape (it would become a
+        // fatal error during shutdown). Force clear() to throw and assert the
+        // object can be destroyed without the exception propagating.
+        $resource = Mockery::mock(Imagick::class);
+        $resource->shouldReceive('clear')->andThrow(new ImagickException('clear failed'));
+
+        $image = new ImagickImage($resource);
+
+        unset($image); // triggers __destruct -> clear() throws -> must be swallowed
+
+        expect(true)->toBeTrue();
+    });
 });
 
 describe('ImagickImage - Basic Functionality', function () {
@@ -173,7 +190,7 @@ describe('ImagickImage - ImageInterface Compliance', function () {
 
         $image = new ImagickImage($imagick);
 
-        expect($image)->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ImageInterface::class);
+        expect($image)->toBeInstanceOf(ImageInterface::class);
     });
 
     test('it has all required interface methods', function () {
@@ -243,7 +260,7 @@ describe('ImagickImage - Comparison with GdImage', function () {
         $imagickImage = new ImagickImage($imagick);
 
         // Both should implement the same interface
-        expect($imagickImage)->toBeInstanceOf(\Farzai\ColorPalette\Contracts\ImageInterface::class);
+        expect($imagickImage)->toBeInstanceOf(ImageInterface::class);
 
         // Both should have the same methods
         expect(method_exists($imagickImage, 'getWidth'))->toBeTrue();

@@ -3,6 +3,8 @@
 use Farzai\ColorPalette\ColorExtractorFactory;
 use Farzai\ColorPalette\GdColorExtractor;
 use Farzai\ColorPalette\ImagickColorExtractor;
+use Farzai\ColorPalette\Services\ExtensionChecker;
+use Psr\Log\NullLogger;
 
 test('it creates GD extractor when GD is available', function () {
     if (! extension_loaded('gd')) {
@@ -63,22 +65,22 @@ describe('ColorExtractorFactory - Constructor', function () {
     });
 
     test('it can be constructed with custom logger', function () {
-        $logger = new \Psr\Log\NullLogger;
+        $logger = new NullLogger;
         $factory = new ColorExtractorFactory($logger);
 
         expect($factory)->toBeInstanceOf(ColorExtractorFactory::class);
     });
 
     test('it can be constructed with custom extension checker', function () {
-        $checker = new \Farzai\ColorPalette\Services\ExtensionChecker;
+        $checker = new ExtensionChecker;
         $factory = new ColorExtractorFactory(null, $checker);
 
         expect($factory)->toBeInstanceOf(ColorExtractorFactory::class);
     });
 
     test('it can be constructed with both custom logger and extension checker', function () {
-        $logger = new \Psr\Log\NullLogger;
-        $checker = new \Farzai\ColorPalette\Services\ExtensionChecker;
+        $logger = new NullLogger;
+        $checker = new ExtensionChecker;
         $factory = new ColorExtractorFactory($logger, $checker);
 
         expect($factory)->toBeInstanceOf(ColorExtractorFactory::class);
@@ -94,7 +96,7 @@ describe('ColorExtractorFactory - Extension Checking', function () {
         $factory = new ColorExtractorFactory;
 
         // Should not throw since GD is available
-        expect(fn () => $factory->make('gd'))->not->toThrow(\RuntimeException::class);
+        expect(fn () => $factory->make('gd'))->not->toThrow(RuntimeException::class);
     });
 
     test('it checks Imagick extension when creating Imagick extractor', function () {
@@ -106,7 +108,7 @@ describe('ColorExtractorFactory - Extension Checking', function () {
 
         // Should throw since Imagick is not available
         expect(fn () => $factory->make('imagick'))
-            ->toThrow(\RuntimeException::class, 'Imagick extension is not available');
+            ->toThrow(RuntimeException::class, 'Imagick extension is not available');
     });
 
     test('it throws exception when GD is requested but not available', function () {
@@ -117,7 +119,7 @@ describe('ColorExtractorFactory - Extension Checking', function () {
         $factory = new ColorExtractorFactory;
 
         expect(fn () => $factory->make('gd'))
-            ->toThrow(\RuntimeException::class, 'GD extension is not available');
+            ->toThrow(RuntimeException::class, 'GD extension is not available');
     });
 });
 
@@ -127,7 +129,7 @@ describe('ColorExtractorFactory - Logger Integration', function () {
             $this->markTestSkipped('GD extension is not available.');
         }
 
-        $logger = new \Psr\Log\NullLogger;
+        $logger = new NullLogger;
         $factory = new ColorExtractorFactory($logger);
         $extractor = $factory->make('gd');
 
@@ -185,7 +187,7 @@ describe('ColorExtractorFactory - Static Factory Methods', function () {
         }
 
         expect(fn () => ColorExtractorFactory::gd())
-            ->toThrow(\RuntimeException::class, 'GD extension is not available');
+            ->toThrow(RuntimeException::class, 'GD extension is not available');
     });
 
     test('it throws exception when Imagick is not available with static imagick method', function () {
@@ -194,7 +196,7 @@ describe('ColorExtractorFactory - Static Factory Methods', function () {
         }
 
         expect(fn () => ColorExtractorFactory::imagick())
-            ->toThrow(\RuntimeException::class, 'Imagick extension is not available');
+            ->toThrow(RuntimeException::class, 'Imagick extension is not available');
     });
 
     test('static default method is equivalent to gd method', function () {

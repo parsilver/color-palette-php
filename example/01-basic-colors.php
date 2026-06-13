@@ -32,8 +32,8 @@ function displayColor($label, Color $color)
         sprintf('(%d, %d, %d)', $color->getRed(), $color->getGreen(), $color->getBlue()),
         sprintf('(%d°, %d%%, %d%%)',
             (int) $color->toHsl()['h'],
-            (int) ($color->toHsl()['s'] * 100),
-            (int) ($color->toHsl()['l'] * 100)
+            (int) $color->toHsl()['s'],
+            (int) $color->toHsl()['l']
         )
     );
 }
@@ -56,16 +56,16 @@ displayColor('From Hex', $red);
 $green = Color::fromRgb([0, 255, 0]);
 displayColor('From RGB', $green);
 
-// From HSL (Hue, Saturation, Lightness)
-$blue = Color::fromHsl(240, 1.0, 0.5);  // Hue: 240°, Sat: 100%, Light: 50%
+// From HSL (Hue, Saturation, Lightness) - saturation/lightness are percentages (0-100)
+$blue = Color::fromHsl(240, 100, 50);  // Hue: 240°, Sat: 100%, Light: 50%
 displayColor('From HSL', $blue);
 
-// From HSV (Hue, Saturation, Value)
-$yellow = Color::fromHsv(60, 1.0, 1.0);  // Hue: 60°, Sat: 100%, Value: 100%
+// From HSV (Hue, Saturation, Value) - saturation/value are percentages (0-100)
+$yellow = Color::fromHsv(60, 100, 100);  // Hue: 60°, Sat: 100%, Value: 100%
 displayColor('From HSV', $yellow);
 
-// From CMYK (Cyan, Magenta, Yellow, Black) - used in printing
-$cyan = Color::fromCmyk(1.0, 0.0, 0.0, 0.0);  // 100% cyan
+// From CMYK (Cyan, Magenta, Yellow, Black) - all components are percentages (0-100)
+$cyan = Color::fromCmyk(100, 0, 0, 0);  // 100% cyan
 displayColor('From CMYK', $cyan);
 
 // From LAB (perceptually uniform color space)
@@ -88,16 +88,16 @@ $rgb = $color->toRgb();
 echo sprintf("RGB:    rgb(%d, %d, %d)\n", $rgb['r'], $rgb['g'], $rgb['b']);
 
 $hsl = $color->toHsl();
-echo sprintf("HSL:    hsl(%d°, %.1f%%, %.1f%%)\n",
-    (int) $hsl['h'], $hsl['s'] * 100, $hsl['l'] * 100);
+echo sprintf("HSL:    hsl(%d°, %d%%, %d%%)\n",
+    (int) $hsl['h'], $hsl['s'], $hsl['l']);
 
 $hsv = $color->toHsv();
-echo sprintf("HSV:    hsv(%d°, %.1f%%, %.1f%%)\n",
-    (int) $hsv['h'], $hsv['s'] * 100, $hsv['v'] * 100);
+echo sprintf("HSV:    hsv(%d°, %d%%, %d%%)\n",
+    (int) $hsv['h'], $hsv['s'], $hsv['v']);
 
 $cmyk = $color->toCmyk();
-echo sprintf("CMYK:   cmyk(%.1f%%, %.1f%%, %.1f%%, %.1f%%)\n",
-    $cmyk['c'] * 100, $cmyk['m'] * 100, $cmyk['y'] * 100, $cmyk['k'] * 100);
+echo sprintf("CMYK:   cmyk(%d%%, %d%%, %d%%, %d%%)\n",
+    $cmyk['c'], $cmyk['m'], $cmyk['y'], $cmyk['k']);
 
 $lab = $color->toLab();
 echo sprintf("LAB:    lab(%.1f, %.1f, %.1f)\n", $lab['l'], $lab['a'], $lab['b']);

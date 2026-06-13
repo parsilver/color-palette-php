@@ -2,6 +2,7 @@
 
 use Farzai\ColorPalette\ImageLoader;
 use Farzai\ColorPalette\ImageLoaderFactory;
+use Psr\Http\Client\ClientInterface;
 
 test('it can create image loader instance', function () {
     $factory = new ImageLoaderFactory;
@@ -19,7 +20,7 @@ test('it creates new instance each time (no singleton)', function () {
 });
 
 test('it accepts custom http client via constructor', function () {
-    $mockClient = Mockery::mock(\Psr\Http\Client\ClientInterface::class);
+    $mockClient = Mockery::mock(ClientInterface::class);
     $factory = new ImageLoaderFactory($mockClient);
     $loader = $factory->create();
 
