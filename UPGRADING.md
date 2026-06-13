@@ -43,8 +43,12 @@ composer require symfony/http-client   # recommended
 # or: composer require guzzlehttp/guzzle
 ```
 
-`symfony/http-client` is recommended because the factory configures it to not
-follow redirects, so every redirect hop is re-validated against the SSRF rules.
+`symfony/http-client` is recommended because the factory configures it with
+`max_redirects = 0`, so the loader re-validates every redirect hop against the
+SSRF rules. **Other PSR-18 clients (e.g. Guzzle) may follow redirects internally
+by default, which bypasses that per-hop check** — when accepting user-supplied
+URLs, prefer `symfony/http-client` or inject a client configured not to follow
+redirects (e.g. Guzzle's `['allow_redirects' => false]`).
 
 Nothing else changes — this keeps working once a client is present:
 
