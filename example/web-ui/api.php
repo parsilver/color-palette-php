@@ -8,6 +8,23 @@ use Farzai\ColorPalette\ColorPalette;
 use Farzai\ColorPalette\Config\HttpClientConfig;
 use Farzai\ColorPalette\ImageLoaderFactory;
 
+// Always respond with JSON. Never let a PHP notice/warning/deprecation print into
+// the body (it would prepend HTML like "<br /><b>Deprecated</b>…" and break the
+// front-end's response.json()). Errors are logged, not echoed; fatals are trapped
+// on shutdown and returned as JSON.
+ini_set('display_errors', '0');
+
+register_shutdown_function(function (): void {
+    $err = error_get_last();
+    if ($err !== null && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        if (! headers_sent()) {
+            http_response_code(500);
+            header('Content-Type: application/json');
+        }
+        echo json_encode(['success' => false, 'error' => 'Server error: '.$err['message']]);
+    }
+});
+
 // Enable CORS for local development
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
@@ -44,7 +61,7 @@ try {
         default:
             throw new Exception('Invalid action');
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(400);
     echo json_encode([
         'success' => false,
@@ -124,7 +141,7 @@ function handleExtract()
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
             $mimeType = finfo_file($finfo, $file['tmp_name']);
-            finfo_close($finfo);
+            // finfo_close() is deprecated as of PHP 8.5 (the object frees itself).
 
             if (! in_array($mimeType, $allowedTypes)) {
                 throw new Exception('Invalid file type. Allowed: JPEG, PNG, GIF, WebP');
