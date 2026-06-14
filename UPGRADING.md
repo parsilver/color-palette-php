@@ -104,6 +104,28 @@ public function getResource(): mixed
 }
 ```
 
+### 6. `Theme` is now a validated five-role value object
+
+`Theme` previously stored an arbitrary `name => color` map, so its `ThemeInterface`
+getters (`getPrimaryColor()` … `getSurfaceColor()`) threw when a role was absent —
+including on `ThemeGenerator`'s own output. A `Theme` now **always defines the five
+roles** `primary`, `secondary`, `accent`, `background`, `surface`, and the getters
+never throw.
+
+- The constructor and `Theme::fromColors()` now **throw `InvalidArgumentException`
+  if any of the five roles is missing**. If you built partial themes, populate all
+  five roles (or use the new `Theme::fromRoles(...)` / `Theme::fromPalette($palette)`).
+- `ThemeGenerator::generate()` **no longer accepts the second `$colorNames`
+  argument** (its signature now matches `ThemeGeneratorInterface`). It no longer
+  requires `count(colors) === count(names)`; instead it lifts a role-keyed palette
+  (e.g. `WebsiteThemeStrategy` output) directly, or derives all five roles from an
+  arbitrary palette. Drop the second argument:
+
+```php
+// Before: $generator->generate($palette, ['primary', 'secondary', 'accent']);
+$theme = (new ThemeGenerator)->generate($palette); // derives all five roles
+```
+
 ## New (non-breaking)
 
 ### A `Driver` enum for image drivers

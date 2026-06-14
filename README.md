@@ -197,12 +197,12 @@ $palette = ColorPalette::fromImage('assets/logo.png', 8);
 // Get suggested theme colors
 $theme = $palette->getSuggestedSurfaceColors();
 
-echo "Primary: " . $theme['surface']->toHex();      // #f5f5f5
+echo "Surface: " . $theme['surface']->toHex();       // #f5f5f5
 echo "Background: " . $theme['background']->toHex(); // #e8e8e8
 echo "Accent: " . $theme['accent']->toHex();         // #ff5733
 
 // Get appropriate text colors
-$textOnPrimary = $palette->getSuggestedTextColor($theme['surface']);
+$textOnSurface = $palette->getSuggestedTextColor($theme['surface']);
 $textOnAccent = $palette->getSuggestedTextColor($theme['accent']);
 ```
 
@@ -422,6 +422,31 @@ $theme = $palette->getSuggestedSurfaceColors();
 - `'background'` - Second lightest (secondary backgrounds)
 - `'accent'` - Accent color with good contrast
 - `'surface_variant'` - Variant of surface color
+
+> This is a lightweight heuristic helper that returns a plain array. For a typed,
+> validated 5-role theme, use `Theme` (below).
+
+#### Typed themes — `Theme`
+
+`Theme` is a value object that always defines the five roles `primary`,
+`secondary`, `accent`, `background`, `surface`; its getters never throw.
+
+```php
+use Farzai\ColorPalette\Color;
+use Farzai\ColorPalette\ColorPalette;
+use Farzai\ColorPalette\PaletteGenerator;
+use Farzai\ColorPalette\Theme;
+use Farzai\ColorPalette\ThemeGenerator;
+
+// Full 5-role theme from a brand color (via the website-theme strategy):
+$palette = (new PaletteGenerator(Color::fromHex('#2196F3')))->websiteTheme();
+$theme = Theme::fromPalette($palette);
+echo $theme->getPrimaryColor()->toHex();
+echo $theme->getSurfaceColor()->toHex();
+
+// Or derive a theme from any extracted palette:
+$theme = (new ThemeGenerator)->generate(ColorPalette::fromImage('logo.png', 5));
+```
 
 #### ColorPalette::getSuggestedTextColor()
 
