@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Palette Generator</title>
+    <title>Chroma — Color Palette Lab</title>
 
-    <!-- Inter Font -->
+    <!-- Fonts: Fraunces (editorial display) · Hanken Grotesk (body) · JetBrains Mono (code) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,7 +18,9 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Fraunces', 'Georgia', 'serif'],
+                        sans: ['Hanken Grotesk', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
                     },
                     colors: {
                         border: 'hsl(var(--border))',
@@ -26,21 +28,13 @@
                         ring: 'hsl(var(--ring))',
                         background: 'hsl(var(--background))',
                         foreground: 'hsl(var(--foreground))',
-                        primary: {
-                            DEFAULT: 'hsl(var(--primary))',
-                            foreground: 'hsl(var(--primary-foreground))',
-                        },
-                        secondary: {
-                            DEFAULT: 'hsl(var(--secondary))',
-                            foreground: 'hsl(var(--secondary-foreground))',
+                        accent: {
+                            DEFAULT: 'hsl(var(--accent))',
+                            foreground: 'hsl(var(--accent-foreground))',
                         },
                         muted: {
                             DEFAULT: 'hsl(var(--muted))',
                             foreground: 'hsl(var(--muted-foreground))',
-                        },
-                        accent: {
-                            DEFAULT: 'hsl(var(--accent))',
-                            foreground: 'hsl(var(--accent-foreground))',
                         },
                         card: {
                             DEFAULT: 'hsl(var(--card))',
@@ -57,118 +51,115 @@
         }
     </script>
 
-    <!-- React and ReactDOM -->
+    <!-- React + ReactDOM + Babel (in-browser JSX) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-    <!-- Babel Standalone for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
+        /* Editorial "color lab": warm paper + ink, a single vermilion accent. */
         :root {
-            --background: 0 0% 100%;
-            --foreground: 222.2 84% 4.9%;
-            --card: 0 0% 100%;
-            --card-foreground: 222.2 84% 4.9%;
-            --primary: 222.2 47.4% 11.2%;
-            --primary-foreground: 210 40% 98%;
-            --secondary: 210 40% 96.1%;
-            --secondary-foreground: 222.2 47.4% 11.2%;
-            --muted: 210 40% 96.1%;
-            --muted-foreground: 215.4 16.3% 46.9%;
-            --accent: 210 40% 96.1%;
-            --accent-foreground: 222.2 47.4% 11.2%;
-            --border: 214.3 31.8% 91.4%;
-            --input: 214.3 31.8% 91.4%;
-            --ring: 222.2 84% 4.9%;
+            --background: 38 36% 97%;      /* warm paper  */
+            --foreground: 30 9% 13%;       /* ink         */
+            --card: 40 40% 99%;
+            --card-foreground: 30 9% 13%;
+            --muted: 36 18% 92%;
+            --muted-foreground: 30 6% 40%;
+            --accent: 13 84% 53%;          /* vermilion   */
+            --accent-foreground: 40 40% 99%;
+            --border: 33 16% 87%;
+            --input: 33 16% 87%;
+            --ring: 13 84% 53%;
             --radius: 0.5rem;
+            --paper-line: 33 16% 90%;
         }
 
         .dark {
-            --background: 222.2 84% 4.9%;
-            --foreground: 210 40% 98%;
-            --card: 222.2 84% 4.9%;
-            --card-foreground: 210 40% 98%;
-            --primary: 210 40% 98%;
-            --primary-foreground: 222.2 47.4% 11.2%;
-            --secondary: 217.2 32.6% 17.5%;
-            --secondary-foreground: 210 40% 98%;
-            --muted: 217.2 32.6% 17.5%;
-            --muted-foreground: 215 20.2% 65.1%;
-            --accent: 217.2 32.6% 17.5%;
-            --accent-foreground: 210 40% 98%;
-            --border: 217.2 32.6% 17.5%;
-            --input: 217.2 32.6% 17.5%;
-            --ring: 212.7 26.8% 83.9%;
+            --background: 28 9% 9%;        /* warm ink    */
+            --foreground: 38 24% 91%;
+            --card: 28 9% 12%;
+            --card-foreground: 38 24% 91%;
+            --muted: 28 7% 17%;
+            --muted-foreground: 36 9% 60%;
+            --accent: 13 86% 58%;
+            --accent-foreground: 28 9% 9%;
+            --border: 28 7% 19%;
+            --input: 28 7% 19%;
+            --ring: 13 86% 58%;
+            --paper-line: 28 7% 15%;
+        }
+
+        html { -webkit-text-size-adjust: 100%; }
+
+        body {
+            /* Faint blueprint grid for atmosphere — subtle, paper-like. */
+            background-color: hsl(var(--background));
+            background-image:
+                linear-gradient(hsl(var(--paper-line) / 0.6) 1px, transparent 1px),
+                linear-gradient(90deg, hsl(var(--paper-line) / 0.6) 1px, transparent 1px);
+            background-size: 28px 28px;
+            background-position: -1px -1px;
         }
 
         * {
-            transition-property: color, background-color, border-color;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 150ms;
+            transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+            transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+            transition-duration: 180ms;
         }
 
-        /* Custom scrollbar - Light mode */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-        ::-webkit-scrollbar-track {
-            background: hsl(var(--muted));
-            border-radius: 10px;
-        }
+        ::-webkit-scrollbar { width: 11px; height: 11px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
-            background: hsl(var(--muted-foreground) / 0.3);
-            border-radius: 10px;
+            background: hsl(var(--muted-foreground) / 0.28);
+            border: 3px solid hsl(var(--background));
+            border-radius: 999px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: hsl(var(--muted-foreground) / 0.5);
+        ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.45); }
+
+        /* Small-caps mono section labels */
+        .eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            font-size: 0.6875rem;
+            font-weight: 500;
         }
 
-        /* Upload zone animation */
-        .upload-zone {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .upload-zone { transition: all 0.2s cubic-bezier(0.2, 0.7, 0.2, 1); }
         .upload-zone.drag-over {
-            border-color: hsl(var(--ring));
-            background-color: hsl(var(--accent));
+            border-color: hsl(var(--accent));
+            background-color: hsl(var(--accent) / 0.06);
         }
 
-        /* Color swatch hover effect */
-        .color-swatch {
-            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        .swatch { transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.18s; }
+        .swatch:hover { transform: translateY(-3px); }
+
+        @keyframes riseIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        .color-swatch:hover {
-            transform: scale(1.02);
+        .rise-in { animation: riseIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+        @keyframes inkUnderline {
+            from { transform: scaleX(0); }
+            to   { transform: scaleX(1); }
         }
 
-        /* Smooth fade in */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        /* Focus rings */
         *:focus-visible {
             outline: none;
             box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
         }
+
+        /* Range inputs in the accent color */
+        input[type="range"] { accent-color: hsl(var(--accent)); }
+        /* Native color input — trim the chrome */
+        input[type="color"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; padding: 0; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: calc(var(--radius) - 2px); }
     </style>
 </head>
-<body class="bg-background text-foreground antialiased">
+<body class="font-sans text-foreground antialiased">
     <div id="root"></div>
-
-    <!-- Load the React App -->
     <script type="text/babel" src="App.jsx"></script>
 </body>
 </html>
