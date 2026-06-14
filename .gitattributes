@@ -10,6 +10,7 @@
 /CONTRIBUTING.md export-ignore
 /CONTRIBUTORS.md export-ignore
 /UPGRADING.md export-ignore
+/assets export-ignore
 /example export-ignore
 /phpstan.neon.dist export-ignore
 /phpunit.xml.dist export-ignore
