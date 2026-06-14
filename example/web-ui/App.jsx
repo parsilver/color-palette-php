@@ -1,11 +1,16 @@
-const { useState, useEffect, useRef, createContext, useContext } = React;
+const { useState, useEffect, useRef, createContext, useContext, useCallback } = React;
 
-// Theme Context
+/* ------------------------------------------------------------------ *
+ *  Chroma — an editorial "color lab" front-end for farzai/color-palette
+ *  Paper + ink, a single vermilion accent, the user's colors as heroes.
+ * ------------------------------------------------------------------ */
+
+// ---- Theme (light/dark) ----------------------------------------------------
 const ThemeContext = createContext();
 
 function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {
-        const saved = localStorage.getItem('theme');
+        const saved = localStorage.getItem('chroma-theme');
         if (saved) return saved;
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     });
@@ -14,403 +19,384 @@ function ThemeProvider({ children }) {
         const root = document.documentElement;
         root.classList.remove('light', 'dark');
         root.classList.add(theme);
-        localStorage.setItem('theme', theme);
+        localStorage.setItem('chroma-theme', theme);
     }, [theme]);
 
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    };
-
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <ThemeContext.Provider value={{ theme, toggle: () => setTheme(t => (t === 'light' ? 'dark' : 'light')) }}>
             {children}
         </ThemeContext.Provider>
     );
 }
 
-function useTheme() {
-    const context = useContext(ThemeContext);
-    if (!context) throw new Error('useTheme must be used within ThemeProvider');
-    return context;
+const useTheme = () => useContext(ThemeContext);
+
+// ---- copy-to-clipboard with feedback --------------------------------------
+function useCopy() {
+    const [copied, setCopied] = useState(null);
+    const timer = useRef(null);
+    const copy = useCallback((text) => {
+        navigator.clipboard?.writeText(text);
+        setCopied(text);
+        clearTimeout(timer.current);
+        timer.current = setTimeout(() => setCopied(null), 1100);
+    }, []);
+    return { copy, copied };
 }
 
-// Main App Component
-function App() {
-    return (
-        <ThemeProvider>
-            <AppContent />
-        </ThemeProvider>
-    );
+// ---- readable text color over a hex ---------------------------------------
+function readableOn(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.56 ? '#16140f' : '#fdfcf8';
 }
 
-function AppContent() {
-    const [activeTab, setActiveTab] = useState('extract');
-    const { theme, toggleTheme } = useTheme();
+// ---- small building blocks -------------------------------------------------
+function Eyebrow({ children, className = '' }) {
+    return <p className={`eyebrow text-muted-foreground ${className}`}>{children}</p>;
+}
 
+function Card({ children, className = '' }) {
     return (
-        <div className="min-h-screen bg-background">
-            {/* Header */}
-            <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-2">
-                                <div className="h-8 w-8 rounded-md bg-gradient-to-br from-violet-600 to-indigo-600"></div>
-                                <div>
-                                    <h1 className="text-xl font-semibold text-foreground">Color Palette</h1>
-                                    <p className="text-xs text-muted-foreground">Extract & Generate Colors</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Dark Mode Toggle */}
-                        <button
-                            onClick={toggleTheme}
-                            className="inline-flex items-center justify-center rounded-md h-9 w-9 hover:bg-accent hover:text-accent-foreground transition-colors"
-                            aria-label="Toggle theme"
-                        >
-                            {theme === 'light' ? (
-                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                                </svg>
-                            ) : (
-                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
-                            )}
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            {/* Tab Navigation */}
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-                <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-                    <TabButton
-                        active={activeTab === 'extract'}
-                        onClick={() => setActiveTab('extract')}
-                        label="Extract"
-                    />
-                    <TabButton
-                        active={activeTab === 'generate'}
-                        onClick={() => setActiveTab('generate')}
-                        label="Generate"
-                    />
-                    <TabButton
-                        active={activeTab === 'manipulate'}
-                        onClick={() => setActiveTab('manipulate')}
-                        label="Manipulate"
-                    />
-                    <TabButton
-                        active={activeTab === 'accessibility'}
-                        onClick={() => setActiveTab('accessibility')}
-                        label="Accessibility"
-                    />
-                </div>
-
-                {/* Tab Content */}
-                <div className="mt-6 mb-12 animate-fade-in">
-                    {activeTab === 'extract' && <ImageExtractor />}
-                    {activeTab === 'generate' && <PaletteGenerator />}
-                    {activeTab === 'manipulate' && <ColorManipulator />}
-                    {activeTab === 'accessibility' && <AccessibilityChecker />}
-                </div>
-            </div>
+        <div className={`rounded-lg border border-border bg-card text-card-foreground shadow-[0_1px_0_hsl(var(--border))] ${className}`}>
+            {children}
         </div>
     );
 }
 
-// Tab Button Component
-function TabButton({ active, onClick, label }) {
+function AccentButton({ children, className = '', ...props }) {
     return (
         <button
-            onClick={onClick}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                active
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'hover:bg-background/50 hover:text-foreground'
-            }`}
+            {...props}
+            className={`inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-accent-foreground transition hover:brightness-105 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none ${className}`}
         >
-            {label}
+            {children}
         </button>
     );
 }
 
-// Image Extraction Component
+function GhostButton({ children, className = '', ...props }) {
+    return (
+        <button
+            {...props}
+            className={`inline-flex items-center justify-center gap-2 rounded-md border border-border bg-transparent px-3 text-sm font-medium transition hover:bg-muted active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none ${className}`}
+        >
+            {children}
+        </button>
+    );
+}
+
+function Spinner({ className = '' }) {
+    return (
+        <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+            <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V1a11 11 0 00-11 11h3z" />
+        </svg>
+    );
+}
+
+// Hex color field: native picker + monospace text input, kept in sync.
+function HexField({ label, value, onChange }) {
+    return (
+        <label className="block space-y-1.5">
+            <span className="eyebrow text-muted-foreground">{label}</span>
+            <span className="flex gap-2">
+                <input
+                    type="color"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    className="h-11 w-12 shrink-0 rounded-md border border-border"
+                    aria-label={`${label} swatch`}
+                />
+                <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    spellCheck={false}
+                    className="h-11 w-full rounded-md border border-input bg-background px-3 font-mono text-sm uppercase tracking-wide"
+                />
+            </span>
+        </label>
+    );
+}
+
+// A single color tile with click-to-copy + "copied" feedback + staggered reveal.
+function Swatch({ hex, sub, index = 0, onCopy, copied }) {
+    const isCopied = copied === hex;
+    return (
+        <button
+            onClick={() => onCopy(hex)}
+            style={{ animationDelay: `${Math.min(index * 45, 400)}ms` }}
+            className="swatch rise-in group block w-full overflow-hidden rounded-md border border-border text-left"
+            title={`Copy ${hex}`}
+        >
+            <span className="relative block h-20 w-full" style={{ backgroundColor: hex }}>
+                <span
+                    className={`absolute inset-0 grid place-items-center text-xs font-semibold tracking-wide transition-opacity ${isCopied ? 'opacity-100' : 'opacity-0'}`}
+                    style={{ color: readableOn(hex), backgroundColor: hex }}
+                >
+                    Copied
+                </span>
+            </span>
+            <span className="block bg-card px-2 py-1.5">
+                <span className="block text-center font-mono text-xs font-medium uppercase">{hex}</span>
+                {sub && <span className="mt-0.5 block text-center font-mono text-[10px] text-muted-foreground">{sub}</span>}
+            </span>
+        </button>
+    );
+}
+
+// ---- App shell -------------------------------------------------------------
+function App() {
+    return (
+        <ThemeProvider>
+            <Shell />
+        </ThemeProvider>
+    );
+}
+
+const TABS = [
+    { id: 'extract', label: 'Extract', n: '01' },
+    { id: 'generate', label: 'Generate', n: '02' },
+    { id: 'manipulate', label: 'Manipulate', n: '03' },
+    { id: 'accessibility', label: 'Contrast', n: '04' },
+];
+
+function Shell() {
+    const [tab, setTab] = useState('extract');
+    const { theme, toggle } = useTheme();
+
+    return (
+        <div className="mx-auto min-h-screen max-w-6xl px-5 sm:px-8">
+            {/* Masthead */}
+            <header className="flex items-end justify-between gap-4 border-b border-foreground/15 pt-8 pb-5">
+                <div className="flex items-center gap-3">
+                    <span className="grid grid-cols-2 gap-0.5" aria-hidden="true">
+                        {['hsl(var(--accent))', '#2b6cb0', '#2f855a', '#1a1a1a'].map((c, i) => (
+                            <span key={i} className="h-3.5 w-3.5 rounded-[3px]" style={{ backgroundColor: c }} />
+                        ))}
+                    </span>
+                    <div>
+                        <h1 className="font-display text-3xl font-semibold leading-none tracking-tight">Chroma</h1>
+                        <p className="eyebrow mt-1 text-muted-foreground">Color Palette Lab</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <a
+                        href="https://github.com/parsilver/color-palette-php"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hidden font-mono text-xs text-muted-foreground transition hover:text-foreground sm:block"
+                    >
+                        farzai/color-palette
+                    </a>
+                    <button
+                        onClick={toggle}
+                        className="grid h-9 w-9 place-items-center rounded-md border border-border transition hover:bg-muted"
+                        aria-label="Toggle theme"
+                    >
+                        {theme === 'light' ? (
+                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                        ) : (
+                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.36 6.36l-.7-.7M6.34 6.34l-.7-.7m12.72 0l-.7.7M6.34 17.66l-.7.7M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        )}
+                    </button>
+                </div>
+            </header>
+
+            {/* Editorial tab bar with an animated ink underline */}
+            <nav className="flex gap-7 border-b border-border">
+                {TABS.map((t) => {
+                    const active = tab === t.id;
+                    return (
+                        <button
+                            key={t.id}
+                            onClick={() => setTab(t.id)}
+                            className={`group relative -mb-px py-3.5 transition ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                        >
+                            <span className="eyebrow flex items-center gap-1.5">
+                                <span className={active ? 'text-accent' : 'text-muted-foreground/60'}>{t.n}</span>
+                                {t.label}
+                            </span>
+                            {active && (
+                                <span
+                                    className="absolute inset-x-0 bottom-0 h-[2px] origin-left bg-accent"
+                                    style={{ animation: 'inkUnderline 0.3s cubic-bezier(0.2,0.7,0.2,1)' }}
+                                />
+                            )}
+                        </button>
+                    );
+                })}
+            </nav>
+
+            <main className="py-8">
+                {tab === 'extract' && <ImageExtractor key="extract" />}
+                {tab === 'generate' && <PaletteGenerator key="generate" />}
+                {tab === 'manipulate' && <ColorManipulator key="manipulate" />}
+                {tab === 'accessibility' && <AccessibilityChecker key="accessibility" />}
+            </main>
+
+            <footer className="border-t border-border py-6">
+                <p className="font-mono text-xs text-muted-foreground">
+                    Built on <span className="text-foreground">farzai/color-palette</span> — extraction, schemes, manipulation & WCAG contrast, all server-side in PHP.
+                </p>
+            </footer>
+        </div>
+    );
+}
+
+// ---- 01 · Extract ----------------------------------------------------------
 function ImageExtractor() {
     const [image, setImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
     const [colors, setColors] = useState([]);
     const [theme, setTheme] = useState(null);
-    const [colorCount, setColorCount] = useState(5);
+    const [count, setCount] = useState(6);
     const [dragOver, setDragOver] = useState(false);
-    const fileInputRef = useRef(null);
+    const [error, setError] = useState(null);
+    const fileInput = useRef(null);
+    const { copy, copied } = useCopy();
 
-    const loadRandomImage = async () => {
-        const timestamp = Date.now();
-        const randomUrl = `https://picsum.photos/800/600?random=${timestamp}`;
-        setImagePreview(randomUrl);
-        setImage({ type: 'url', url: randomUrl });
-        extractColors({ type: 'url', url: randomUrl }, colorCount);
-    };
-
-    const handleFileSelect = (e) => {
-        const file = e.target.files[0];
-        if (file) processFile(file);
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setDragOver(false);
-        const file = e.dataTransfer.files[0];
-        if (file) processFile(file);
+    const extract = async (source, n) => {
+        setLoading(true); setError(null); setColors([]); setTheme(null);
+        try {
+            const body = new FormData();
+            if (source.type === 'url') body.append('url', source.url);
+            else body.append('image', source.file);
+            body.append('count', n);
+            const res = await fetch('api.php?action=extract', { method: 'POST', body });
+            const data = await res.json();
+            if (data.success) { setColors(data.colors); setTheme(data.theme); }
+            else setError(data.error || 'Extraction failed');
+        } catch (e) { setError(e.message); }
+        finally { setLoading(false); }
     };
 
     const processFile = (file) => {
-        if (!file.type.startsWith('image/')) {
-            alert('Please upload an image file');
-            return;
-        }
-
-        // Check file size (10MB limit)
-        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-        if (file.size > maxSize) {
-            alert(`File is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Maximum size is 10MB.`);
-            return;
-        }
-
+        if (!file.type.startsWith('image/')) return setError('Please choose an image file.');
+        if (file.size > 10 * 1024 * 1024) return setError(`Too large (${(file.size / 1048576).toFixed(1)} MB). Max 10 MB.`);
+        setError(null);
         const reader = new FileReader();
-        reader.onload = (e) => {
-            setImagePreview(e.target.result);
-            setImage({ type: 'file', file });
-        };
+        reader.onload = (e) => { setPreview(e.target.result); setImage({ type: 'file', file }); };
         reader.readAsDataURL(file);
     };
 
-    const extractColors = async (imageSource, count) => {
-        setLoading(true);
-        setColors([]);
-        setTheme(null);
-
-        try {
-            const formData = new FormData();
-            if (imageSource.type === 'url') {
-                formData.append('url', imageSource.url);
-            } else {
-                formData.append('image', imageSource.file);
-            }
-            formData.append('count', count);
-
-            const response = await fetch('api.php?action=extract', {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                setColors(data.colors);
-                setTheme(data.theme);
-            } else {
-                alert('Error: ' + data.error);
-            }
-        } catch (error) {
-            alert('Error extracting colors: ' + error.message);
-        } finally {
-            setLoading(false);
-        }
+    const loadDemo = () => {
+        const url = `https://picsum.photos/900/600?random=${Date.now()}`;
+        setPreview(url);
+        const src = { type: 'url', url };
+        setImage(src);
+        extract(src, count);
     };
 
-    const handleExtract = () => {
-        if (image) extractColors(image, colorCount);
-    };
-
-    const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text);
-    };
-
-    const exportAsJSON = () => {
-        const data = {
-            colors: colors.map(c => c.hex),
-            theme: theme ? Object.fromEntries(Object.entries(theme).map(([k, v]) => [k, v.hex])) : null
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
+    const exportFile = (name, content, type) => {
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'color-palette.json';
-        a.click();
+        a.href = URL.createObjectURL(new Blob([content], { type }));
+        a.download = name; a.click();
     };
-
-    const exportAsCSS = () => {
-        let css = ':root {\n';
-        colors.forEach((color, i) => {
-            css += `  --color-${i + 1}: ${color.hex};\n`;
-        });
-        if (theme) {
-            Object.entries(theme).forEach(([key, value]) => {
-                css += `  --${key}: ${value.hex};\n`;
-            });
-        }
-        css += '}\n';
-
-        const blob = new Blob([css], { type: 'text/css' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'color-palette.css';
-        a.click();
+    const exportJSON = () => exportFile('palette.json', JSON.stringify({
+        colors: colors.map(c => c.hex),
+        theme: theme ? Object.fromEntries(Object.entries(theme).map(([k, v]) => [k, v.hex])) : null,
+    }, null, 2), 'application/json');
+    const exportCSS = () => {
+        let css = ':root {\n' + colors.map((c, i) => `  --color-${i + 1}: ${c.hex};`).join('\n');
+        if (theme) css += '\n' + Object.entries(theme).map(([k, v]) => `  --${k.replace('_', '-')}: ${v.hex};`).join('\n');
+        exportFile('palette.css', css + '\n}\n', 'text/css');
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column - Upload */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,360px)_1fr]">
+            {/* Source */}
             <div className="space-y-4">
-                <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                    <div className="p-4 space-y-3">
-                        {/* Header with Color Count Slider */}
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between gap-4">
-                                <h2 className="text-lg font-semibold whitespace-nowrap">Upload Image</h2>
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <span className="text-xs text-muted-foreground whitespace-nowrap">Colors: {colorCount}</span>
-                                    <input
-                                        type="range"
-                                        min="3"
-                                        max="15"
-                                        value={colorCount}
-                                        onChange={(e) => setColorCount(parseInt(e.target.value))}
-                                        className="flex-1 h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Drag & Drop Zone */}
-                        <div
-                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                            onDragLeave={() => setDragOver(false)}
-                            onDrop={handleDrop}
-                            onClick={() => fileInputRef.current.click()}
-                            className={`upload-zone border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all ${
-                                dragOver ? 'drag-over' : 'border-border hover:border-muted-foreground/50'
-                            }`}
-                        >
-                            <svg className="mx-auto h-8 w-8 text-muted-foreground mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
-                            <p className="text-sm font-medium mb-0.5">Click to upload or drag and drop</p>
-                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF, WebP (Max 10MB)</p>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileSelect}
-                                className="hidden"
-                            />
-                        </div>
-
-                        {/* Image Preview */}
-                        {imagePreview && (
-                            <div className="overflow-hidden rounded-lg border border-border">
-                                <img src={imagePreview} alt="Preview" className="w-full" />
-                            </div>
-                        )}
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2">
-                            <button
-                                onClick={loadRandomImage}
-                                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                            >
-                                <svg className="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Random Demo
-                            </button>
-                            <button
-                                onClick={handleExtract}
-                                disabled={!image || loading}
-                                className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
-                            >
-                                {loading ? (
-                                    <>
-                                        <svg className="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        Extracting...
-                                    </>
-                                ) : (
-                                    'Extract Colors'
-                                )}
-                            </button>
-                        </div>
-                    </div>
+                <Eyebrow>Source image</Eyebrow>
+                <div
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); }}
+                    onClick={() => fileInput.current.click()}
+                    className={`upload-zone grid cursor-pointer place-items-center rounded-lg border-2 border-dashed px-6 py-10 text-center ${dragOver ? 'drag-over' : 'border-border hover:border-muted-foreground/50'}`}
+                >
+                    <svg className="mb-3 h-7 w-7 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                    </svg>
+                    <p className="text-sm font-medium">Drop an image or click to browse</p>
+                    <p className="mt-1 font-mono text-[11px] text-muted-foreground">PNG · JPG · GIF · WebP — max 10 MB</p>
+                    <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && processFile(e.target.files[0])} />
                 </div>
+
+                {preview && (
+                    <div className="overflow-hidden rounded-lg border border-border">
+                        <img src={preview} alt="Preview" className="block w-full" />
+                    </div>
+                )}
+
+                <div className="space-y-1.5">
+                    <div className="flex items-baseline justify-between">
+                        <span className="eyebrow text-muted-foreground">Swatches</span>
+                        <span className="font-mono text-sm">{count}</span>
+                    </div>
+                    <input type="range" min="3" max="15" value={count} onChange={(e) => setCount(+e.target.value)} className="h-1.5 w-full cursor-pointer" />
+                </div>
+
+                <div className="flex gap-2">
+                    <GhostButton onClick={loadDemo} className="h-11">
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.58M19.4 9A8 8 0 004.6 9m0 0H9m11 11v-5h-.58m0 0A8 8 0 015.6 17m13.8-2H15" /></svg>
+                        Demo
+                    </GhostButton>
+                    <AccentButton onClick={() => image && extract(image, count)} disabled={!image || loading} className="h-11 flex-1">
+                        {loading ? <><Spinner className="h-4 w-4" /> Extracting…</> : 'Extract palette'}
+                    </AccentButton>
+                </div>
+
+                {error && <p className="font-mono text-xs text-accent">{error}</p>}
             </div>
 
-            {/* Right Column - Results */}
-            <div className="space-y-4">
+            {/* Results */}
+            <div className="space-y-8">
+                {colors.length === 0 && !loading && (
+                    <div className="grid h-full min-h-[300px] place-items-center rounded-lg border border-dashed border-border">
+                        <div className="text-center">
+                            <p className="font-display text-2xl text-muted-foreground">Nothing extracted yet</p>
+                            <p className="mt-1 font-mono text-xs text-muted-foreground">Pick an image, or hit Demo for a random one.</p>
+                        </div>
+                    </div>
+                )}
+
                 {colors.length > 0 && (
                     <>
-                        {/* Colors and Theme Colors - Side by Side */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {/* Extracted Colors */}
-                            <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                                <div className="p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h2 className="text-lg font-semibold">Colors ({colors.length})</h2>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={exportAsJSON}
-                                                className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                                            >
-                                                JSON
-                                            </button>
-                                            <button
-                                                onClick={exportAsCSS}
-                                                className="inline-flex items-center justify-center rounded-md text-xs font-medium h-8 px-3 border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                                            >
-                                                CSS
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                        {colors.map((color, index) => (
-                                            <ColorSwatch key={index} color={color} onClick={() => copyToClipboard(color.hex)} />
-                                        ))}
-                                    </div>
+                        <section className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Eyebrow>Extracted · {colors.length}</Eyebrow>
+                                <div className="flex gap-2">
+                                    <GhostButton onClick={exportJSON} className="h-8 text-xs">JSON</GhostButton>
+                                    <GhostButton onClick={exportCSS} className="h-8 text-xs">CSS</GhostButton>
                                 </div>
                             </div>
+                            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+                                {colors.map((c, i) => (
+                                    <Swatch key={i} hex={c.hex} index={i} sub={c.isLight ? 'light' : 'dark'} onCopy={copy} copied={copied} />
+                                ))}
+                            </div>
+                        </section>
 
-                            {/* Theme Colors */}
-                            {theme && (
-                                <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                                    <div className="p-6">
-                                        <h2 className="text-lg font-semibold mb-4">Theme Colors</h2>
-                                        <div className="space-y-3">
-                                            {Object.entries(theme).map(([key, value]) => (
-                                                <div key={key} className="flex items-center gap-3 group">
-                                                    <div
-                                                        className="w-12 h-12 rounded-md shadow-sm cursor-pointer color-swatch border border-border"
-                                                        style={{ backgroundColor: value.hex }}
-                                                        onClick={() => copyToClipboard(value.hex)}
-                                                    ></div>
-                                                    <div className="flex-1">
-                                                        <p className="text-sm font-medium capitalize">{key.replace('_', ' ')}</p>
-                                                        <p className="text-xs text-muted-foreground font-mono">{value.hex}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                        {theme && (
+                            <section className="space-y-3">
+                                <Eyebrow>Suggested UI roles</Eyebrow>
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                    {Object.entries(theme).map(([role, v], i) => (
+                                        <Swatch key={role} hex={v.hex} index={i} sub={role.replace('_', ' ')} onCopy={copy} copied={copied} />
+                                    ))}
                                 </div>
-                            )}
-                        </div>
+                            </section>
+                        )}
 
-                        {/* Component Examples */}
-                        <ComponentShowcase colors={colors} />
+                        <Showcase colors={colors} />
                     </>
                 )}
             </div>
@@ -418,662 +404,330 @@ function ImageExtractor() {
     );
 }
 
-// Component Showcase - demonstrates colors in UI components
-function ComponentShowcase({ colors }) {
-    if (!colors || colors.length === 0) return null;
-
-    // Helper to determine if we should use white or black text based on background
-    const getTextColor = (hex) => {
-        // Simple luminance calculation
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? '#000000' : '#ffffff';
-    };
-
+// Demonstrate the extracted colors inside real UI elements.
+function Showcase({ colors }) {
+    if (!colors?.length) return null;
+    const c = (i, fallback) => (colors[i] ? colors[i].hex : fallback);
     return (
-        <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-            <div className="p-6 space-y-6">
-                <div>
-                    <h2 className="text-lg font-semibold mb-1">Component Examples</h2>
-                    <p className="text-sm text-muted-foreground">See your colors in action</p>
+        <section className="space-y-4">
+            <Eyebrow>Colors in context</Eyebrow>
+            <Card className="space-y-7 p-6">
+                <div className="space-y-2.5">
+                    <p className="font-mono text-[11px] text-muted-foreground">Buttons</p>
+                    <div className="flex flex-wrap gap-2.5">
+                        {colors[0] && <button className="h-10 rounded-md px-4 text-sm font-semibold transition hover:brightness-105" style={{ backgroundColor: c(0), color: readableOn(c(0)) }}>Primary</button>}
+                        {colors[1] && <button className="h-10 rounded-md px-4 text-sm font-semibold transition hover:brightness-105" style={{ backgroundColor: c(1), color: readableOn(c(1)) }}>Secondary</button>}
+                        {colors[2] && <button className="h-10 rounded-md border-2 bg-transparent px-4 text-sm font-semibold transition hover:bg-muted" style={{ borderColor: c(2), color: c(2) }}>Outline</button>}
+                    </div>
                 </div>
 
-                {/* Buttons Section */}
-                <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">Buttons</h3>
-                    <div className="flex flex-wrap gap-3">
-                        {/* Primary Button */}
+                <div className="space-y-2.5">
+                    <p className="font-mono text-[11px] text-muted-foreground">Cards</p>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         {colors[0] && (
-                            <button
-                                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 transition-all hover:opacity-90"
-                                style={{
-                                    backgroundColor: colors[0].hex,
-                                    color: getTextColor(colors[0].hex)
-                                }}
-                            >
-                                Primary Button
-                            </button>
+                            <div className="overflow-hidden rounded-md border border-border">
+                                <div className="px-4 py-3 text-sm font-semibold" style={{ backgroundColor: c(0), color: readableOn(c(0)) }}>Featured</div>
+                                <p className="p-4 text-sm text-muted-foreground">A card headed with your dominant color.</p>
+                            </div>
                         )}
-
-                        {/* Secondary Button */}
                         {colors[1] && (
-                            <button
-                                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 transition-all hover:opacity-90"
-                                style={{
-                                    backgroundColor: colors[1].hex,
-                                    color: getTextColor(colors[1].hex)
-                                }}
-                            >
-                                Secondary Button
-                            </button>
+                            <div className="rounded-md border border-border p-4" style={{ borderLeft: `4px solid ${c(1)}` }}>
+                                <h4 className="mb-1 text-sm font-semibold">Accent edge</h4>
+                                <p className="text-sm text-muted-foreground">A left rule in your second color.</p>
+                            </div>
                         )}
-
-                        {/* Outline Button */}
                         {colors[2] && (
-                            <button
-                                className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-background transition-all hover:opacity-80"
-                                style={{
-                                    borderWidth: '2px',
-                                    borderColor: colors[2].hex,
-                                    color: colors[2].hex
-                                }}
-                            >
-                                Outline Button
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Cards Section */}
-                <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">Cards</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {/* Card with colored header */}
-                        {colors[0] && (
-                            <div className="rounded-lg border border-border overflow-hidden bg-background">
-                                <div
-                                    className="p-4"
-                                    style={{
-                                        backgroundColor: colors[0].hex,
-                                        color: getTextColor(colors[0].hex)
-                                    }}
-                                >
-                                    <h4 className="font-semibold">Featured Card</h4>
-                                </div>
-                                <div className="p-4">
-                                    <p className="text-sm text-muted-foreground">Card with colored header using your first color.</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Card with accent border */}
-                        {colors[1] && (
-                            <div
-                                className="rounded-lg border-l-4 p-4 bg-background"
-                                style={{
-                                    borderLeftColor: colors[1].hex,
-                                    borderTop: '1px solid hsl(var(--border))',
-                                    borderRight: '1px solid hsl(var(--border))',
-                                    borderBottom: '1px solid hsl(var(--border))'
-                                }}
-                            >
-                                <h4 className="font-semibold mb-2">Accent Card</h4>
-                                <p className="text-sm text-muted-foreground">Card with left accent border using your second color.</p>
-                            </div>
-                        )}
-
-                        {/* Card with subtle background */}
-                        {colors[2] && (
-                            <div
-                                className="rounded-lg border border-border p-4"
-                                style={{
-                                    backgroundColor: `${colors[2].hex}15`
-                                }}
-                            >
-                                <h4 className="font-semibold mb-2">Tinted Card</h4>
-                                <p className="text-sm text-muted-foreground">Card with subtle background tint using your third color.</p>
+                            <div className="rounded-md border border-border p-4" style={{ backgroundColor: `${c(2)}14` }}>
+                                <h4 className="mb-1 text-sm font-semibold">Tinted</h4>
+                                <p className="text-sm text-muted-foreground">A wash of your third color at 8%.</p>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Alerts Section */}
-                <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">Alerts</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {colors.slice(0, 4).map((color, index) => {
-                            const alertTypes = ['Info', 'Success', 'Warning', 'Error'];
-                            const alertIcons = [
-                                // Info icon
-                                <svg key="info" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>,
-                                // Success icon
-                                <svg key="success" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>,
-                                // Warning icon
-                                <svg key="warning" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>,
-                                // Error icon
-                                <svg key="error" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            ];
-
-                            return (
-                                <div
-                                    key={index}
-                                    className="rounded-lg p-4 flex items-start gap-3"
-                                    style={{
-                                        backgroundColor: `${color.hex}15`,
-                                        borderLeft: `4px solid ${color.hex}`
-                                    }}
-                                >
-                                    <div style={{ color: color.hex }}>
-                                        {alertIcons[index]}
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-semibold text-sm mb-1">{alertTypes[index]} Alert</h4>
-                                        <p className="text-xs text-muted-foreground">This is an example {alertTypes[index].toLowerCase()} message using color {index + 1}.</p>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Badges Section */}
-                <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">Badges</h3>
+                <div className="space-y-2.5">
+                    <p className="font-mono text-[11px] text-muted-foreground">Badges</p>
                     <div className="flex flex-wrap gap-2">
-                        {colors.slice(0, 6).map((color, index) => (
-                            <span
-                                key={index}
-                                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-all"
-                                style={{
-                                    backgroundColor: color.hex,
-                                    color: getTextColor(color.hex)
-                                }}
-                            >
-                                Badge {index + 1}
+                        {colors.slice(0, 8).map((col, i) => (
+                            <span key={i} className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: col.hex, color: readableOn(col.hex) }}>
+                                {col.hex}
                             </span>
                         ))}
                     </div>
                 </div>
-            </div>
-        </div>
+            </Card>
+        </section>
     );
 }
 
-// Palette Generator Component
+// ---- 02 · Generate ---------------------------------------------------------
+const SCHEMES = [
+    { value: 'monochromatic', label: 'Monochromatic', desc: 'One hue, varied lightness', count: true },
+    { value: 'complementary', label: 'Complementary', desc: 'Opposite on the wheel' },
+    { value: 'analogous', label: 'Analogous', desc: 'Neighbouring hues' },
+    { value: 'triadic', label: 'Triadic', desc: 'Three, evenly spaced' },
+    { value: 'tetradic', label: 'Tetradic', desc: 'Two complementary pairs' },
+    { value: 'split-complementary', label: 'Split Complementary', desc: 'Either side of the complement' },
+    { value: 'shades', label: 'Shades', desc: 'Toward black', count: true },
+    { value: 'tints', label: 'Tints', desc: 'Toward white', count: true },
+    { value: 'pastel', label: 'Pastel', desc: 'Soft & desaturated' },
+    { value: 'vibrant', label: 'Vibrant', desc: 'Bold & saturated' },
+    { value: 'website-theme', label: 'Website Theme', desc: 'Full UI role set' },
+];
+
 function PaletteGenerator() {
-    const [baseColor, setBaseColor] = useState('#6366f1');
-    const [scheme, setScheme] = useState('monochromatic');
-    const [colorCount, setColorCount] = useState(5);
+    const [base, setBase] = useState('#e2532a');
+    const [scheme, setScheme] = useState('analogous');
+    const [count, setCount] = useState(5);
     const [loading, setLoading] = useState(false);
     const [palette, setPalette] = useState([]);
+    const { copy, copied } = useCopy();
+    const showCount = SCHEMES.find(s => s.value === scheme)?.count;
 
-    const schemes = [
-        { value: 'monochromatic', label: 'Monochromatic', desc: 'Same hue, different lightness' },
-        { value: 'complementary', label: 'Complementary', desc: 'Opposite colors' },
-        { value: 'analogous', label: 'Analogous', desc: 'Adjacent colors' },
-        { value: 'triadic', label: 'Triadic', desc: 'Evenly spaced' },
-        { value: 'tetradic', label: 'Tetradic', desc: 'Four colors' },
-        { value: 'split-complementary', label: 'Split Complementary', desc: 'Adjacent to complement' },
-        { value: 'shades', label: 'Shades', desc: 'Add black' },
-        { value: 'tints', label: 'Tints', desc: 'Add white' },
-        { value: 'pastel', label: 'Pastel', desc: 'Soft colors' },
-        { value: 'vibrant', label: 'Vibrant', desc: 'Saturated' },
-        { value: 'website-theme', label: 'Website Theme', desc: 'UI theme' }
-    ];
-
-    const generatePalette = async () => {
-        setLoading(true);
-        setPalette([]);
-
+    const generate = async () => {
+        setLoading(true); setPalette([]);
         try {
-            const response = await fetch('api.php?action=generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ color: baseColor, scheme: scheme, count: colorCount })
+            const res = await fetch('api.php?action=generate', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ color: base, scheme, count }),
             });
-
-            const data = await response.json();
-            if (data.success) {
-                setPalette(data.colors);
-            } else {
-                alert('Error: ' + data.error);
-            }
-        } catch (error) {
-            alert('Error generating palette: ' + error.message);
-        } finally {
-            setLoading(false);
-        }
+            const data = await res.json();
+            if (data.success) setPalette(data.colors);
+        } finally { setLoading(false); }
     };
-
-    const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text);
-    };
+    useEffect(() => { generate(); /* eslint-disable-next-line */ }, []);
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                <div className="p-6 space-y-6">
-                    <h2 className="text-xl font-semibold">Generate Palette</h2>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,340px)_1fr]">
+            <div className="space-y-5">
+                <HexField label="Base color" value={base} onChange={setBase} />
 
-                    {/* Base Color Picker */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Base Color</label>
-                        <div className="flex gap-3">
-                            <input
-                                type="color"
-                                value={baseColor}
-                                onChange={(e) => setBaseColor(e.target.value)}
-                                className="h-10 w-16 rounded-md cursor-pointer border border-border"
-                            />
-                            <input
-                                type="text"
-                                value={baseColor}
-                                onChange={(e) => setBaseColor(e.target.value)}
-                                className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                            />
-                        </div>
+                <div className="space-y-1.5">
+                    <span className="eyebrow text-muted-foreground">Harmony</span>
+                    <div className="grid grid-cols-1 gap-1.5">
+                        {SCHEMES.map(s => (
+                            <button
+                                key={s.value}
+                                onClick={() => setScheme(s.value)}
+                                className={`flex items-baseline justify-between rounded-md border px-3 py-2 text-left transition ${scheme === s.value ? 'border-accent bg-accent/5' : 'border-border hover:bg-muted'}`}
+                            >
+                                <span className="text-sm font-semibold">{s.label}</span>
+                                <span className="ml-3 hidden font-mono text-[10px] text-muted-foreground sm:block">{s.desc}</span>
+                            </button>
+                        ))}
                     </div>
-
-                    {/* Scheme Selector */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Color Scheme</label>
-                        <select
-                            value={scheme}
-                            onChange={(e) => setScheme(e.target.value)}
-                            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                        >
-                            {schemes.map(s => (
-                                <option key={s.value} value={s.value}>
-                                    {s.label} - {s.desc}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Color Count */}
-                    {['monochromatic', 'shades', 'tints'].includes(scheme) && (
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium">Color Count</label>
-                                <span className="text-sm text-muted-foreground">{colorCount}</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="3"
-                                max="10"
-                                value={colorCount}
-                                onChange={(e) => setColorCount(parseInt(e.target.value))}
-                                className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
-                            />
-                        </div>
-                    )}
-
-                    {/* Generate Button */}
-                    <button
-                        onClick={generatePalette}
-                        disabled={loading}
-                        className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
-                    >
-                        {loading ? 'Generating...' : 'Generate Palette'}
-                    </button>
-
-                    {/* Generated Palette */}
-                    {palette.length > 0 && (
-                        <div className="pt-4 border-t border-border">
-                            <h3 className="text-sm font-medium mb-4">Generated Palette ({palette.length} colors)</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                                {palette.map((color, index) => (
-                                    <ColorSwatch key={index} color={color} onClick={() => copyToClipboard(color.hex)} />
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
+
+                {showCount && (
+                    <div className="space-y-1.5">
+                        <div className="flex items-baseline justify-between">
+                            <span className="eyebrow text-muted-foreground">Count</span>
+                            <span className="font-mono text-sm">{count}</span>
+                        </div>
+                        <input type="range" min="3" max="10" value={count} onChange={(e) => setCount(+e.target.value)} className="h-1.5 w-full cursor-pointer" />
+                    </div>
+                )}
+
+                <AccentButton onClick={generate} disabled={loading} className="h-11 w-full">
+                    {loading ? <><Spinner className="h-4 w-4" /> Generating…</> : 'Generate'}
+                </AccentButton>
             </div>
-        </div>
-    );
-}
 
-// Color Manipulator Component
-function ColorManipulator() {
-    const [baseColor, setBaseColor] = useState('#6366f1');
-    const [operation, setOperation] = useState('lighten');
-    const [amount, setAmount] = useState(0.2);
-    const [result, setResult] = useState(null);
-
-    const operations = [
-        { value: 'lighten', label: 'Lighten', min: 0, max: 1, step: 0.05 },
-        { value: 'darken', label: 'Darken', min: 0, max: 1, step: 0.05 },
-        { value: 'saturate', label: 'Saturate', min: 0, max: 1, step: 0.05 },
-        { value: 'desaturate', label: 'Desaturate', min: 0, max: 1, step: 0.05 },
-        { value: 'rotate', label: 'Rotate Hue', min: -180, max: 180, step: 15 }
-    ];
-
-    const currentOp = operations.find(op => op.value === operation);
-
-    const manipulateColor = async () => {
-        try {
-            const response = await fetch('api.php?action=manipulate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ color: baseColor, operation: operation, amount: amount })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                setResult(data);
-            }
-        } catch (error) {
-            console.error('Error manipulating color:', error);
-        }
-    };
-
-    useEffect(() => {
-        if (baseColor) manipulateColor();
-    }, [baseColor, operation, amount]);
-
-    const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text);
-    };
-
-    return (
-        <div className="max-w-4xl mx-auto">
-            <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                <div className="p-6 space-y-6">
-                    <h2 className="text-xl font-semibold">Color Manipulation</h2>
-
-                    {/* Base Color Picker */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Base Color</label>
-                        <div className="flex gap-3">
-                            <input
-                                type="color"
-                                value={baseColor}
-                                onChange={(e) => setBaseColor(e.target.value)}
-                                className="h-10 w-16 rounded-md cursor-pointer border border-border"
-                            />
-                            <input
-                                type="text"
-                                value={baseColor}
-                                onChange={(e) => setBaseColor(e.target.value)}
-                                className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                            />
-                        </div>
+            <div className="space-y-3">
+                <Eyebrow>{SCHEMES.find(s => s.value === scheme)?.label} · {palette.length}</Eyebrow>
+                {palette.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+                        {palette.map((c, i) => (
+                            <Swatch key={`${scheme}-${i}`} hex={c.hex} index={i} sub={c.isLight ? 'light' : 'dark'} onCopy={copy} copied={copied} />
+                        ))}
                     </div>
-
-                    {/* Operation Selector */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Operation</label>
-                        <div className="flex flex-wrap gap-2">
-                            {operations.map(op => (
-                                <button
-                                    key={op.value}
-                                    onClick={() => setOperation(op.value)}
-                                    className={`inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 transition-colors ${
-                                        operation === op.value
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-                                    }`}
-                                >
-                                    {op.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Amount Slider */}
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium">Amount</label>
-                            <span className="text-sm text-muted-foreground">{amount}{operation === 'rotate' ? '°' : ''}</span>
-                        </div>
-                        <input
-                            type="range"
-                            min={currentOp.min}
-                            max={currentOp.max}
-                            step={currentOp.step}
-                            value={amount}
-                            onChange={(e) => setAmount(parseFloat(e.target.value))}
-                            className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
-                        />
-                    </div>
-
-                    {/* Before & After */}
-                    {result && (
-                        <div className="pt-4 border-t border-border">
-                            <h3 className="text-sm font-medium mb-4">Result</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Original */}
-                                <div className="space-y-3">
-                                    <p className="text-sm font-medium text-muted-foreground">Original</p>
-                                    <div
-                                        className="w-full h-24 rounded-md shadow-sm cursor-pointer color-swatch border border-border"
-                                        style={{ backgroundColor: result.original.hex }}
-                                        onClick={() => copyToClipboard(result.original.hex)}
-                                    ></div>
-                                    <div className="space-y-1 text-xs">
-                                        <p className="font-mono"><span className="text-muted-foreground">HEX:</span> {result.original.hex}</p>
-                                        <p className="font-mono"><span className="text-muted-foreground">RGB:</span> {result.original.rgb.r}, {result.original.rgb.g}, {result.original.rgb.b}</p>
-                                        <p className="font-mono"><span className="text-muted-foreground">HSL:</span> {Math.round(result.original.hsl.h)}°, {Math.round(result.original.hsl.s)}%, {Math.round(result.original.hsl.l)}%</p>
-                                    </div>
-                                </div>
-
-                                {/* Result */}
-                                <div className="space-y-3">
-                                    <p className="text-sm font-medium text-muted-foreground">Result</p>
-                                    <div
-                                        className="w-full h-24 rounded-md shadow-sm cursor-pointer color-swatch border border-border"
-                                        style={{ backgroundColor: result.result.hex }}
-                                        onClick={() => copyToClipboard(result.result.hex)}
-                                    ></div>
-                                    <div className="space-y-1 text-xs">
-                                        <p className="font-mono"><span className="text-muted-foreground">HEX:</span> {result.result.hex}</p>
-                                        <p className="font-mono"><span className="text-muted-foreground">RGB:</span> {result.result.rgb.r}, {result.result.rgb.g}, {result.result.rgb.b}</p>
-                                        <p className="font-mono"><span className="text-muted-foreground">HSL:</span> {Math.round(result.result.hsl.h)}°, {Math.round(result.result.hsl.s)}%, {Math.round(result.result.hsl.l)}%</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// Accessibility Checker Component
-function AccessibilityChecker() {
-    const [backgroundColor, setBackgroundColor] = useState('#ffffff');
-    const [textColor, setTextColor] = useState('#0f172a');
-    const [result, setResult] = useState(null);
-
-    const checkContrast = async () => {
-        try {
-            const response = await fetch('api.php?action=contrast', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ background: backgroundColor, text: textColor })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                setResult(data);
-            }
-        } catch (error) {
-            console.error('Error checking contrast:', error);
-        }
-    };
-
-    useEffect(() => {
-        if (backgroundColor && textColor) checkContrast();
-    }, [backgroundColor, textColor]);
-
-    const useSuggestedColor = () => {
-        if (result && result.suggestedTextColor) {
-            setTextColor(result.suggestedTextColor.hex);
-        }
-    };
-
-    return (
-        <div className="max-w-4xl mx-auto">
-            <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
-                <div className="p-6 space-y-6">
-                    <h2 className="text-xl font-semibold">Accessibility Checker</h2>
-
-                    {/* Color Pickers */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Background Color */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Background</label>
-                            <div className="flex gap-3">
-                                <input
-                                    type="color"
-                                    value={backgroundColor}
-                                    onChange={(e) => setBackgroundColor(e.target.value)}
-                                    className="h-10 w-16 rounded-md cursor-pointer border border-border"
-                                />
-                                <input
-                                    type="text"
-                                    value={backgroundColor}
-                                    onChange={(e) => setBackgroundColor(e.target.value)}
-                                    className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Text Color */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Text</label>
-                            <div className="flex gap-3">
-                                <input
-                                    type="color"
-                                    value={textColor}
-                                    onChange={(e) => setTextColor(e.target.value)}
-                                    className="h-10 w-16 rounded-md cursor-pointer border border-border"
-                                />
-                                <input
-                                    type="text"
-                                    value={textColor}
-                                    onChange={(e) => setTextColor(e.target.value)}
-                                    className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Results */}
-                    {result && (
-                        <div className="space-y-4">
-                            {/* Contrast Ratio */}
-                            <div className="rounded-lg bg-muted p-6 text-center">
-                                <p className="text-sm text-muted-foreground mb-2">Contrast Ratio</p>
-                                <p className="text-4xl font-bold">{result.contrastRatio}:1</p>
-                            </div>
-
-                            {/* WCAG Compliance */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="rounded-lg border border-border p-4 space-y-3">
-                                    <h4 className="font-semibold text-sm">WCAG AA</h4>
-                                    <ComplianceIndicator label="Normal" passed={result.wcag.aa.normal} required="4.5:1" />
-                                    <ComplianceIndicator label="Large" passed={result.wcag.aa.large} required="3.0:1" />
-                                </div>
-
-                                <div className="rounded-lg border border-border p-4 space-y-3">
-                                    <h4 className="font-semibold text-sm">WCAG AAA</h4>
-                                    <ComplianceIndicator label="Normal" passed={result.wcag.aaa.normal} required="7.0:1" />
-                                    <ComplianceIndicator label="Large" passed={result.wcag.aaa.large} required="4.5:1" />
-                                </div>
-                            </div>
-
-                            {/* Preview */}
-                            <div>
-                                <h4 className="text-sm font-medium mb-3">Preview</h4>
-                                <div
-                                    className="p-6 rounded-lg border border-border"
-                                    style={{ backgroundColor: backgroundColor, color: textColor }}
-                                >
-                                    <h1 className="text-2xl font-bold mb-2">The quick brown fox</h1>
-                                    <p className="mb-2">
-                                        The quick brown fox jumps over the lazy dog. This is a preview of how your text will look.
-                                    </p>
-                                    <p className="text-sm">
-                                        Small text example: Lorem ipsum dolor sit amet.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Suggestion */}
-                            {!result.wcag.aa.normal && (
-                                <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4">
-                                    <p className="font-medium text-sm mb-2">⚠️ Contrast is too low</p>
-                                    <p className="text-sm text-muted-foreground mb-3">
-                                        Consider using this color for better accessibility:
-                                    </p>
-                                    <button
-                                        onClick={useSuggestedColor}
-                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                                    >
-                                        Use {result.suggestedTextColor.hex}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// Compliance Indicator Component
-function ComplianceIndicator({ label, passed, required }) {
-    return (
-        <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">{label}</span>
-            <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">{required}</span>
-                {passed ? (
-                    <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
                 ) : (
-                    <svg className="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <div className="grid h-48 place-items-center rounded-lg border border-dashed border-border">
+                        <p className="font-mono text-xs text-muted-foreground">Pick a base color and harmony.</p>
+                    </div>
                 )}
             </div>
         </div>
     );
 }
 
-// Color Swatch Component
-function ColorSwatch({ color, onClick }) {
+// ---- 03 · Manipulate -------------------------------------------------------
+const OPS = [
+    { value: 'lighten', label: 'Lighten', min: 0, max: 1, step: 0.05, unit: '' },
+    { value: 'darken', label: 'Darken', min: 0, max: 1, step: 0.05, unit: '' },
+    { value: 'saturate', label: 'Saturate', min: 0, max: 1, step: 0.05, unit: '' },
+    { value: 'desaturate', label: 'Desaturate', min: 0, max: 1, step: 0.05, unit: '' },
+    { value: 'rotate', label: 'Rotate hue', min: -180, max: 180, step: 15, unit: '°' },
+];
+
+function ColorManipulator() {
+    const [base, setBase] = useState('#2b6cb0');
+    const [op, setOp] = useState('lighten');
+    const [amount, setAmount] = useState(0.25);
+    const [result, setResult] = useState(null);
+    const { copy, copied } = useCopy();
+    const current = OPS.find(o => o.value === op);
+
+    useEffect(() => {
+        let alive = true;
+        (async () => {
+            try {
+                const res = await fetch('api.php?action=manipulate', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ color: base, operation: op, amount }),
+                });
+                const data = await res.json();
+                if (alive && data.success) setResult(data);
+            } catch (_) { /* ignore */ }
+        })();
+        return () => { alive = false; };
+    }, [base, op, amount]);
+
+    const Panel = ({ label, c }) => (
+        <div className="space-y-2">
+            <Eyebrow>{label}</Eyebrow>
+            <button onClick={() => copy(c.hex)} className="swatch block h-28 w-full rounded-lg border border-border" style={{ backgroundColor: c.hex }} title={`Copy ${c.hex}`}>
+                <span className="text-xs font-semibold" style={{ color: readableOn(c.hex) }}>{copied === c.hex ? 'Copied' : ''}</span>
+            </button>
+            <dl className="space-y-0.5 font-mono text-xs">
+                <Row k="HEX" v={c.hex.toUpperCase()} />
+                <Row k="RGB" v={`${c.rgb.r} ${c.rgb.g} ${c.rgb.b}`} />
+                <Row k="HSL" v={`${Math.round(c.hsl.h)}° ${Math.round(c.hsl.s)}% ${Math.round(c.hsl.l)}%`} />
+            </dl>
+        </div>
+    );
+
     return (
-        <div onClick={onClick} className="cursor-pointer color-swatch group">
-            <div
-                className="w-full h-20 rounded-t-md shadow-sm border border-border"
-                style={{ backgroundColor: color.hex }}
-            ></div>
-            <div className="bg-muted/50 p-2 rounded-b-md border border-t-0 border-border">
-                <p className="font-mono text-xs font-medium text-center">{color.hex}</p>
-                <p className="text-[10px] text-muted-foreground text-center mt-0.5">
-                    {color.isLight ? 'Light' : 'Dark'}
-                </p>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,340px)_1fr]">
+            <div className="space-y-5">
+                <HexField label="Base color" value={base} onChange={setBase} />
+                <div className="space-y-1.5">
+                    <span className="eyebrow text-muted-foreground">Operation</span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                        {OPS.map(o => (
+                            <button
+                                key={o.value}
+                                onClick={() => { setOp(o.value); setAmount(o.value === 'rotate' ? 45 : 0.25); }}
+                                className={`rounded-md border px-3 py-2 text-sm font-semibold transition ${op === o.value ? 'border-accent bg-accent/5' : 'border-border hover:bg-muted'}`}
+                            >
+                                {o.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div className="space-y-1.5">
+                    <div className="flex items-baseline justify-between">
+                        <span className="eyebrow text-muted-foreground">Amount</span>
+                        <span className="font-mono text-sm">{amount}{current.unit}</span>
+                    </div>
+                    <input type="range" min={current.min} max={current.max} step={current.step} value={amount} onChange={(e) => setAmount(parseFloat(e.target.value))} className="h-1.5 w-full cursor-pointer" />
+                </div>
+            </div>
+
+            {result && (
+                <div className="grid grid-cols-2 gap-6">
+                    <Panel label="Before" c={result.original} />
+                    <Panel label={`After · ${current.label}`} c={result.result} />
+                </div>
+            )}
+        </div>
+    );
+}
+
+function Row({ k, v }) {
+    return (
+        <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">{k}</dt>
+            <dd className="font-medium">{v}</dd>
+        </div>
+    );
+}
+
+// ---- 04 · Contrast ---------------------------------------------------------
+function AccessibilityChecker() {
+    const [bg, setBg] = useState('#fbfaf6');
+    const [fg, setFg] = useState('#e2532a');
+    const [result, setResult] = useState(null);
+
+    useEffect(() => {
+        let alive = true;
+        (async () => {
+            try {
+                const res = await fetch('api.php?action=contrast', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ background: bg, text: fg }),
+                });
+                const data = await res.json();
+                if (alive && data.success) setResult(data);
+            } catch (_) { /* ignore */ }
+        })();
+        return () => { alive = false; };
+    }, [bg, fg]);
+
+    return (
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,340px)_1fr]">
+            <div className="space-y-5">
+                <HexField label="Background" value={bg} onChange={setBg} />
+                <HexField label="Text" value={fg} onChange={setFg} />
+                {result && !result.wcag.aa.normal && (
+                    <div className="rounded-md border border-accent/40 bg-accent/5 p-4">
+                        <p className="text-sm font-semibold">Below AA for body text</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Nearest readable text color:</p>
+                        <button onClick={() => setFg(result.suggestedTextColor.hex)} className="mt-3 inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 font-mono text-xs transition hover:bg-muted">
+                            <span className="h-4 w-4 rounded-[3px] border border-border" style={{ backgroundColor: result.suggestedTextColor.hex }} />
+                            Use {result.suggestedTextColor.hex}
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {result && (
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
+                        <div>
+                            <Eyebrow>Contrast ratio</Eyebrow>
+                            <p className="font-display text-6xl font-semibold leading-none tracking-tight">
+                                {result.contrastRatio}<span className="text-2xl text-muted-foreground">:1</span>
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Grade title="AA" rows={[['Body', result.wcag.aa.normal, '4.5'], ['Large', result.wcag.aa.large, '3.0']]} />
+                            <Grade title="AAA" rows={[['Body', result.wcag.aaa.normal, '7.0'], ['Large', result.wcag.aaa.large, '4.5']]} />
+                        </div>
+                    </div>
+
+                    <div className="rounded-lg border border-border p-8" style={{ backgroundColor: bg, color: fg }}>
+                        <p className="font-display text-3xl font-semibold">The quick brown fox</p>
+                        <p className="mt-3 text-base">Jumps over the lazy dog. This is how body copy reads at the chosen contrast — adjust the colors until both pass AA.</p>
+                        <p className="mt-2 text-sm opacity-90">Small print: lorem ipsum dolor sit amet, consectetur adipiscing.</p>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function Grade({ title, rows }) {
+    return (
+        <div className="rounded-md border border-border p-3">
+            <p className="eyebrow mb-2">WCAG {title}</p>
+            <div className="space-y-1.5">
+                {rows.map(([label, pass, req]) => (
+                    <div key={label} className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] text-muted-foreground">{req}</span>
+                            {pass ? (
+                                <svg className="h-4 w-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                            ) : (
+                                <svg className="h-4 w-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            )}
+                        </span>
+                    </div>
+                ))}
             </div>
         </div>
     );
 }
 
-// Render the app
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);

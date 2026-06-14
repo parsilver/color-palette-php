@@ -5,6 +5,7 @@ require_once __DIR__.'/../../vendor/autoload.php';
 use Farzai\ColorPalette\Color;
 use Farzai\ColorPalette\ColorExtractorFactory;
 use Farzai\ColorPalette\ColorPalette;
+use Farzai\ColorPalette\Config\HttpClientConfig;
 use Farzai\ColorPalette\ImageLoaderFactory;
 
 // Enable CORS for local development
@@ -96,10 +97,12 @@ function handleExtract()
             // file_get_contents(): it validates the scheme, blocks private/reserved
             // IPs (re-checking every redirect hop), and enforces the byte-size and
             // decoded-dimension limits before the image is ever decoded.
-            // Load with the same 'gd' driver the extractor uses (otherwise the
-            // loader's auto-detected driver could yield an image the gd extractor
-            // can't read, silently falling back to a grayscale palette).
-            $image = (new ImageLoaderFactory(preferredDriver: 'gd'))->create()->load($url);
+            // Allow a few redirects: many image hosts (e.g. picsum.photos) answer
+            // with a 302 to a CDN. The loader still re-validates EVERY hop against
+            // the SSRF rules, so following them stays safe. Also pin the 'gd' driver
+            // so the loaded image matches the gd extractor below.
+            $httpConfig = new HttpClientConfig(maxRedirects: 5);
+            $image = (new ImageLoaderFactory(preferredDriver: 'gd', httpConfig: $httpConfig))->create()->load($url);
             $palette = (new ColorExtractorFactory)->make('gd')->extract($image, $count);
             assert($palette instanceof ColorPalette);
 
