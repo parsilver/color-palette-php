@@ -279,11 +279,14 @@ describe('Image to Theme Workflow', function () {
             ->build();
 
         $themeGenerator = new ThemeGenerator;
-        $theme = $themeGenerator->generate($palette, ['primary', 'secondary', 'accent', 'background', 'surface']);
+        $theme = $themeGenerator->generate($palette);
 
         expect($theme)->toBeInstanceOf(Theme::class);
         expect($theme->getPrimaryColor())->toBeInstanceOf(Color::class);
         expect($theme->getSecondaryColor())->toBeInstanceOf(Color::class);
+        // All five roles resolve now (background/surface no longer throw).
+        expect($theme->getBackgroundColor())->toBeInstanceOf(Color::class);
+        expect($theme->getSurfaceColor())->toBeInstanceOf(Color::class);
     });
 
     test('it can create theme with convenience methods', function () {
@@ -298,7 +301,7 @@ describe('Image to Theme Workflow', function () {
             ->build();
 
         $themeGenerator = new ThemeGenerator;
-        $theme = $themeGenerator->generate($palette, ['primary', 'secondary', 'accent']);
+        $theme = $themeGenerator->generate($palette);
 
         $primary = $theme->getPrimaryColor();
         $secondary = $theme->getSecondaryColor();

@@ -5,30 +5,44 @@ declare(strict_types=1);
 namespace Farzai\ColorPalette;
 
 use Farzai\ColorPalette\Contracts\ColorInterface;
+use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
 use Farzai\ColorPalette\Contracts\ThemeInterface;
 use InvalidArgumentException;
 
 class Theme implements ThemeInterface
 {
     /**
-     * @var array<string, ColorInterface>
+     * The semantic roles every theme must define.
      */
-    private array $colors = [];
+    public const ROLES = ['primary', 'secondary', 'accent', 'background', 'surface'];
 
     /**
-     * Create a new Theme instance
-     *
-     * @param  array<string, ColorInterface>  $colors
+     * @var array<string, ColorInterface>
      */
-    public function __construct(array $colors = [])
+    private array $colors;
+
+    /**
+     * @param  array<string, ColorInterface>  $colors  Must define every role in self::ROLES
+     *
+     * @throws InvalidArgumentException If a required role is missing or is not a ColorInterface
+     */
+    public function __construct(array $colors)
     {
+        foreach (self::ROLES as $role) {
+            if (! (($colors[$role] ?? null) instanceof ColorInterface)) {
+                throw new InvalidArgumentException("Theme is missing required '{$role}' color");
+            }
+        }
+
         $this->colors = $colors;
     }
 
     /**
-     * Create a theme from colors
+     * Create a theme from a role => color map (must define all five roles).
      *
      * @param  array<string, ColorInterface>  $colors
+     *
+     * @throws InvalidArgumentException If a required role is missing
      */
     public static function fromColors(array $colors): self
     {
@@ -36,9 +50,38 @@ class Theme implements ThemeInterface
     }
 
     /**
-     * Get a color by name
+     * Create a theme from the five named roles.
+     */
+    public static function fromRoles(
+        ColorInterface $primary,
+        ColorInterface $secondary,
+        ColorInterface $accent,
+        ColorInterface $background,
+        ColorInterface $surface,
+    ): self {
+        return new self([
+            'primary' => $primary,
+            'secondary' => $secondary,
+            'accent' => $accent,
+            'background' => $background,
+            'surface' => $surface,
+        ]);
+    }
+
+    /**
+     * Lift a role-keyed palette (e.g. WebsiteThemeStrategy output) into a theme.
      *
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException If the palette does not define all five roles
+     */
+    public static function fromPalette(ColorPaletteInterface $palette): self
+    {
+        return new self($palette->getColors());
+    }
+
+    /**
+     * Get a color by name.
+     *
+     * @throws InvalidArgumentException If the name is not present in the theme
      */
     public function getColor(string $name): ColorInterface
     {
@@ -50,7 +93,7 @@ class Theme implements ThemeInterface
     }
 
     /**
-     * Check if a color exists in the theme
+     * Check if a color exists in the theme.
      */
     public function hasColor(string $name): bool
     {
@@ -58,7 +101,7 @@ class Theme implements ThemeInterface
     }
 
     /**
-     * Get all colors in the theme
+     * Get all colors in the theme.
      *
      * @return array<string, ColorInterface>
      */
@@ -68,7 +111,7 @@ class Theme implements ThemeInterface
     }
 
     /**
-     * Convert theme to array
+     * Convert theme to a role => hex array.
      *
      * @return array<string, string>
      */
@@ -82,43 +125,28 @@ class Theme implements ThemeInterface
         return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getPrimaryColor(): ColorInterface
     {
-        return $this->getColor('primary');
+        return $this->colors['primary'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getSecondaryColor(): ColorInterface
     {
-        return $this->getColor('secondary');
+        return $this->colors['secondary'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getAccentColor(): ColorInterface
     {
-        return $this->getColor('accent');
+        return $this->colors['accent'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getBackgroundColor(): ColorInterface
     {
-        return $this->getColor('background');
+        return $this->colors['background'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getSurfaceColor(): ColorInterface
     {
-        return $this->getColor('surface');
+        return $this->colors['surface'];
     }
 }
