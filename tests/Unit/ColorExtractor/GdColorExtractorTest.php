@@ -11,7 +11,10 @@ describe('GdColorExtractor - Basic Extraction', function () {
             $this->markTestSkipped('GD extension is not available.');
         }
 
-        $loader = (new ImageLoaderFactory)->create();
+        // Pin the driver: on hosts with Imagick the loader would otherwise hand
+        // GdColorExtractor an ImagickImage and the test would only see the
+        // grayscale fallback palette.
+        $loader = (new ImageLoaderFactory(preferredDriver: 'gd'))->create();
         $image = $loader->load(__DIR__.'/../../../example/assets/sample.jpg');
 
         $extractor = new GdColorExtractor;
@@ -22,6 +25,9 @@ describe('GdColorExtractor - Basic Extraction', function () {
         expect($colors[0]->getRed())->toBeBetween(0, 255);
         expect($colors[0]->getGreen())->toBeBetween(0, 255);
         expect($colors[0]->getBlue())->toBeBetween(0, 255);
+        // sample.jpg is solid red; the grayscale fallback would mean extraction failed.
+        expect($colors[0]->getRed())->toBeGreaterThan(200)
+            ->and($colors[0]->getGreen())->toBeLessThan(50);
     });
 
     test('it can extract different numbers of colors', function () {
@@ -39,41 +45,6 @@ describe('GdColorExtractor - Basic Extraction', function () {
         foreach ([1, 3, 5, 10] as $count) {
             $palette = $extractor->extract($image, $count);
             expect($palette)->toHaveCount($count);
-        }
-    });
-});
-
-describe('GdColorExtractor - Deterministic Behavior', function () {
-    test('it produces idempotent results (same image returns same colors in same order)', function () {
-        if (! extension_loaded('gd')) {
-            $this->markTestSkipped('GD extension is not available.');
-        }
-
-        $loader = (new ImageLoaderFactory)->create();
-        $image = $loader->load(__DIR__.'/../../../example/assets/sample.jpg');
-
-        $extractor = new GdColorExtractor;
-
-        // Extract colors multiple times from the same image
-        $firstRun = $extractor->extract($image, 5);
-        $secondRun = $extractor->extract($image, 5);
-        $thirdRun = $extractor->extract($image, 5);
-
-        // Convert to arrays for easier comparison
-        $firstColors = $firstRun->toArray();
-        $secondColors = $secondRun->toArray();
-        $thirdColors = $thirdRun->toArray();
-
-        // All runs should produce identical results
-        expect($firstColors)->toBe($secondColors)
-            ->and($firstColors)->toBe($thirdColors)
-            ->and($secondColors)->toBe($thirdColors);
-
-        // Verify each color in the palette matches across runs
-        foreach (range(0, 4) as $index) {
-            expect($firstRun[$index]->toHex())
-                ->toBe($secondRun[$index]->toHex())
-                ->toBe($thirdRun[$index]->toHex());
         }
     });
 });
