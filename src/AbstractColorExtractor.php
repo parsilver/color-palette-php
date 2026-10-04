@@ -439,22 +439,23 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
         // range up to PHP_INT_MAX.
         $target = $randomizer->getInt(0, 0x7FFFFFFF) / 0x7FFFFFFF * array_sum($weights);
 
+        // The first positive weight whose running sum reaches the target; the
+        // last positive one if float rounding leaves the sum just short.
         $cumulative = 0;
-        $lastPositive = 0;
+        $chosen = 0;
         foreach ($weights as $i => $weight) {
             if ($weight <= 0) {
                 continue;
             }
 
+            $chosen = $i;
             $cumulative += $weight;
-            $lastPositive = $i;
             if ($cumulative >= $target) {
-                return $i;
+                break;
             }
         }
 
-        // Unreachable unless float rounding leaves the running sum just short.
-        return $lastPositive;
+        return $chosen;
     }
 
     /**
