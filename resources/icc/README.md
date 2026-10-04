@@ -5,8 +5,8 @@ The sRGB profile published by the International Color Consortium (ICC) at
 profile ID in its header, `3d0eb2deae9397be9b6726ce8c0a43ce`, matches its
 contents.
 
-`ImagickColorExtractor` uses it to convert CMYK images that embed a CMYK ICC
-profile to sRGB through that profile.
+`ImagickColorExtractor` uses it to convert images that embed a CMYK ICC
+profile, or an RGB one other than this, to sRGB through that profile.
 
 ## Licence
 
