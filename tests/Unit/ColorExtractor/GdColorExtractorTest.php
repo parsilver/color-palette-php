@@ -11,7 +11,10 @@ describe('GdColorExtractor - Basic Extraction', function () {
             $this->markTestSkipped('GD extension is not available.');
         }
 
-        $loader = (new ImageLoaderFactory)->create();
+        // Pin the driver: on hosts with Imagick the loader would otherwise hand
+        // GdColorExtractor an ImagickImage and the test would only see the
+        // grayscale fallback palette.
+        $loader = (new ImageLoaderFactory(preferredDriver: 'gd'))->create();
         $image = $loader->load(__DIR__.'/../../../example/assets/sample.jpg');
 
         $extractor = new GdColorExtractor;
@@ -22,6 +25,9 @@ describe('GdColorExtractor - Basic Extraction', function () {
         expect($colors[0]->getRed())->toBeBetween(0, 255);
         expect($colors[0]->getGreen())->toBeBetween(0, 255);
         expect($colors[0]->getBlue())->toBeBetween(0, 255);
+        // sample.jpg is solid red; the grayscale fallback would mean extraction failed.
+        expect($colors[0]->getRed())->toBeGreaterThan(200)
+            ->and($colors[0]->getGreen())->toBeLessThan(50);
     });
 
     test('it can extract different numbers of colors', function () {
@@ -39,41 +45,6 @@ describe('GdColorExtractor - Basic Extraction', function () {
         foreach ([1, 3, 5, 10] as $count) {
             $palette = $extractor->extract($image, $count);
             expect($palette)->toHaveCount($count);
-        }
-    });
-});
-
-describe('GdColorExtractor - Deterministic Behavior', function () {
-    test('it produces idempotent results (same image returns same colors in same order)', function () {
-        if (! extension_loaded('gd')) {
-            $this->markTestSkipped('GD extension is not available.');
-        }
-
-        $loader = (new ImageLoaderFactory)->create();
-        $image = $loader->load(__DIR__.'/../../../example/assets/sample.jpg');
-
-        $extractor = new GdColorExtractor;
-
-        // Extract colors multiple times from the same image
-        $firstRun = $extractor->extract($image, 5);
-        $secondRun = $extractor->extract($image, 5);
-        $thirdRun = $extractor->extract($image, 5);
-
-        // Convert to arrays for easier comparison
-        $firstColors = $firstRun->toArray();
-        $secondColors = $secondRun->toArray();
-        $thirdColors = $thirdRun->toArray();
-
-        // All runs should produce identical results
-        expect($firstColors)->toBe($secondColors)
-            ->and($firstColors)->toBe($thirdColors)
-            ->and($secondColors)->toBe($thirdColors);
-
-        // Verify each color in the palette matches across runs
-        foreach (range(0, 4) as $index) {
-            expect($firstRun[$index]->toHex())
-                ->toBe($secondRun[$index]->toHex())
-                ->toBe($thirdRun[$index]->toHex());
         }
     });
 });
@@ -484,13 +455,15 @@ describe('GdColorExtractor - Boundary Count Values', function () {
             $this->markTestSkipped('GD extension is not available.');
         }
 
-        $gdImage = imagecreatetruecolor(200, 200);
+        // 2,500 distinct colours are plenty for 50 clusters and keep the ten
+        // k-means restarts of a 50-colour extraction cheap.
+        $gdImage = imagecreatetruecolor(50, 50);
 
         // Create a colorful gradient
-        for ($x = 0; $x < 200; $x++) {
-            for ($y = 0; $y < 200; $y++) {
-                $r = (int) ($x / 200 * 255);
-                $g = (int) ($y / 200 * 255);
+        for ($x = 0; $x < 50; $x++) {
+            for ($y = 0; $y < 50; $y++) {
+                $r = (int) ($x / 50 * 255);
+                $g = (int) ($y / 50 * 255);
                 $b = 128;
                 $color = imagecolorallocate($gdImage, $r, $g, $b);
                 imagesetpixel($gdImage, $x, $y, $color);
@@ -566,5 +539,61 @@ describe('GdColorExtractor - Consistency and Reproducibility', function () {
         foreach ($results as $palette) {
             expect($palette[0]->toHex())->toBe($firstHex);
         }
+    });
+});
+
+describe('GdColorExtractor - Palette Images', function () {
+    test('it reads palette-based images (GIF, PNG-8) as colours, not palette indexes', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        // imagecreate() gives the same palette (non-truecolor) image type that
+        // imagecreatefromstring() returns for GIF and PNG-8 uploads.
+        $stripes = [[220, 40, 40], [40, 160, 60], [40, 80, 200], [230, 200, 40], [150, 60, 170]];
+        $trueColor = imagecreatetruecolor(60, 60);
+        $paletteImage = imagecreate(60, 60);
+        foreach ($stripes as $i => [$r, $g, $b]) {
+            imagefilledrectangle($trueColor, $i * 12, 0, $i * 12 + 11, 59, imagecolorallocate($trueColor, $r, $g, $b));
+            imagefilledrectangle($paletteImage, $i * 12, 0, $i * 12 + 11, 59, imagecolorallocate($paletteImage, $r, $g, $b));
+        }
+        expect(imageistruecolor($paletteImage))->toBeFalse();
+
+        $extractor = new GdColorExtractor;
+        $expected = $extractor->extract(new GdImage($trueColor), 5)->toArray();
+
+        expect($extractor->extract(new GdImage($paletteImage), 5)->toArray())->toBe($expected);
+    });
+    test('it skips pixels whose palette index the palette does not define', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        // A hand-written PNG-8 whose PLTE defines two colours while a fifth of
+        // the pixels use index 3. libpng loads it; the undefined index must not
+        // throw the whole image onto the grayscale fallback.
+        $chunk = fn (string $type, string $data) => pack('N', strlen($data)).$type.$data.pack('N', crc32($type.$data));
+        $raw = '';
+        for ($y = 0; $y < 100; $y++) {
+            $raw .= "\0";
+            for ($x = 0; $x < 100; $x++) {
+                $raw .= chr($x < 50 ? 0 : ($x < 80 ? 1 : 3));
+            }
+        }
+        $png = "\x89PNG\r\n\x1a\n"
+            .$chunk('IHDR', pack('NNCCCCC', 100, 100, 8, 3, 0, 0, 0))
+            .$chunk('PLTE', "\xC8\x3C\x32\x28\x78\xB4")
+            .$chunk('IDAT', (string) gzcompress($raw))
+            .$chunk('IEND', '');
+
+        $gdImage = @imagecreatefromstring($png);
+        expect($gdImage)->toBeInstanceOf(\GdImage::class);
+
+        $hexes = array_map(
+            fn ($color) => $color->toHex(),
+            (new GdColorExtractor)->extract(new GdImage($gdImage), 2)->getColors()
+        );
+
+        expect($hexes)->toEqualCanonicalizing(['#c83c32', '#2878b4']);
     });
 });

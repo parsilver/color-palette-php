@@ -31,6 +31,15 @@ class ImagickColorExtractor extends AbstractColorExtractor
             1
         );
 
+        // Pixel channels are read as r/g/b below, which is only meaningful in
+        // sRGB: a CMYK image would otherwise yield its C/M/Y values. Converting
+        // after the resize touches a 50x50 image instead of the full one, and
+        // grayscale already reads as r = g = b, so it is left alone.
+        $colorspace = $clone->getImageColorspace();
+        if ($colorspace !== \Imagick::COLORSPACE_SRGB && $colorspace !== \Imagick::COLORSPACE_GRAY) {
+            $clone->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
+        }
+
         // Get color histogram
         $colors = [];
         $pixels = $clone->getImageHistogram();

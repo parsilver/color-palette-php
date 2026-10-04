@@ -42,7 +42,7 @@ A powerful PHP library for extracting color palettes from images and generating 
 - Color contrast ratio calculations (WCAG compliance)
 - Automatic text color suggestions for optimal readability
 - Smart surface color recommendations based on color brightness
-- Deterministic color extraction - same image always produces same results
+- Deterministic, stable color extraction - the same image always produces the same palette, and re-encoding or resizing usually moves it very little
 - Immutable color objects - safe and predictable
 - Memory efficient with support for large images
 

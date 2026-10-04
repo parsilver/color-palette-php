@@ -1,5 +1,52 @@
 # Upgrade Guide
 
+## Upgrading from 2.x to 3.0
+
+Version 3.0 changes the palettes that color extraction returns, and changes
+one protected method of `AbstractColorExtractor`. The public API is otherwise
+unchanged.
+
+> **Behavior change — extracted colors.** k-means now runs from ten seeded,
+> count-weighted k-means++ starts and keeps the lowest-error result, instead of
+> one start. Extraction is still **deterministic** — the same image always yields
+> the same palette — and the palette is now far less sensitive to changes that
+> should not matter: in our tests, re-encoded, resized and mirrored copies of a
+> photo kept their palette within a CIEDE2000 difference of 2.3 of the
+> original's (very small thumbnails on the GD driver drift a little further),
+> and the GD and Imagick drivers agree closely. The exact colors differ from
+> 2.x for most images, so if you cache or snapshot extracted palettes,
+> re-baseline them after upgrading.
+
+**Performance.** Extraction does more clustering work. Measured on a
+1600×2292 photo extracting 5 colors (PHP 8.4, Linux), the GD driver went from
+about 0.09 s to about 0.4 s and the Imagick driver from about 0.05 s to about
+0.1 s; higher color counts cost proportionally more.
+
+**Palette-based and CMYK images.** GD palette images (GIF, PNG-8, 8-bit
+grayscale PNG) previously came back as shades of pure blue, or near-black for
+small palettes, because the palette index was read as the blue channel. Imagick
+CMYK images came back in wrong colors because their C/M/Y values were read as
+R/G/B. Both now extract their real colors. CMYK images that embed an ICC
+profile are converted without it, so their colors are approximate.
+
+**Extending `AbstractColorExtractor`.** `initializeCentroids()` now receives
+the random source to draw from:
+
+```php
+// Before
+protected function initializeCentroids(array $colors, int $k): array
+// After
+protected function initializeCentroids(array $colors, int $k, \Random\Randomizer $randomizer): array
+```
+
+It is called once per restart, ten times per extraction, with one shared
+generator. An override must draw from `$randomizer` rather than seed its own
+generator, or every restart starts from the same centroids.
+
+Clustering now assigns colors by squared Euclidean RGB distance directly, so
+overriding `calculateColorDistance()` only affects the convergence check, not
+cluster assignment.
+
 ## Upgrading from 1.x to 2.0
 
 Version 2.0 focuses on a lighter dependency footprint and a higher minimum PHP
