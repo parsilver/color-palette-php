@@ -20,15 +20,23 @@ class GdColorExtractor extends AbstractColorExtractor
         $height = imagesy($gdImage);
         $colorCounts = [];
 
+        // Palette-based images (GIF, PNG-8) return a palette index from
+        // imagecolorat(), not a packed RGB value.
+        $isTrueColor = imageistruecolor($gdImage);
+
         // Sample more pixels for better color representation
         $sampleSize = max(1, (int) sqrt($width * $height / 10000)); // Increased sampling
 
         for ($x = 0; $x < $width; $x += $sampleSize) {
             for ($y = 0; $y < $height; $y += $sampleSize) {
-                $rgb = imagecolorat($gdImage, $x, $y);
-                $r = ($rgb >> 16) & 0xFF;
-                $g = ($rgb >> 8) & 0xFF;
-                $b = $rgb & 0xFF;
+                $pixel = imagecolorat($gdImage, $x, $y);
+                if ($isTrueColor) {
+                    $r = ($pixel >> 16) & 0xFF;
+                    $g = ($pixel >> 8) & 0xFF;
+                    $b = $pixel & 0xFF;
+                } else {
+                    ['red' => $r, 'green' => $g, 'blue' => $b] = imagecolorsforindex($gdImage, $pixel);
+                }
 
                 // Skip pure black and white
                 if (($r === 0 && $g === 0 && $b === 0) || ($r === 255 && $g === 255 && $b === 255)) {

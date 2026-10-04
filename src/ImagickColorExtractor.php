@@ -22,8 +22,15 @@ class ImagickColorExtractor extends AbstractColorExtractor
         // TypeError, which extract() turns into the grayscale fallback.
         $imagick = $image->getResource();
 
-        // Resize image for faster processing
         $clone = clone $imagick;
+
+        // Pixel channels are read as r/g/b below, which is only meaningful in
+        // sRGB: a CMYK image would otherwise yield its C/M/Y values.
+        if ($clone->getImageColorspace() !== \Imagick::COLORSPACE_SRGB) {
+            $clone->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
+        }
+
+        // Resize image for faster processing
         $clone->resizeImage(
             self::SAMPLE_SIZE,
             self::SAMPLE_SIZE,

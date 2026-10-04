@@ -539,3 +539,27 @@ describe('GdColorExtractor - Consistency and Reproducibility', function () {
         }
     });
 });
+
+describe('GdColorExtractor - Palette Images', function () {
+    test('it reads palette-based images (GIF, PNG-8) as colours, not palette indexes', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        // imagecreate() gives the same palette (non-truecolor) image type that
+        // imagecreatefromstring() returns for GIF and PNG-8 uploads.
+        $stripes = [[220, 40, 40], [40, 160, 60], [40, 80, 200], [230, 200, 40], [150, 60, 170]];
+        $trueColor = imagecreatetruecolor(60, 60);
+        $paletteImage = imagecreate(60, 60);
+        foreach ($stripes as $i => [$r, $g, $b]) {
+            imagefilledrectangle($trueColor, $i * 12, 0, $i * 12 + 11, 59, imagecolorallocate($trueColor, $r, $g, $b));
+            imagefilledrectangle($paletteImage, $i * 12, 0, $i * 12 + 11, 59, imagecolorallocate($paletteImage, $r, $g, $b));
+        }
+        expect(imageistruecolor($paletteImage))->toBeFalse();
+
+        $extractor = new GdColorExtractor;
+        $expected = $extractor->extract(new GdImage($trueColor), 5)->toArray();
+
+        expect($extractor->extract(new GdImage($paletteImage), 5)->toArray())->toBe($expected);
+    });
+});
