@@ -562,4 +562,36 @@ describe('GdColorExtractor - Palette Images', function () {
 
         expect($extractor->extract(new GdImage($paletteImage), 5)->toArray())->toBe($expected);
     });
+    test('it skips pixels whose palette index the palette does not define', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        // A hand-written PNG-8 whose PLTE defines two colours while a fifth of
+        // the pixels use index 3. libpng loads it; the undefined index must not
+        // throw the whole image onto the grayscale fallback.
+        $chunk = fn (string $type, string $data) => pack('N', strlen($data)).$type.$data.pack('N', crc32($type.$data));
+        $raw = '';
+        for ($y = 0; $y < 100; $y++) {
+            $raw .= "\0";
+            for ($x = 0; $x < 100; $x++) {
+                $raw .= chr($x < 50 ? 0 : ($x < 80 ? 1 : 3));
+            }
+        }
+        $png = "\x89PNG\r\n\x1a\n"
+            .$chunk('IHDR', pack('NNCCCCC', 100, 100, 8, 3, 0, 0, 0))
+            .$chunk('PLTE', "\xC8\x3C\x32\x28\x78\xB4")
+            .$chunk('IDAT', (string) gzcompress($raw))
+            .$chunk('IEND', '');
+
+        $gdImage = @imagecreatefromstring($png);
+        expect($gdImage)->toBeInstanceOf(\GdImage::class);
+
+        $hexes = array_map(
+            fn ($color) => $color->toHex(),
+            (new GdColorExtractor)->extract(new GdImage($gdImage), 2)->getColors()
+        );
+
+        expect($hexes)->toEqualCanonicalizing(['#c83c32', '#2878b4']);
+    });
 });
