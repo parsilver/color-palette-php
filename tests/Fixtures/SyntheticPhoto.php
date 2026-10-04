@@ -118,6 +118,29 @@ final class SyntheticPhoto
     }
 
     /**
+     * The same pixels enlarged by a whole factor, each one repeated as a
+     * factor x factor block: the same colours in an image too large to
+     * convert at full size.
+     *
+     * @return list<int> Row-major RGB triplets, (WIDTH * factor) x (HEIGHT * factor)
+     */
+    public static function enlargedBytes(int $factor): array
+    {
+        $bytes = [];
+        foreach (array_chunk(self::rgbBytes(), self::WIDTH * 3) as $row) {
+            $wide = array_merge(...array_map(
+                fn (array $pixel) => array_merge(...array_fill(0, $factor, $pixel)),
+                array_chunk($row, 3)
+            ));
+            for ($i = 0; $i < $factor; $i++) {
+                array_push($bytes, ...$wide);
+            }
+        }
+
+        return $bytes;
+    }
+
+    /**
      * @param  list<int>|null  $bytes  Row-major RGB triplets; defaults to rgbBytes()
      */
     public static function gd(?array $bytes = null): \GdImage
