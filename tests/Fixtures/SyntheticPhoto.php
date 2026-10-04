@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Farzai\ColorPalette\Tests\Fixtures;
 
+use Farzai\ColorPalette\AbstractColorExtractor;
+use Farzai\ColorPalette\Contracts\ColorPaletteInterface;
+use Farzai\ColorPalette\Contracts\ImageInterface;
 use Farzai\ColorPalette\GdColorExtractor;
 use Farzai\ColorPalette\Images\GdImage;
 use Farzai\ColorPalette\Images\ImagickImage;
@@ -145,6 +148,20 @@ final class SyntheticPhoto
     }
 
     /**
+     * A fresh extractor and image for this fixture, for one driver.
+     *
+     * @param  'gd'|'imagick'  $driver
+     * @param  list<int>|null  $bytes  Row-major RGB triplets; defaults to rgbBytes()
+     * @return array{0: AbstractColorExtractor, 1: ImageInterface}
+     */
+    public static function extractorAndImage(string $driver, ?array $bytes = null): array
+    {
+        return $driver === 'gd'
+            ? [new GdColorExtractor, new GdImage(self::gd($bytes))]
+            : [new ImagickColorExtractor, new ImagickImage(self::imagick($bytes))];
+    }
+
+    /**
      * Extract a palette from this fixture with a FRESH extractor and image,
      * the way a caller handling separate requests would.
      *
@@ -154,18 +171,17 @@ final class SyntheticPhoto
      */
     public static function paletteHex(string $driver, int $count = 5, ?array $bytes = null): array
     {
-        if ($driver === 'gd') {
-            $image = new GdImage(self::gd($bytes));
-            $extractor = new GdColorExtractor;
-        } else {
-            $image = new ImagickImage(self::imagick($bytes));
-            $extractor = new ImagickColorExtractor;
-        }
+        [$extractor, $image] = self::extractorAndImage($driver, $bytes);
 
-        return array_map(
-            fn ($color) => $color->toHex(),
-            $extractor->extract($image, $count)->getColors()
-        );
+        return self::hexes($extractor->extract($image, $count));
+    }
+
+    /**
+     * @return list<string> hex colours in palette order
+     */
+    public static function hexes(ColorPaletteInterface $palette): array
+    {
+        return array_map(fn ($color) => $color->toHex(), $palette->getColors());
     }
 
     /**

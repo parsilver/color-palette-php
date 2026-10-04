@@ -455,13 +455,15 @@ describe('GdColorExtractor - Boundary Count Values', function () {
             $this->markTestSkipped('GD extension is not available.');
         }
 
-        $gdImage = imagecreatetruecolor(200, 200);
+        // 2,500 distinct colours are plenty for 50 clusters and keep the ten
+        // k-means restarts of a 50-colour extraction cheap.
+        $gdImage = imagecreatetruecolor(50, 50);
 
         // Create a colorful gradient
-        for ($x = 0; $x < 200; $x++) {
-            for ($y = 0; $y < 200; $y++) {
-                $r = (int) ($x / 200 * 255);
-                $g = (int) ($y / 200 * 255);
+        for ($x = 0; $x < 50; $x++) {
+            for ($y = 0; $y < 50; $y++) {
+                $r = (int) ($x / 50 * 255);
+                $g = (int) ($y / 50 * 255);
                 $b = 128;
                 $color = imagecolorallocate($gdImage, $r, $g, $b);
                 imagesetpixel($gdImage, $x, $y, $color);

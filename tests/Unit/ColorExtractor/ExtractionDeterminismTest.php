@@ -16,8 +16,9 @@
  *   3. it is ordered brightest-first, so equal colour sets always come back in
  *      the same order;
  *   4. it is stable: the same colours met in another order, or nudged by an
- *      invisible +/-1, give the same palette (the reporter also saw an
- *      upscaled copy of the photo come back with different colours).
+ *      invisible +/-1, give a palette within 4 RGB units of the original (the
+ *      reporter also saw an upscaled copy of the photo come back with
+ *      different colours).
  */
 
 use Farzai\ColorPalette\Constants\AccessibilityConstants as A;
@@ -44,12 +45,16 @@ describe('extraction determinism (issue #13)', function () {
             $this->markTestSkipped("The {$driver} extension is not available.");
         }
 
+        // One extractor and image reused across calls, alternating with a fresh
+        // pair per call. A caller that seeds or consumes the global generator
+        // must not change the result either (1.0.0 drew its k-means seeds from
+        // mt_rand()).
+        [$extractor, $image] = SyntheticPhoto::extractorAndImage($driver);
         $palettes = [];
-        foreach (range(1, 6) as $seed) {
-            // A caller that seeds or consumes the global generator must not
-            // change the result (1.0.0 drew its k-means seeds from mt_rand()).
+        foreach (range(1, 3) as $seed) {
             mt_srand($seed);
             mt_rand();
+            $palettes[] = implode(',', SyntheticPhoto::hexes($extractor->extract($image, 5)));
             $palettes[] = implode(',', SyntheticPhoto::paletteHex($driver));
         }
         mt_srand(random_int(0, PHP_INT_MAX));
@@ -103,22 +108,24 @@ describe('extraction determinism (issue #13)', function () {
         }
     })->with(['gd', 'imagick']);
 
-    test('a mirrored copy gives the same palette', function (string $driver) {
-        if (! extension_loaded($driver)) {
-            $this->markTestSkipped("The {$driver} extension is not available.");
+    test('a mirrored copy gives a near-identical palette with GD', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('The gd extension is not available.');
         }
 
         // Same colour histogram, different scan order: only the order in which
-        // the colours reach k-means changes.
+        // GD's sampler hands the colours to k-means changes. (Imagick's
+        // histogram is ordered by colour value, not position, so mirroring
+        // does not change its input and is not tested there.)
         $distance = SyntheticPhoto::paletteDistance(
-            SyntheticPhoto::paletteHex($driver),
-            SyntheticPhoto::paletteHex($driver, 5, SyntheticPhoto::mirroredBytes())
+            SyntheticPhoto::paletteHex('gd'),
+            SyntheticPhoto::paletteHex('gd', 5, SyntheticPhoto::mirroredBytes())
         );
 
         expect($distance)->toBeLessThanOrEqual(4.0);
-    })->with(['gd', 'imagick']);
+    });
 
-    test('an invisibly nudged copy gives the same palette', function (string $driver) {
+    test('an invisibly nudged copy gives a near-identical palette', function (string $driver) {
         if (! extension_loaded($driver)) {
             $this->markTestSkipped("The {$driver} extension is not available.");
         }

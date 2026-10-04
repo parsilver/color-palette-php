@@ -627,13 +627,15 @@ describe('ColorPalette fromImage Edge Cases', function () {
 
     test('it handles maximum count of 50', function () {
         $imagePath = $this->testDir.'/test.png';
-        $image = imagecreatetruecolor(100, 100);
+        // 2,500 distinct colours are plenty for 50 clusters and keep the ten
+        // k-means restarts of a 50-colour extraction cheap.
+        $image = imagecreatetruecolor(50, 50);
 
         // Create gradient
-        for ($x = 0; $x < 100; $x++) {
-            for ($y = 0; $y < 100; $y++) {
-                $r = (int) ($x / 100 * 255);
-                $g = (int) ($y / 100 * 255);
+        for ($x = 0; $x < 50; $x++) {
+            for ($y = 0; $y < 50; $y++) {
+                $r = (int) ($x / 50 * 255);
+                $g = (int) ($y / 50 * 255);
                 $color = imagecolorallocate($image, $r, $g, 128);
                 imagesetpixel($image, $x, $y, $color);
             }

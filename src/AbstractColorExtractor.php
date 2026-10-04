@@ -27,7 +27,7 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     /**
      * Independent k-means runs per extraction; the lowest-error one is kept
      */
-    protected const KMEANS_RESTARTS = 10;
+    private const KMEANS_RESTARTS = 10;
 
     /**
      * Seed for deterministic random number generation
@@ -196,7 +196,7 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
      * the result with the lowest weighted clustering error. A single run can
      * settle in a poor local optimum, and which one it lands in can flip with a
      * small change to the image (re-encoding, resizing); the best of several
-     * runs is stable under such changes.
+     * runs is far less sensitive to such changes.
      *
      * @param  array<array{r: int, g: int, b: int, count: int}>  $colors
      * @param  int  $k  Number of clusters
@@ -208,7 +208,13 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             return array_fill(0, $k, ['r' => 0, 'g' => 0, 'b' => 0]);
         }
 
-        $colors = array_values($colors);
+        // Integer channels throughout; a custom extractor may emit floats.
+        $colors = array_map(fn (array $color) => [
+            'r' => (int) round($color['r']),
+            'g' => (int) round($color['g']),
+            'b' => (int) round($color['b']),
+            'count' => $color['count'],
+        ], array_values($colors));
 
         // One locally seeded stream feeds every restart: the result is a fixed
         // function of the input, and PHP's global RNG state is left untouched.
@@ -224,6 +230,12 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             if ($run === 0 || $error < $bestError) {
                 $best = $centroids;
                 $bestError = $error;
+            }
+
+            // Nothing left to win: a zero error cannot be beaten, and with one
+            // cluster every run converges to the same weighted mean.
+            if ($bestError <= 0 || $k === 1) {
+                break;
             }
         }
 
