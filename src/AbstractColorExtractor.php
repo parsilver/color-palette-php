@@ -25,6 +25,11 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     protected const MIN_BRIGHTNESS = 0.05; // Reduced from 0.15
 
     /**
+     * Independent k-means runs per extraction; the lowest-error one is kept
+     */
+    protected const KMEANS_RESTARTS = 10;
+
+    /**
      * Seed for deterministic random number generation
      * Using a fixed seed ensures idempotent color extraction
      */
@@ -187,6 +192,12 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
     /**
      * Cluster similar colors using k-means algorithm
      *
+     * Runs k-means KMEANS_RESTARTS times from different seeded starts and keeps
+     * the result with the lowest weighted clustering error. A single run can
+     * settle in a poor local optimum, and which one it lands in can flip with a
+     * small change to the image (re-encoding, resizing); the best of several
+     * runs is stable under such changes.
+     *
      * @param  array<array{r: int, g: int, b: int, count: int}>  $colors
      * @param  int  $k  Number of clusters
      * @return array<array{r: int, g: int, b: int}>
@@ -197,31 +208,73 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             return array_fill(0, $k, ['r' => 0, 'g' => 0, 'b' => 0]);
         }
 
-        // Initialize centroids
-        $centroids = $this->initializeCentroids($colors, $k);
+        $colors = array_values($colors);
+
+        // One locally seeded stream feeds every restart: the result is a fixed
+        // function of the input, and PHP's global RNG state is left untouched.
+        $randomizer = new Randomizer(new Mt19937($this->seed));
+
+        $best = [];
+        $bestError = PHP_FLOAT_MAX;
+        for ($run = 0; $run < self::KMEANS_RESTARTS; $run++) {
+            $centroids = $this->refineCentroids($colors, $this->initializeCentroids($colors, $k, $randomizer));
+            $error = $this->clusteringError($colors, $centroids);
+
+            // Strictly lower only: on a tie the earlier run wins, deterministically.
+            if ($run === 0 || $error < $bestError) {
+                $best = $centroids;
+                $bestError = $error;
+            }
+        }
+
+        // Sort colors deterministically for consistent ordering across runs
+        return $this->sortColors($best);
+    }
+
+    /**
+     * Run Lloyd iterations from the given starting centroids until they settle
+     *
+     * @param  list<array{r: int, g: int, b: int, count: int}>  $colors
+     * @param  list<array{r: int, g: int, b: int}>  $centroids
+     * @return list<array{r: int, g: int, b: int}>
+     */
+    private function refineCentroids(array $colors, array $centroids): array
+    {
+        $k = count($centroids);
         $maxIterations = 100;
         $converged = false;
 
         while (! $converged && $maxIterations-- > 0) {
-            // Assign colors to clusters
-            $clusters = array_fill(0, $k, []);
+            // Assign each color to its nearest centroid, accumulating the
+            // count-weighted channel sums of every cluster: [r, g, b, weight]
+            $sums = array_fill(0, $k, [0, 0, 0, 0]);
+            $cr = array_column($centroids, 'r');
+            $cg = array_column($centroids, 'g');
+            $cb = array_column($centroids, 'b');
             foreach ($colors as $color) {
-                $minDistance = PHP_FLOAT_MAX;
-                $closestCluster = 0;
-
-                for ($i = 0; $i < $k; $i++) {
-                    $distance = $this->calculateColorDistance(
-                        $color,
-                        $centroids[$i]
-                    );
-
+                // Nearest centroid by squared Euclidean distance, inlined: this
+                // is the hot loop of clustering (first centroid wins a tie).
+                $r = $color['r'];
+                $g = $color['g'];
+                $b = $color['b'];
+                $i = 0;
+                $minDistance = PHP_INT_MAX;
+                for ($j = 0; $j < $k; $j++) {
+                    $dr = $r - $cr[$j];
+                    $dg = $g - $cg[$j];
+                    $db = $b - $cb[$j];
+                    $distance = $dr * $dr + $dg * $dg + $db * $db;
                     if ($distance < $minDistance) {
                         $minDistance = $distance;
-                        $closestCluster = $i;
+                        $i = $j;
                     }
                 }
 
-                $clusters[$closestCluster][] = $color;
+                $weight = $color['count'];
+                $sums[$i][0] += $color['r'] * $weight;
+                $sums[$i][1] += $color['g'] * $weight;
+                $sums[$i][2] += $color['b'] * $weight;
+                $sums[$i][3] += $weight;
             }
 
             // Calculate new centroids
@@ -229,23 +282,11 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             $converged = true;
 
             for ($i = 0; $i < $k; $i++) {
-                if (empty($clusters[$i])) {
-                    $newCentroids[$i] = $centroids[$i];
+                [$sumR, $sumG, $sumB, $totalWeight] = $sums[$i];
 
-                    continue;
-                }
-
-                $sumR = $sumG = $sumB = $totalWeight = 0;
-                foreach ($clusters[$i] as $color) {
-                    $weight = $color['count'];
-                    $sumR += $color['r'] * $weight;
-                    $sumG += $color['g'] * $weight;
-                    $sumB += $color['b'] * $weight;
-                    $totalWeight += $weight;
-                }
-
-                // A cluster of zero-weight colors (e.g. a custom extractor emitting
-                // count=0) would divide by zero; keep the previous centroid instead.
+                // An empty cluster, or one of zero-weight colors (e.g. a custom
+                // extractor emitting count=0), would divide by zero; keep the
+                // previous centroid instead.
                 if ($totalWeight <= 0) {
                     $newCentroids[$i] = $centroids[$i];
 
@@ -267,64 +308,141 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
             $centroids = $newCentroids;
         }
 
-        // Sort colors deterministically for consistent ordering across runs
-        return $this->sortColors($centroids);
+        return $centroids;
     }
 
     /**
-     * Initialize k-means centroids using k-means++ algorithm
-     * Uses seeded random number generation for deterministic results
+     * Index of the centroid closest to a color by squared Euclidean RGB distance
+     * (the first one on a tie)
      *
-     * @param  array<array{r: int, g: int, b: int, count: int}>  $colors
-     * @return array<array{r: int, g: int, b: int}>
+     * @param  array{r: int, g: int, b: int}  $color
+     * @param  list<array{r: int, g: int, b: int}>  $centroids
      */
-    protected function initializeCentroids(array $colors, int $k): array
+    private function nearestCentroid(array $color, array $centroids): int
     {
-        $centroids = [];
+        $minDistance = PHP_INT_MAX;
+        $closest = 0;
 
-        // Locally-seeded randomizer: deterministic, reproducible centroid selection
-        // without mutating PHP's global RNG state (mt_srand) as a side effect.
-        $randomizer = new Randomizer(new Mt19937($this->seed));
+        foreach ($centroids as $i => $centroid) {
+            $distance = self::squaredDistance($color, $centroid);
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $closest = $i;
+            }
+        }
 
-        // Choose first centroid using the seeded randomizer
-        $colorKeys = array_keys($colors);
-        $firstIndex = $colorKeys[$randomizer->getInt(0, count($colorKeys) - 1)];
-        $centroids[] = [
-            'r' => $colors[$firstIndex]['r'],
-            'g' => $colors[$firstIndex]['g'],
-            'b' => $colors[$firstIndex]['b'],
-        ];
+        return $closest;
+    }
 
-        // Choose remaining centroids
-        for ($i = 1; $i < $k; $i++) {
-            $distances = [];
-            foreach ($colors as $color) {
-                $minDistance = PHP_FLOAT_MAX;
-                foreach ($centroids as $centroid) {
-                    $distance = $this->calculateColorDistance($color, $centroid);
-                    $minDistance = min($minDistance, $distance);
-                }
-                $distances[] = $minDistance;
+    /**
+     * Pixel-count weighted sum of squared distances to the nearest centroid
+     *
+     * Accumulated as a float so a large total cannot overflow an int on 32-bit
+     * builds; the terms are integers, so it stays exact up to 2^53.
+     *
+     * @param  list<array{r: int, g: int, b: int, count: int}>  $colors
+     * @param  list<array{r: int, g: int, b: int}>  $centroids
+     */
+    private function clusteringError(array $colors, array $centroids): float
+    {
+        $error = 0.0;
+        foreach ($colors as $color) {
+            $nearest = $centroids[$this->nearestCentroid($color, $centroids)];
+            $error += $color['count'] * self::squaredDistance($color, $nearest);
+        }
+
+        return $error;
+    }
+
+    /**
+     * @param  array{r: int, g: int, b: int}  $color1
+     * @param  array{r: int, g: int, b: int}  $color2
+     */
+    private static function squaredDistance(array $color1, array $color2): int
+    {
+        $dr = $color1['r'] - $color2['r'];
+        $dg = $color1['g'] - $color2['g'];
+        $db = $color1['b'] - $color2['b'];
+
+        return $dr * $dr + $dg * $dg + $db * $db;
+    }
+
+    /**
+     * Choose k starting centroids with weighted k-means++
+     *
+     * The first centroid is drawn in proportion to pixel count; each further one
+     * in proportion to pixel count times the squared distance to the nearest
+     * centroid chosen so far. Weighting by count follows the image's color mass
+     * instead of the long tail of one-off colors that JPEG noise produces.
+     *
+     * @param  list<array{r: int, g: int, b: int, count: int}>  $colors
+     * @return list<array{r: int, g: int, b: int}>
+     */
+    protected function initializeCentroids(array $colors, int $k, Randomizer $randomizer): array
+    {
+        $weights = array_map(fn (array $color) => max(0, $color['count']), $colors);
+        if (array_sum($weights) <= 0) {
+            // A custom extractor may emit zero counts; treat colors equally.
+            $weights = array_fill(0, count($colors), 1);
+        }
+
+        $first = $colors[$this->pickWeighted($weights, $randomizer)];
+        $centroids = [['r' => $first['r'], 'g' => $first['g'], 'b' => $first['b']]];
+        $nearest = array_map(fn (array $color) => self::squaredDistance($color, $centroids[0]), $colors);
+
+        while (count($centroids) < $k) {
+            $scores = [];
+            foreach ($weights as $i => $weight) {
+                $scores[$i] = $weight * $nearest[$i];
             }
 
-            // Choose next centroid with probability proportional to distance (seeded)
-            $sum = array_sum($distances);
-            $target = $randomizer->getInt(0, PHP_INT_MAX) / PHP_INT_MAX * $sum;
-            $currentSum = 0;
-            foreach ($colors as $index => $color) {
-                $currentSum += $distances[$index];
-                if ($currentSum >= $target) {
-                    $centroids[] = [
-                        'r' => $color['r'],
-                        'g' => $color['g'],
-                        'b' => $color['b'],
-                    ];
-                    break;
-                }
+            if (array_sum($scores) <= 0) {
+                // Every color already coincides with a centroid (fewer distinct
+                // colors than k); repeat the first so the palette keeps k entries.
+                $centroids[] = $centroids[0];
+
+                continue;
+            }
+
+            $next = $colors[$this->pickWeighted($scores, $randomizer)];
+            $centroid = ['r' => $next['r'], 'g' => $next['g'], 'b' => $next['b']];
+            $centroids[] = $centroid;
+
+            foreach ($colors as $i => $color) {
+                $nearest[$i] = min($nearest[$i], self::squaredDistance($color, $centroid));
             }
         }
 
         return $centroids;
+    }
+
+    /**
+     * Draw an index with probability proportional to its weight
+     *
+     * @param  list<int|float>  $weights  Non-negative, with a positive sum
+     */
+    private function pickWeighted(array $weights, Randomizer $randomizer): int
+    {
+        // 31 random bits: the same draw on 32- and 64-bit PHP builds, unlike a
+        // range up to PHP_INT_MAX.
+        $target = $randomizer->getInt(0, 0x7FFFFFFF) / 0x7FFFFFFF * array_sum($weights);
+
+        $cumulative = 0;
+        $lastPositive = 0;
+        foreach ($weights as $i => $weight) {
+            if ($weight <= 0) {
+                continue;
+            }
+
+            $cumulative += $weight;
+            $lastPositive = $i;
+            if ($cumulative >= $target) {
+                return $i;
+            }
+        }
+
+        // Unreachable unless float rounding leaves the running sum just short.
+        return $lastPositive;
     }
 
     /**
@@ -335,11 +453,11 @@ abstract class AbstractColorExtractor implements ColorExtractorInterface
      */
     protected function calculateColorDistance(array $color1, array $color2): float
     {
-        return sqrt(
-            pow($color1['r'] - $color2['r'], 2) +
-            pow($color1['g'] - $color2['g'], 2) +
-            pow($color1['b'] - $color2['b'], 2)
-        );
+        $dr = $color1['r'] - $color2['r'];
+        $dg = $color1['g'] - $color2['g'];
+        $db = $color1['b'] - $color2['b'];
+
+        return sqrt($dr * $dr + $dg * $dg + $db * $db);
     }
 
     /**

@@ -1,5 +1,40 @@
 # Upgrade Guide
 
+## Upgrading from 2.0.x
+
+> **Behavior change — extracted colors.** k-means now runs from ten seeded,
+> count-weighted k-means++ starts and keeps the lowest-error result, instead of
+> one start. Extraction is still **deterministic** — the same image always yields
+> the same palette — and the palette is now far less sensitive to changes that
+> should not matter: in our tests, re-encoded, resized and mirrored copies of a
+> photo came back with the same colors to within a just-noticeable difference,
+> and the GD and Imagick drivers agree closely. The
+> exact colors differ from 2.0.x for most images, so if you cache or snapshot
+> extracted palettes, re-baseline them after upgrading.
+
+**Performance.** Extraction does more clustering work. Measured on a
+1600×2292 photo extracting 5 colors (PHP 8.4, Linux), the GD driver went from
+about 0.09 s to 0.41 s and the Imagick driver from about 0.05 s to 0.11 s;
+higher color counts cost proportionally more.
+
+**Palette-based and CMYK images.** GD palette images (GIF, PNG-8) and Imagick
+CMYK images now extract their real colors; previously they returned
+near-black or channel-swapped palettes.
+
+**Extending `AbstractColorExtractor`.** `initializeCentroids()` now receives
+the random source to draw from:
+
+```php
+// Before
+protected function initializeCentroids(array $colors, int $k): array
+// After
+protected function initializeCentroids(array $colors, int $k, \Random\Randomizer $randomizer): array
+```
+
+Clustering now assigns colors by squared Euclidean RGB distance directly, so
+overriding `calculateColorDistance()` only affects the convergence check, not
+cluster assignment.
+
 ## Upgrading from 1.x to 2.0
 
 Version 2.0 focuses on a lighter dependency footprint and a higher minimum PHP

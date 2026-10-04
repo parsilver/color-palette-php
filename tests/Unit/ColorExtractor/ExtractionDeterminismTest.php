@@ -14,7 +14,10 @@
  *   2. it does not depend on the extractor instance, the caller's global RNG
  *      state, or which PHP process computes it;
  *   3. it is ordered brightest-first, so equal colour sets always come back in
- *      the same order.
+ *      the same order;
+ *   4. it is stable: the same colours met in another order, or nudged by an
+ *      invisible +/-1, give the same palette (the reporter also saw an
+ *      upscaled copy of the photo come back with different colours).
  */
 
 use Farzai\ColorPalette\Constants\AccessibilityConstants as A;
@@ -26,9 +29,10 @@ describe('extraction determinism (issue #13)', function () {
             $this->markTestSkipped('The gd extension is not available.');
         }
 
-        // Recorded from the current clustering implementation. If an intentional
-        // algorithm change moves this, update it in the same commit and say why.
-        $golden = ['#9ebe95', '#6cae5b', '#799987', '#8f7a96', '#4f9a8c'];
+        // Recorded from the current clustering implementation (best of 10 seeded
+        // weighted k-means++ runs). If an intentional algorithm change moves
+        // this, update it in the same commit and say why.
+        $golden = ['#b2bc72', '#8fbaa4', '#6eac5f', '#589c8c', '#898290'];
 
         foreach (range(1, 3) as $_) {
             expect(SyntheticPhoto::paletteHex('gd'))->toBe($golden);
@@ -97,5 +101,33 @@ describe('extraction determinism (issue #13)', function () {
         for ($i = 1; $i < count($luminances); $i++) {
             expect($luminances[$i - 1] + 0.01)->toBeGreaterThanOrEqual($luminances[$i]);
         }
+    })->with(['gd', 'imagick']);
+
+    test('a mirrored copy gives the same palette', function (string $driver) {
+        if (! extension_loaded($driver)) {
+            $this->markTestSkipped("The {$driver} extension is not available.");
+        }
+
+        // Same colour histogram, different scan order: only the order in which
+        // the colours reach k-means changes.
+        $distance = SyntheticPhoto::paletteDistance(
+            SyntheticPhoto::paletteHex($driver),
+            SyntheticPhoto::paletteHex($driver, 5, SyntheticPhoto::mirroredBytes())
+        );
+
+        expect($distance)->toBeLessThanOrEqual(4.0);
+    })->with(['gd', 'imagick']);
+
+    test('an invisibly nudged copy gives the same palette', function (string $driver) {
+        if (! extension_loaded($driver)) {
+            $this->markTestSkipped("The {$driver} extension is not available.");
+        }
+
+        $distance = SyntheticPhoto::paletteDistance(
+            SyntheticPhoto::paletteHex($driver),
+            SyntheticPhoto::paletteHex($driver, 5, SyntheticPhoto::nudgedBytes())
+        );
+
+        expect($distance)->toBeLessThanOrEqual(4.0);
     })->with(['gd', 'imagick']);
 });

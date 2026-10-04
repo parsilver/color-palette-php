@@ -80,9 +80,46 @@ final class SyntheticPhoto
         return $bytes;
     }
 
-    public static function gd(): \GdImage
+    /**
+     * The same pixels mirrored left to right: an identical colour histogram,
+     * met in a different scan order.
+     *
+     * @return list<int>
+     */
+    public static function mirroredBytes(): array
+    {
+        $rows = array_chunk(self::rgbBytes(), self::WIDTH * 3);
+
+        return array_merge(...array_map(
+            fn (array $row) => array_merge(...array_reverse(array_chunk($row, 3))),
+            $rows
+        ));
+    }
+
+    /**
+     * The same pixels with every channel nudged by -1, 0 or +1 in a fixed
+     * pattern: an invisible change of the kind re-encoding or resampling makes.
+     *
+     * @return list<int>
+     */
+    public static function nudgedBytes(): array
     {
         $bytes = self::rgbBytes();
+        foreach ($bytes as $i => $value) {
+            $pixel = intdiv($i, 3);
+            $delta = ((($pixel % self::WIDTH) * 7 + intdiv($pixel, self::WIDTH) * 13) % 3) - 1;
+            $bytes[$i] = max(0, min(255, $value + $delta));
+        }
+
+        return $bytes;
+    }
+
+    /**
+     * @param  list<int>|null  $bytes  Row-major RGB triplets; defaults to rgbBytes()
+     */
+    public static function gd(?array $bytes = null): \GdImage
+    {
+        $bytes ??= self::rgbBytes();
         $img = imagecreatetruecolor(self::WIDTH, self::HEIGHT);
         $i = 0;
         for ($y = 0; $y < self::HEIGHT; $y++) {
@@ -95,11 +132,14 @@ final class SyntheticPhoto
         return $img;
     }
 
-    public static function imagick(): \Imagick
+    /**
+     * @param  list<int>|null  $bytes  Row-major RGB triplets; defaults to rgbBytes()
+     */
+    public static function imagick(?array $bytes = null): \Imagick
     {
         $im = new \Imagick;
         $im->newImage(self::WIDTH, self::HEIGHT, 'black', 'png');
-        $im->importImagePixels(0, 0, self::WIDTH, self::HEIGHT, 'RGB', \Imagick::PIXEL_CHAR, self::rgbBytes());
+        $im->importImagePixels(0, 0, self::WIDTH, self::HEIGHT, 'RGB', \Imagick::PIXEL_CHAR, $bytes ?? self::rgbBytes());
 
         return $im;
     }
@@ -109,15 +149,16 @@ final class SyntheticPhoto
      * the way a caller handling separate requests would.
      *
      * @param  'gd'|'imagick'  $driver
+     * @param  list<int>|null  $bytes  Row-major RGB triplets; defaults to rgbBytes()
      * @return list<string> hex colours in palette order
      */
-    public static function paletteHex(string $driver, int $count = 5): array
+    public static function paletteHex(string $driver, int $count = 5, ?array $bytes = null): array
     {
         if ($driver === 'gd') {
-            $image = new GdImage(self::gd());
+            $image = new GdImage(self::gd($bytes));
             $extractor = new GdColorExtractor;
         } else {
-            $image = new ImagickImage(self::imagick());
+            $image = new ImagickImage(self::imagick($bytes));
             $extractor = new ImagickColorExtractor;
         }
 
@@ -125,5 +166,53 @@ final class SyntheticPhoto
             fn ($color) => $color->toHex(),
             $extractor->extract($image, $count)->getColors()
         );
+    }
+
+    /**
+     * Largest RGB distance between paired colours of two equal-size palettes,
+     * pairing them so that this largest distance is as small as possible.
+     *
+     * @param  list<string>  $a  hex colours
+     * @param  list<string>  $b  hex colours
+     */
+    public static function paletteDistance(array $a, array $b): float
+    {
+        $rgb = fn (string $hex) => sscanf($hex, '#%02x%02x%02x');
+        $a = array_map($rgb, $a);
+        $b = array_map($rgb, $b);
+
+        $best = INF;
+        foreach (self::permutations(array_keys($b)) as $order) {
+            $worst = 0.0;
+            foreach ($a as $i => [$r, $g, $bl]) {
+                [$r2, $g2, $b2] = $b[$order[$i]];
+                $worst = max($worst, sqrt(($r - $r2) ** 2 + ($g - $g2) ** 2 + ($bl - $b2) ** 2));
+            }
+            $best = min($best, $worst);
+        }
+
+        return $best;
+    }
+
+    /**
+     * @param  list<int>  $items
+     * @return list<list<int>>
+     */
+    private static function permutations(array $items): array
+    {
+        if (count($items) <= 1) {
+            return [$items];
+        }
+
+        $result = [];
+        foreach ($items as $i => $item) {
+            $rest = $items;
+            unset($rest[$i]);
+            foreach (self::permutations(array_values($rest)) as $tail) {
+                $result[] = [$item, ...$tail];
+            }
+        }
+
+        return $result;
     }
 }
