@@ -32,9 +32,12 @@ class ImagickColorExtractor extends AbstractColorExtractor
 
         // Pixel channels are read as r/g/b below, which is only meaningful in
         // sRGB: a CMYK image would otherwise yield its C/M/Y values. Grayscale
-        // already reads as r = g = b, so it is left alone.
+        // already reads as r = g = b, so it is left alone. An RGB image whose
+        // profile is not sRGB, such as Adobe RGB or Display P3, is reported as
+        // sRGB too, but its values mean other colours.
         $colorspace = $clone->getImageColorspace();
-        if ($colorspace !== \Imagick::COLORSPACE_SRGB && $colorspace !== \Imagick::COLORSPACE_GRAY) {
+        $useProfile = self::hasConvertibleProfile($clone, $colorspace);
+        if ($useProfile || ($colorspace !== \Imagick::COLORSPACE_SRGB && $colorspace !== \Imagick::COLORSPACE_GRAY)) {
             // Converting a 48 MP image at full size costs hundreds of megabytes
             // and many seconds, but pixels averaged before conversion can land
             // well away from the same pixels averaged after it. Shrink part way,
@@ -50,21 +53,22 @@ class ImagickColorExtractor extends AbstractColorExtractor
                 );
             }
 
-            // A CMYK profile says what its inks really print as, which the
-            // formula conversion ignores and can miss by over 20 dE00.
-            // ImageMagick applies any embedded profile to CMYK pixels without
-            // complaint, so one that is not CMYK is skipped. A profile it
-            // cannot apply (corrupt, or no lcms delegate) leaves the image CMYK.
-            $icc = $clone->getImageProfiles('icc')['icc'] ?? '';
-            if ($colorspace === \Imagick::COLORSPACE_CMYK && substr($icc, 16, 4) === 'CMYK') {
+            // A profile says what the values really mean, which the formula
+            // conversion ignores: a CMYK press profile can move a colour by
+            // over 20 dE00, and Adobe RGB or Display P3 values read as sRGB by
+            // about as much. A profile ImageMagick cannot apply (corrupt, or no
+            // lcms delegate) leaves the values as they were.
+            if ($useProfile) {
                 try {
                     $clone->profileImage('icc', self::srgbProfile());
                 } catch (\ImagickException) {
-                    // Still CMYK: converted by the formula below.
+                    // Unconverted: CMYK goes through the formula below, and RGB
+                    // is read as sRGB.
                 }
             }
 
-            // The formula conversion; a no-op once the profile has converted.
+            // The formula conversion; a no-op for sRGB, including once the
+            // profile has converted.
             $clone->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
         }
 
@@ -98,6 +102,29 @@ class ImagickColorExtractor extends AbstractColorExtractor
         $clone->clear();
 
         return array_values($colors);
+    }
+
+    /**
+     * Whether the image embeds an ICC profile that converting to sRGB through
+     * would change its colours.
+     *
+     * ImageMagick applies a profile to pixels of any colour space without
+     * complaint and returns nonsense, so the profile has to describe the
+     * pixels: a CMYK profile for CMYK, an RGB one for RGB. Converting through
+     * a profile byte-identical to the sRGB one converted to changes nothing
+     * (ImageMagick skips it), so such an image stays on the plain sRGB path.
+     */
+    private static function hasConvertibleProfile(\Imagick $image, int $colorspace): bool
+    {
+        $icc = $image->getImageProfiles('icc')['icc'] ?? '';
+        // The colour space of the profile's data, from its header.
+        $profileSpace = substr($icc, 16, 4);
+
+        return match ($colorspace) {
+            \Imagick::COLORSPACE_CMYK => $profileSpace === 'CMYK',
+            \Imagick::COLORSPACE_SRGB => $profileSpace === 'RGB ' && $icc !== self::srgbProfile(),
+            default => false,
+        };
     }
 
     /**

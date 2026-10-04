@@ -24,15 +24,6 @@ final class DotGainCmyk
     /** CLUT grid points per ink. */
     private const GRID = 11;
 
-    /** sRGB primaries adapted to the D50 profile connection space (Bradford). */
-    private const SRGB_TO_XYZ_D50 = [
-        [0.4360747, 0.3850649, 0.1430804],
-        [0.2225045, 0.7168786, 0.0606169],
-        [0.0139322, 0.0971045, 0.7141733],
-    ];
-
-    private const D50 = [0.9642, 1.0, 0.8249];
-
     /**
      * Separate row-major RGB triplets for the press and return them as a CMYK
      * image, tagged with the press profile unless $tagged is false.
@@ -63,17 +54,6 @@ final class DotGainCmyk
         }
 
         return $image;
-    }
-
-    /**
-     * Whether ImageMagick reports being built without lcms, which it needs to
-     * apply ICC profiles. Without it the extractor converts by formula.
-     */
-    public static function lacksLcms(): bool
-    {
-        $delegates = \Imagick::getConfigureOptions('DELEGATES')['DELEGATES'] ?? null;
-
-        return $delegates !== null && ! in_array('lcms', explode(' ', $delegates), true);
     }
 
     /**
@@ -112,40 +92,7 @@ final class DotGainCmyk
             .$clut
             .str_repeat(pack('n2', 0, 0xFFFF), 3);
 
-        $description = 'Dot gain CMYK test press';
-        $tags = [
-            'desc' => 'desc'.pack('N2', 0, strlen($description) + 1).$description."\0"
-                .pack('N2', 0, 0).pack('nC', 0, 0).str_repeat("\0", 67),
-            'cprt' => 'text'.pack('N', 0)."No copyright, use freely\0",
-            'wtpt' => 'XYZ '.pack('N', 0).self::xyzNumber(self::D50),
-            'A2B0' => $a2b0,
-        ];
-
-        $offset = 128 + 4 + 12 * count($tags);
-        $table = pack('N', count($tags));
-        $data = '';
-        foreach ($tags as $signature => $tag) {
-            $tag = str_pad($tag, (int) ceil(strlen($tag) / 4) * 4, "\0");
-            $table .= $signature.pack('N2', $offset + strlen($data), strlen($tag));
-            $data .= $tag;
-        }
-
-        $header = pack('N', 128 + strlen($table) + strlen($data))
-            ."\0\0\0\0"            // preferred CMM
-            .pack('N', 0x02100000) // version 2.1
-            .'scnr'.'CMYK'.'Lab '
-            .pack('n6', 2026, 1, 1, 0, 0, 0)
-            .'acsp'
-            .str_repeat("\0", 4)   // platform
-            .pack('N', 0)          // flags
-            .str_repeat("\0", 8)   // manufacturer, model
-            .str_repeat("\0", 8)   // attributes
-            .pack('N', 0)          // perceptual intent
-            .self::xyzNumber(self::D50)
-            .str_repeat("\0", 4)   // creator
-            .str_repeat("\0", 44); // profile ID and reserved
-
-        return $header.$table.$data;
+        return IccProfile::build('scnr', 'CMYK', 'Lab ', 'Dot gain CMYK test press', ['A2B0' => $a2b0]);
     }
 
     /**
@@ -156,25 +103,12 @@ final class DotGainCmyk
      */
     private static function lab(array $rgb): array
     {
-        $linear = array_map(
-            fn (float $v) => $v <= 0.04045 ? $v / 12.92 : (($v + 0.055) / 1.055) ** 2.4,
-            $rgb
-        );
-
         $f = [];
-        foreach (self::SRGB_TO_XYZ_D50 as $i => $row) {
-            $t = ($row[0] * $linear[0] + $row[1] * $linear[1] + $row[2] * $linear[2]) / self::D50[$i];
+        foreach (IccProfile::srgbToXyz($rgb) as $i => $v) {
+            $t = $v / IccProfile::D50[$i];
             $f[] = $t > 216 / 24389 ? $t ** (1 / 3) : (24389 / 27 * $t + 16) / 116;
         }
 
         return [116 * $f[1] - 16, 500 * ($f[0] - $f[1]), 200 * ($f[1] - $f[2])];
-    }
-
-    /**
-     * @param  array{float, float, float}  $xyz
-     */
-    private static function xyzNumber(array $xyz): string
-    {
-        return pack('N3', ...array_map(fn (float $v) => (int) round($v * 0x10000), $xyz));
     }
 }

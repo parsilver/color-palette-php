@@ -159,13 +159,13 @@ final class SyntheticPhoto
     }
 
     /**
-     * @param  list<int>|null  $bytes  Row-major RGB triplets; defaults to rgbBytes()
+     * @param  list<int>|null  $bytes  Row-major RGB triplets, width x height; defaults to rgbBytes()
      */
-    public static function imagick(?array $bytes = null): \Imagick
+    public static function imagick(?array $bytes = null, int $width = self::WIDTH, int $height = self::HEIGHT): \Imagick
     {
         $im = new \Imagick;
-        $im->newImage(self::WIDTH, self::HEIGHT, 'black', 'png');
-        $im->importImagePixels(0, 0, self::WIDTH, self::HEIGHT, 'RGB', \Imagick::PIXEL_CHAR, $bytes ?? self::rgbBytes());
+        $im->newImage($width, $height, 'black', 'png');
+        $im->importImagePixels(0, 0, $width, $height, 'RGB', \Imagick::PIXEL_CHAR, $bytes ?? self::rgbBytes());
 
         return $im;
     }
