@@ -508,6 +508,118 @@ describe('GdColorExtractor - Transparency Handling', function () {
 
         expect($palette)->toHaveCount(3);
     });
+
+    test('it ignores the colour under fully transparent pixels of a truecolor PNG', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        // Five opaque stripes on a fully transparent background that hides a
+        // saturated green. Only the stripes are visible, so the palette must be
+        // the one of the stripes alone.
+        $stripes = [[220, 40, 40], [40, 80, 200], [230, 200, 40], [150, 60, 170], [240, 140, 60]];
+        $canvas = imagecreatetruecolor(100, 100);
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+        imagefilledrectangle($canvas, 0, 0, 99, 99, imagecolorallocatealpha($canvas, 0, 200, 0, 127));
+        $stripesOnly = imagecreatetruecolor(60, 60);
+        foreach ($stripes as $i => [$r, $g, $b]) {
+            imagefilledrectangle($canvas, 20 + $i * 12, 20, 31 + $i * 12, 79, imagecolorallocate($canvas, $r, $g, $b));
+            imagefilledrectangle($stripesOnly, $i * 12, 0, $i * 12 + 11, 59, imagecolorallocate($stripesOnly, $r, $g, $b));
+        }
+
+        ob_start();
+        imagepng($canvas);
+        $png = imagecreatefromstring((string) ob_get_clean());
+
+        // The PNG round trip must keep the green under the transparent pixels,
+        // or there is nothing left for the extractor to ignore.
+        expect(imageistruecolor($png))->toBeTrue()
+            ->and(imagecolorsforindex($png, imagecolorat($png, 0, 0)))
+            ->toBe(['red' => 0, 'green' => 200, 'blue' => 0, 'alpha' => 127]);
+
+        $extractor = new GdColorExtractor;
+
+        expect($extractor->extract(new GdImage($png), 5)->toArray())
+            ->toBe($extractor->extract(new GdImage($stripesOnly), 5)->toArray());
+    });
+
+    test('it ignores the transparent palette index of a GIF', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        // The same stripes as a GIF whose background is a transparent palette
+        // index holding green.
+        $stripes = [[220, 40, 40], [40, 80, 200], [230, 200, 40], [150, 60, 170], [240, 140, 60]];
+        $canvas = imagecreate(100, 100);
+        // The first colour allocated to a palette image fills its background.
+        imagecolortransparent($canvas, imagecolorallocate($canvas, 0, 200, 0));
+        $stripesOnly = imagecreatetruecolor(60, 60);
+        foreach ($stripes as $i => [$r, $g, $b]) {
+            imagefilledrectangle($canvas, 20 + $i * 12, 20, 31 + $i * 12, 79, imagecolorallocate($canvas, $r, $g, $b));
+            imagefilledrectangle($stripesOnly, $i * 12, 0, $i * 12 + 11, 59, imagecolorallocate($stripesOnly, $r, $g, $b));
+        }
+
+        ob_start();
+        imagegif($canvas);
+        $gif = imagecreatefromstring((string) ob_get_clean());
+
+        // The GIF round trip must keep the background as a transparent index
+        // that still holds green.
+        $transparent = imagecolortransparent($gif);
+        expect(imageistruecolor($gif))->toBeFalse()
+            ->and(imagecolorat($gif, 0, 0))->toBe($transparent)
+            ->and(imagecolorsforindex($gif, $transparent))
+            ->toBe(['red' => 0, 'green' => 200, 'blue' => 0, 'alpha' => 127]);
+
+        $extractor = new GdColorExtractor;
+
+        expect($extractor->extract(new GdImage($gif), 5)->toArray())
+            ->toBe($extractor->extract(new GdImage($stripesOnly), 5)->toArray());
+    });
+
+    test('it falls back to the grayscale palette when every pixel is fully transparent', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        $trueColor = imagecreatetruecolor(50, 50);
+        imagealphablending($trueColor, false);
+        imagefilledrectangle($trueColor, 0, 0, 49, 49, imagecolorallocatealpha($trueColor, 0, 200, 0, 127));
+
+        $paletteImage = imagecreate(50, 50);
+        imagecolortransparent($paletteImage, imagecolorallocate($paletteImage, 0, 200, 0));
+
+        $extractor = new GdColorExtractor;
+        $fallback = ['#ffffff', '#c7c7c7', '#8f8f8f', '#565656', '#1e1e1e'];
+
+        expect($extractor->extract(new GdImage($trueColor), 5)->toArray())->toBe($fallback)
+            ->and($extractor->extract(new GdImage($paletteImage), 5)->toArray())->toBe($fallback);
+    });
+
+    test('it weights partially transparent pixels by their opacity', function () {
+        if (! extension_loaded('gd')) {
+            $this->markTestSkipped('GD extension is not available.');
+        }
+
+        // Left half opaque red, right half blue at alpha 85 of 127, so each
+        // blue pixel is 42/127 opaque. A single swatch is then the opacity-
+        // weighted mean, (220 * 127 + 40 * 42) / 169 = 175 red and
+        // (40 * 127 + 220 * 42) / 169 = 85 blue, not the plain mean #822882.
+        $trueColor = imagecreatetruecolor(100, 100);
+        imagealphablending($trueColor, false);
+        $paletteImage = imagecreate(100, 100);
+        foreach ([$trueColor, $paletteImage] as $gdImage) {
+            imagefilledrectangle($gdImage, 0, 0, 49, 99, imagecolorallocate($gdImage, 220, 40, 40));
+            imagefilledrectangle($gdImage, 50, 0, 99, 99, imagecolorallocatealpha($gdImage, 40, 40, 220, 85));
+        }
+
+        $extractor = new GdColorExtractor;
+
+        expect($extractor->extract(new GdImage($trueColor), 1)->toArray())->toBe(['#af2855'])
+            ->and($extractor->extract(new GdImage($paletteImage), 1)->toArray())->toBe(['#af2855']);
+    });
 });
 
 describe('GdColorExtractor - Consistency and Reproducibility', function () {
