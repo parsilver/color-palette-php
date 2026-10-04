@@ -45,6 +45,19 @@ class ImagickColorExtractor extends AbstractColorExtractor
         $pixels = $clone->getImageHistogram();
 
         foreach ($pixels as $pixel) {
+            // Each pixel counts by its opacity on GdColorExtractor's scale, 0
+            // (fully transparent) to 127 (opaque), so both drivers weigh a
+            // transparent image alike: an 8-bit alpha a rounds to a >> 1, the
+            // value GD reads from the same PNG. Alpha is read normalised, from
+            // 0.0 to 1.0 (1.0 without an alpha channel), because getColor()
+            // truncates it to an integer, 0 for any partial transparency. A
+            // pixel that rounds to 0 is skipped whatever RGB it holds; the
+            // others add their pixel count times their opacity.
+            $opacity = (int) round($pixel->getColor(1)['a'] * 127);
+            if ($opacity === 0) {
+                continue;
+            }
+
             $rgb = $pixel->getColor();
             $key = "{$rgb['r']},{$rgb['g']},{$rgb['b']}";
 
@@ -56,7 +69,7 @@ class ImagickColorExtractor extends AbstractColorExtractor
                     'count' => 0,
                 ];
             }
-            $colors[$key]['count'] += $pixel->getColorCount();
+            $colors[$key]['count'] += $pixel->getColorCount() * $opacity;
         }
 
         $clone->clear();
