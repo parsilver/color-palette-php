@@ -24,12 +24,14 @@ class GdColorExtractor extends AbstractColorExtractor
         // index from imagecolorat(), not a packed RGB value. Resolve indexes
         // through the palette, read once; a malformed file can reference an
         // index the palette does not define, and those pixels are skipped.
+        // Entries carry alpha too: a GIF's transparent index reads back as 127,
+        // and a PNG-8 keeps the per-entry alpha of its tRNS chunk.
         $palette = null;
         if (! imageistruecolor($gdImage)) {
             $palette = [];
             for ($index = 0, $total = imagecolorstotal($gdImage); $index < $total; $index++) {
                 $entry = imagecolorsforindex($gdImage, $index);
-                $palette[$index] = [$entry['red'], $entry['green'], $entry['blue']];
+                $palette[$index] = [$entry['red'], $entry['green'], $entry['blue'], 127 - $entry['alpha']];
             }
         }
 
@@ -43,9 +45,21 @@ class GdColorExtractor extends AbstractColorExtractor
                     $r = ($pixel >> 16) & 0xFF;
                     $g = ($pixel >> 8) & 0xFF;
                     $b = $pixel & 0xFF;
+                    $opacity = 127 - (($pixel >> 24) & 0x7F);
                 } elseif (isset($palette[$pixel])) {
-                    [$r, $g, $b] = $palette[$pixel];
+                    [$r, $g, $b, $opacity] = $palette[$pixel];
                 } else {
+                    continue;
+                }
+
+                // Each pixel counts by its opacity: GD alpha runs from 0 (opaque)
+                // to 127 (fully transparent), and a pixel adds 127 - alpha to its
+                // colour's count. A fully transparent pixel adds nothing, whatever
+                // RGB is stored under it, and a nearly invisible one next to
+                // nothing, so neither can claim a swatch; a half-transparent
+                // pixel counts half. Counts are thus in 1/127ths of a pixel, and
+                // clustering uses them only as relative weights.
+                if ($opacity === 0) {
                     continue;
                 }
 
@@ -64,7 +78,7 @@ class GdColorExtractor extends AbstractColorExtractor
                         'count' => 0,
                     ];
                 }
-                $colorCounts[$key]['count']++;
+                $colorCounts[$key]['count'] += $opacity;
             }
         }
 
