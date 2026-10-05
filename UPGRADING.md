@@ -45,6 +45,26 @@ usable colors already did. Opaque images are not affected. A subclass that reads
 the `count` returned by `GdColorExtractor::extractColors()` now gets
 opacity-weighted counts in 1/127ths of a pixel, so an opaque pixel counts 127.
 
+**Transparent images.** Neither driver weighted pixels by their alpha. GD
+ignored it, so a fully transparent pixel counted as whatever color was stored
+under it. Usually that is black or white, which extraction drops, but an
+invisible color could take swatches. Imagick's sampling resize already turned
+fully transparent pixels black, but every other pixel counted as opaque: a
+nearly invisible background kept its color and could take swatches, and an
+entirely transparent image came back as black swatches. Both
+drivers now skip fully transparent pixels and count a partially transparent
+pixel in proportion to its opacity: a half-transparent pixel counts half as
+much as an opaque one. On GD this covers truecolor images (PNG, WebP) and
+palette images (a GIF's transparent index, PNG-8 transparency). Both measure
+opacity on GD's scale of 0 to 127, so a pixel that GD stores as fully
+transparent, such as a PNG pixel with an 8-bit alpha of 1, is skipped by
+Imagick too. An image that is entirely transparent returns the grayscale
+fallback palette on both drivers, as an image with no usable colors already
+did. Opaque images are not affected. A subclass that reads the `count` returned
+by `GdColorExtractor::extractColors()` or
+`ImagickColorExtractor::extractColors()` now gets opacity-weighted counts in
+1/127ths of a pixel, so an opaque pixel counts 127.
+
 **Extending `AbstractColorExtractor`.** `initializeCentroids()` now receives
 the random source to draw from:
 
