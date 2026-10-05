@@ -137,3 +137,23 @@ test('it falls back to the CMYK formula when the embedded profile is unusable', 
         file_get_contents(dirname(__DIR__, 3).'/resources/icc/sRGB2014.icc'), pack('N', 1), 64, 4
     ),
 ]);
+
+test('it extracts the same palette each time one Imagick is wrapped again', function () {
+    if (! extension_loaded('imagick')) {
+        $this->markTestSkipped('Imagick extension is not available.');
+    }
+
+    $imagick = SyntheticPhoto::imagick();
+    $extractor = new ImagickColorExtractor;
+
+    // Each wrapper is a temporary, destroyed as soon as extract() returns.
+    $first = SyntheticPhoto::hexes($extractor->extract(new ImagickImage($imagick), 5));
+    $second = SyntheticPhoto::hexes($extractor->extract(new ImagickImage($imagick), 5));
+
+    // A wrapper that cleared the caller's Imagick on destruct left the second
+    // call reading an empty object, which extract() turns into this fallback.
+    expect($first)->not->toBe(['#ffffff', '#c7c7c7', '#8f8f8f', '#565656', '#1e1e1e'])
+        ->and($second)->toBe($first)
+        ->and($imagick->getNumberImages())->toBe(1)
+        ->and($imagick->getImageWidth())->toBe(SyntheticPhoto::WIDTH);
+});

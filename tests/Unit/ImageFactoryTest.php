@@ -94,6 +94,40 @@ describe('ImageFactory Imagick Driver', function () {
         expect($image)->toBeInstanceOf(ImagickImage::class);
     });
 
+    test('it frees the Imagick it created once the image is released', function () {
+        if (! extension_loaded('imagick')) {
+            $this->markTestSkipped('Imagick extension is not available.');
+        }
+
+        $path = sys_get_temp_dir().'/imagick-free-'.uniqid().'.png';
+        $source = new Imagick;
+        $source->newImage(400, 400, new ImagickPixel('red'), 'png');
+        $source->writeImage($path);
+        unset($source);
+
+        // ImageMagick's pixel cache lives in heap or mapped memory.
+        $pixelCache = fn () => Imagick::getResource(Imagick::RESOURCETYPE_MEMORY)
+            + Imagick::getResource(Imagick::RESOURCETYPE_MAP);
+
+        try {
+            $before = $pixelCache();
+            $image = $this->factory->createFromPath($path, 'imagick');
+            $held = $pixelCache();
+            unset($image);
+            $after = $pixelCache();
+        } finally {
+            @unlink($path);
+        }
+
+        if ($held <= $before) {
+            $this->markTestSkipped('This ImageMagick build does not account its pixel cache.');
+        }
+
+        // The factory's Imagick has no other holder, so releasing the image
+        // must release its pixels; the wrapper never needed to clear() it.
+        expect($after)->toBeLessThanOrEqual($before);
+    });
+
     test('it throws exception when Imagick extension is not available', function () {
         if (extension_loaded('imagick')) {
             $this->markTestSkipped('This test requires Imagick to not be loaded.');

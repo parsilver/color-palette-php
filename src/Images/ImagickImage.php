@@ -7,6 +7,10 @@ namespace Farzai\ColorPalette\Images;
 use Farzai\ColorPalette\Contracts\ImageInterface;
 
 /**
+ * Wraps an \Imagick without taking ownership of it: the wrapper never clears
+ * the object, so the caller can keep using it and wrap it again. PHP frees it
+ * once its last reference is gone.
+ *
  * @requires extension imagick
  */
 class ImagickImage implements ImageInterface
@@ -26,16 +30,5 @@ class ImagickImage implements ImageInterface
     public function getResource(): \Imagick
     {
         return $this->resource;
-    }
-
-    public function __destruct()
-    {
-        try {
-            $this->resource->clear();
-        } catch (\Throwable) {
-            // Imagick::clear() can throw if the resource is already destroyed or
-            // invalid; a destructor must never let an exception escape (it would
-            // become a fatal error during object destruction / script shutdown).
-        }
     }
 }
