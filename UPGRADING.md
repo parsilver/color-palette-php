@@ -33,6 +33,20 @@ stayed within a CIEDE2000 difference of 1.5 of a full-size conversion. Without
 a usable profile, or on an ImageMagick built without lcms, the plain CMYK
 formula is used, and its colors can be more than 20 away.
 
+**Wide-gamut RGB images.** The Imagick driver read every RGB image as sRGB, so
+an image that embeds another RGB profile, such as Adobe RGB (1998) from a
+camera, Display P3 from an iPhone or Mac, or ProPhoto RGB from a photo editor,
+came back duller than it is. Across 18 photos in our tests, the color furthest
+off in each palette was a median CIEDE2000 difference of 3 (Display P3) to 5
+(Adobe RGB) from the sRGB original's, and over 10 for 3 of them. These images
+are now converted through their profile like CMYK ones, which kept every Adobe
+RGB and Display P3 palette within 1.6 of the original; re-encoding the original
+as JPEG moves it up to 1.7. An image tagged with an sRGB profile other than the
+ICC's own, as many sRGB images are, takes the same path and stayed within 3
+(median 0.7) of an untagged copy. Without a usable profile, or on an
+ImageMagick built without lcms, the pixels are read as sRGB as before. The GD
+driver does no color management and reads every image as sRGB.
+
 **Transparent images.** Neither driver weighted pixels by their alpha. GD
 ignored it, so a fully transparent pixel counted as whatever color was stored
 under it. Usually that is black or white, which extraction drops, but an
