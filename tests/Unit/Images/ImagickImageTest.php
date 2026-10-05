@@ -9,19 +9,20 @@ beforeEach(function () {
     }
 });
 
-describe('ImagickImage - Resource Cleanup Safety', function () {
-    test('its destructor swallows Imagick::clear() failures', function () {
-        // A destructor must never let an exception escape (it would become a
-        // fatal error during shutdown). Force clear() to throw and assert the
-        // object can be destroyed without the exception propagating.
-        $resource = Mockery::mock(Imagick::class);
-        $resource->shouldReceive('clear')->andThrow(new ImagickException('clear failed'));
+describe('ImagickImage - Resource Ownership', function () {
+    test('it leaves the caller\'s Imagick intact when the wrapper is destroyed', function () {
+        // The wrapper borrows the caller's object. Clearing it on destruct left
+        // the caller holding an empty Imagick, so wrapping it a second time
+        // extracted nothing.
+        $imagick = new Imagick;
+        $imagick->newImage(40, 30, new ImagickPixel('red'));
 
-        $image = new ImagickImage($resource);
+        $image = new ImagickImage($imagick);
+        unset($image);
 
-        unset($image); // triggers __destruct -> clear() throws -> must be swallowed
-
-        expect(true)->toBeTrue();
+        expect($imagick->getNumberImages())->toBe(1)
+            ->and($imagick->getImageWidth())->toBe(40)
+            ->and($imagick->getImageHeight())->toBe(30);
     });
 });
 
@@ -151,24 +152,6 @@ describe('ImagickImage - Real Image Files', function () {
 });
 
 describe('ImagickImage - Resource Management', function () {
-    test('it properly cleans up resources on destruct', function () {
-        $imagick = new Imagick;
-        $imagick->newImage(100, 100, new ImagickPixel('red'));
-
-        $image = new ImagickImage($imagick);
-
-        // Get the resource
-        $resource = $image->getResource();
-        expect($resource)->toBeInstanceOf(Imagick::class);
-
-        // Destroy the image object (calls __destruct)
-        unset($image);
-
-        // After destruction, the resource should be cleared
-        // We can't directly test this, but we can verify the test doesn't crash
-        expect(true)->toBeTrue();
-    });
-
     test('it maintains resource integrity during lifetime', function () {
         $imagick = new Imagick;
         $imagick->newImage(50, 50, new ImagickPixel('green'));
