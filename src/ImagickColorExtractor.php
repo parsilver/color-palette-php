@@ -128,15 +128,11 @@ class ImagickColorExtractor extends AbstractColorExtractor
     }
 
     /**
-     * The ICC's sRGB profile (sRGB2014.icc), shipped in resources/icc.
+     * The ICC's sRGB profile (sRGB2014.icc), shipped in resources/icc. It is
+     * only missing or empty if the package itself is broken.
      */
     private static function srgbProfile(): string
     {
-        $profile = file_get_contents(self::SRGB_PROFILE);
-        if ($profile === false) {
-            throw new \RuntimeException('Cannot read the sRGB ICC profile at '.self::SRGB_PROFILE);
-        }
-
-        return $profile;
+        return file_get_contents(self::SRGB_PROFILE) ?: throw new \RuntimeException('Cannot read '.self::SRGB_PROFILE);
     }
 }
