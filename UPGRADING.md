@@ -47,6 +47,18 @@ ICC's own, as many sRGB images are, takes the same path and stayed within 3
 ImageMagick built without lcms, the pixels are read as sRGB as before. The GD
 driver does no color management and reads every image as sRGB.
 
+**Transparent images on the GD driver.** GD ignored alpha, so a fully
+transparent pixel counted as whatever color was stored under it. Usually that
+is black or white, which extraction drops, but an invisible color could take
+swatches. Fully transparent pixels are now skipped in truecolor images (PNG,
+WebP) and palette images (a GIF's transparent index, PNG-8 transparency), and a
+partially transparent pixel counts in proportion to its opacity: a
+half-transparent pixel counts half as much as an opaque one. An image that is
+entirely transparent returns the grayscale fallback palette, as an image with no
+usable colors already did. Opaque images are not affected. A subclass that reads
+the `count` returned by `GdColorExtractor::extractColors()` now gets
+opacity-weighted counts in 1/127ths of a pixel, so an opaque pixel counts 127.
+
 **Extending `AbstractColorExtractor`.** `initializeCentroids()` now receives
 the random source to draw from:
 
