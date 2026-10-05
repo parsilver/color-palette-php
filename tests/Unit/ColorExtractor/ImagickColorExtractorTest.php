@@ -3,6 +3,7 @@
 use Farzai\ColorPalette\ImageLoaderFactory;
 use Farzai\ColorPalette\Images\ImagickImage;
 use Farzai\ColorPalette\ImagickColorExtractor;
+use Farzai\ColorPalette\Tests\Fixtures\DotGainCmyk;
 use Farzai\ColorPalette\Tests\Fixtures\SyntheticPhoto;
 
 test('it can extract colors from image', function () {
@@ -57,6 +58,85 @@ test('it converts CMYK images to sRGB before reading colours', function () {
             ->and(abs($actual[$i]->getBlue() - $color->getBlue()))->toBeLessThanOrEqual(2);
     }
 });
+
+test('it converts CMYK images through their embedded ICC profile', function (int $scale) {
+    if (! extension_loaded('imagick')) {
+        $this->markTestSkipped('Imagick extension is not available.');
+    }
+    if (DotGainCmyk::lacksLcms()) {
+        $this->markTestSkipped('ImageMagick was built without lcms, so it cannot apply ICC profiles.');
+    }
+
+    // At 3x the image is larger than the size the extractor converts at, so
+    // it is shrunk first and the profile has to survive that shrink.
+    $bytes = SyntheticPhoto::enlargedBytes($scale);
+    $width = SyntheticPhoto::WIDTH * $scale;
+    $height = SyntheticPhoto::HEIGHT * $scale;
+    $extractor = new ImagickColorExtractor;
+    $palette = fn (Imagick $image) => SyntheticPhoto::hexes($extractor->extract(new ImagickImage($image), 5));
+
+    $original = SyntheticPhoto::paletteHex('imagick');
+    $tagged = $palette(DotGainCmyk::imagick($bytes, $width, $height));
+    $untagged = $palette(DotGainCmyk::imagick($bytes, $width, $height, tagged: false));
+
+    expect(SyntheticPhoto::paletteDistance($original, $tagged))->toBeLessThanOrEqual(4.0);
+    // The same CMYK pixels read with the plain formula come back far lighter,
+    // so it is the profile that brings them back to the original.
+    expect(SyntheticPhoto::paletteDistance($original, $untagged))->toBeGreaterThan(40.0);
+})->with(['at its own size' => 1, 'larger than the conversion size' => 3]);
+
+test('it converts CMYK images before averaging their pixels', function () {
+    if (! extension_loaded('imagick')) {
+        $this->markTestSkipped('Imagick extension is not available.');
+    }
+    if (DotGainCmyk::lacksLcms()) {
+        $this->markTestSkipped('ImageMagick was built without lcms, so it cannot apply ICC profiles.');
+    }
+
+    // A one-pixel black and white checkerboard, which the 50x50 sample turns
+    // into flat grey. Averaged in sRGB, as the same image in sRGB would be,
+    // that grey is #808080. Averaged in CMYK first, half-strength black ink
+    // on this press prints as #404040.
+    $bytes = [];
+    for ($y = 0; $y < 100; $y++) {
+        for ($x = 0; $x < 100; $x++) {
+            array_push($bytes, ...array_fill(0, 3, ($x + $y) % 2 * 255));
+        }
+    }
+
+    $grey = (new ImagickColorExtractor)->extract(new ImagickImage(DotGainCmyk::imagick($bytes, 100, 100)), 1)[0];
+
+    expect(abs($grey->getRed() - 128))->toBeLessThanOrEqual(2)
+        ->and(abs($grey->getGreen() - 128))->toBeLessThanOrEqual(2)
+        ->and(abs($grey->getBlue() - 128))->toBeLessThanOrEqual(2);
+});
+
+test('it falls back to the CMYK formula when the embedded profile is unusable', function (Closure $profile) {
+    if (! extension_loaded('imagick')) {
+        $this->markTestSkipped('Imagick extension is not available.');
+    }
+
+    $bytes = SyntheticPhoto::rgbBytes();
+    $tagged = DotGainCmyk::imagick($bytes, SyntheticPhoto::WIDTH, SyntheticPhoto::HEIGHT, tagged: false);
+    $tagged->setImageProfile('icc', $profile());
+    $untagged = DotGainCmyk::imagick($bytes, SyntheticPhoto::WIDTH, SyntheticPhoto::HEIGHT, tagged: false);
+
+    $extractor = new ImagickColorExtractor;
+
+    // The colours of an image without a profile, not the grayscale fallback
+    // extract() returns when conversion throws.
+    expect(SyntheticPhoto::hexes($extractor->extract(new ImagickImage($tagged), 5)))
+        ->toBe(SyntheticPhoto::hexes($extractor->extract(new ImagickImage($untagged), 5)));
+})->with([
+    'truncated' => fn () => substr(DotGainCmyk::profile(), 0, 300),
+    'not a profile' => fn () => str_repeat('x', 500),
+    // ImageMagick applies an RGB profile to CMYK pixels without complaint and
+    // returns nonsense. The rendering intent is changed so it does not match
+    // the sRGB profile the extractor converts to, which ImageMagick would skip.
+    'an RGB profile' => fn () => substr_replace(
+        file_get_contents(dirname(__DIR__, 3).'/resources/icc/sRGB2014.icc'), pack('N', 1), 64, 4
+    ),
+]);
 
 test('it extracts the same palette each time one Imagick is wrapped again', function () {
     if (! extension_loaded('imagick')) {

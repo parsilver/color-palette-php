@@ -26,8 +26,12 @@ about 0.09 s to about 0.4 s and the Imagick driver from about 0.05 s to about
 grayscale PNG) previously came back as shades of pure blue, or near-black for
 small palettes, because the palette index was read as the blue channel. Imagick
 CMYK images came back in wrong colors because their C/M/Y values were read as
-R/G/B. Both now extract their real colors. CMYK images that embed an ICC
-profile are converted without it, so their colors are approximate.
+R/G/B. Both now extract their real colors. A CMYK image that embeds a CMYK ICC
+profile, as Photoshop CMYK exports do, is converted through that profile with
+the ICC's sRGB profile shipped in `resources/icc`; in our tests its palette
+stayed within a CIEDE2000 difference of 1.5 of a full-size conversion. Without
+a usable profile, or on an ImageMagick built without lcms, the plain CMYK
+formula is used, and its colors can be more than 20 away.
 
 **Extending `AbstractColorExtractor`.** `initializeCentroids()` now receives
 the random source to draw from:

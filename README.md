@@ -474,6 +474,7 @@ $textColor = $palette->getSuggestedTextColor($backgroundColor);
 **Imagick (For better accuracy):**
 - More accurate color extraction
 - Better handling of complex images
+- Reads CMYK images through their embedded ICC profile
 - Supports more image formats
 - Requires additional installation
 - Higher memory usage
