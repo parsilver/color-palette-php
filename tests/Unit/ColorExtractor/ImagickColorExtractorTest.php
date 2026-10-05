@@ -186,3 +186,23 @@ test('it reads RGB images tagged with the sRGB profile as they are', function ()
     expect(SyntheticPhoto::hexes($extractor->extract(new ImagickImage($tagged), 5)))
         ->toBe(SyntheticPhoto::hexes($extractor->extract(new ImagickImage($untagged), 5)));
 });
+
+test('it extracts the same palette each time one Imagick is wrapped again', function () {
+    if (! extension_loaded('imagick')) {
+        $this->markTestSkipped('Imagick extension is not available.');
+    }
+
+    $imagick = SyntheticPhoto::imagick();
+    $extractor = new ImagickColorExtractor;
+
+    // Each wrapper is a temporary, destroyed as soon as extract() returns.
+    $first = SyntheticPhoto::hexes($extractor->extract(new ImagickImage($imagick), 5));
+    $second = SyntheticPhoto::hexes($extractor->extract(new ImagickImage($imagick), 5));
+
+    // A wrapper that cleared the caller's Imagick on destruct left the second
+    // call reading an empty object, which extract() turns into this fallback.
+    expect($first)->not->toBe(['#ffffff', '#c7c7c7', '#8f8f8f', '#565656', '#1e1e1e'])
+        ->and($second)->toBe($first)
+        ->and($imagick->getNumberImages())->toBe(1)
+        ->and($imagick->getImageWidth())->toBe(SyntheticPhoto::WIDTH);
+});
