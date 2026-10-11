@@ -2,9 +2,10 @@
 
 ## Upgrading from 2.x to 3.0
 
-Version 3.0 changes the palettes that color extraction returns, and changes
-one protected method of `AbstractColorExtractor`. The public API is otherwise
-unchanged.
+Version 3.0 changes the palettes that color extraction returns. The public
+extraction API is unchanged, but `ImagickImage` no longer frees an `\Imagick`
+you pass it and its public `__destruct()` method is removed, and a few
+extension points for subclasses of the extractors have changed.
 
 > **Behavior change — extracted colors.** k-means now runs from ten seeded,
 > count-weighted k-means++ starts and keeps the lowest-error result, instead of
@@ -47,6 +48,16 @@ ICC's own, as many sRGB images are, takes the same path and stayed within 3
 ImageMagick built without lcms, the pixels are read as sRGB as before. The GD
 driver does no color management and reads every image as sRGB.
 
+**Keep `resources/` when you deploy.** The Imagick driver reads
+`resources/icc/sRGB2014.icc` for every CMYK image that embeds a CMYK ICC
+profile and every RGB image that embeds an RGB one, which includes most camera
+and phone photos. If a deploy step or a tool that prunes `vendor/` removes the
+file, extraction of those images emits a PHP warning and returns the grayscale
+fallback palette; the error itself is reported only through a PSR-3 logger you
+pass to the extractor. Profile conversion also needs ImageMagick built with
+lcms; without it, RGB images are read as sRGB, as in 2.x, and CMYK images
+fall back to the plain formula conversion.
+
 **Transparent images.** Neither driver weighted pixels by their alpha. GD
 ignored it, so a fully transparent pixel counted as whatever color was stored
 under it. Usually that is black or white, which extraction drops, but an
@@ -66,6 +77,20 @@ that reads the `count` returned by `GdColorExtractor::extractColors()` or
 `ImagickColorExtractor::extractColors()` now gets opacity-weighted counts in
 1/127ths of a pixel, so an opaque pixel counts 127.
 
+**`ImagickImage` no longer frees the `\Imagick` you pass it.** In 2.x its
+destructor called `clear()` on an object it only borrowed, so wrapping one
+`\Imagick` twice emptied it when the first wrapper went away, and the next
+extraction returned the grayscale fallback palette. The wrapper now borrows the
+object, as `GdImage` does, never calls `clear()` on it, and no longer defines a
+`__destruct()` method. Images loaded through `ImageFactory::fromPath()` /
+`createFromPath()`, `ImageLoader`, `ColorPalette::fromImage()` or
+`ColorPaletteBuilder` are still freed when the image is released, because the
+wrapper is the only holder. If you construct `new ImagickImage($imagick)`
+yourself, keep your own reference to `$imagick`, and relied on the wrapper
+going away to free its pixel memory, call `$imagick->clear()` when you are done
+with it. A subclass whose destructor calls `parent::__destruct()` must drop
+that call; otherwise it throws an `Error` when the wrapper is destroyed.
+
 **Extending `AbstractColorExtractor`.** `initializeCentroids()` now receives
 the random source to draw from:
 
@@ -76,9 +101,21 @@ protected function initializeCentroids(array $colors, int $k): array
 protected function initializeCentroids(array $colors, int $k, \Random\Randomizer $randomizer): array
 ```
 
-It is called once per restart, ten times per extraction, with one shared
+A subclass of `AbstractColorExtractor`, `GdColorExtractor` or
+`ImagickColorExtractor` that overrides it with the old signature fails with a
+fatal error when the class is loaded. A subclass that calls it with the old two
+arguments, for example from an overridden `clusterColors()`, does not fail
+loudly: `extract()` catches the `ArgumentCountError` and returns the grayscale
+fallback palette, and with the default `NullLogger` nothing is reported. Pass a
+PSR-3 logger to the extractor while you test the upgrade.
+
+It is called once per restart, up to ten times per extraction, with one shared
 generator. An override must draw from `$randomizer` rather than seed its own
-generator, or every restart starts from the same centroids.
+generator, or every restart starts from the same centroids. It receives a
+0-based list whose colors hold only `r`, `g`, `b` (rounded to integers) and
+`count`, and the centroids it returns must have integer channels: a float
+centroid can cause a `TypeError`, which `extract()` also turns into the
+fallback palette.
 
 Clustering now assigns colors by squared Euclidean RGB distance directly, so
 overriding `calculateColorDistance()` only affects the convergence check, not
