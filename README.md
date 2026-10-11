@@ -474,7 +474,7 @@ $textColor = $palette->getSuggestedTextColor($backgroundColor);
 **Imagick (For better accuracy):**
 - More accurate color extraction
 - Better handling of complex images
-- Reads CMYK, Adobe RGB and Display P3 images through their embedded ICC profile
+- Reads CMYK, Adobe RGB and Display P3 images through their embedded ICC profile (needs ImageMagick built with lcms)
 - Supports more image formats
 - Requires additional installation
 - Higher memory usage
@@ -796,3 +796,5 @@ Please review [our security policy](https://github.com/parsilver/color-palette-p
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+
+One bundled file is not covered by the MIT licence: `resources/icc/sRGB2014.icc`, the International Color Consortium's sRGB profile, which the Imagick driver uses to convert CMYK and wide-gamut RGB images. It is distributed unaltered under the ICC's terms, which permit redistribution without restriction. See [resources/icc/README.md](resources/icc/README.md).
