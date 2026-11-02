@@ -40,7 +40,7 @@
         "pestphp/pest": "^2.20|^3.7|^4.0",
         "phpstan/phpstan": "^2.0",
         "spatie/ray": "^1.28",
-        "symfony/http-client": "^6.4|^7.2"
+        "symfony/http-client": "^8.1.10"
     },
     "suggest": {
         "symfony/http-client": "Recommended PSR-18 client for loading images from remote URLs; the factory configures it to not follow redirects for SSRF safety",
