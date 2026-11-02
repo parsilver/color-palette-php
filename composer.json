@@ -37,7 +37,7 @@
         "laravel/pint": "^1.0",
         "mockery/mockery": "^1.6",
         "nyholm/psr7": "^1.8",
-        "pestphp/pest": "^2.20|^3.7|^4.0",
+        "pestphp/pest": "^5.3.4",
         "phpstan/phpstan": "^2.0",
         "spatie/ray": "^1.28",
         "symfony/http-client": "^6.4|^7.2"
